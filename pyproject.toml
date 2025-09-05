@@ -3,20 +3,23 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "openai-mcp-server"
+name = "ai-game-dev"
 dynamic = ["version"]
-description = "Advanced Python MCP Server for OpenAI multimodal capabilities"
+description = "Revolutionary AI-powered game development library with multi-agent orchestration and cross-language support"
 requires-python = ">=3.11"
 authors = [
     { name = "OpenAI MCP Server", email = "dev@example.com" },
 ]
 keywords = [
-    "openai",
-    "mcp", 
-    "multimodal",
-    "image-generation",
-    "3d-models",
+    "ai",
+    "game-development", 
+    "langgraph",
+    "multi-agent",
     "bevy",
+    "godot",
+    "arcade",
+    "rust-integration",
+    "pyo3",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -49,6 +52,10 @@ dependencies = [
     "langchain-core>=0.3.75",
     "langgraph>=0.6.6",
     "langgraph-checkpoint>=2.1.1",
+    "pyo3>=1.0.0",
+    "maturin>=1.0.0",
+    "nuitka>=2.0.0",
+    "cffi>=1.0.0",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.1.0",
 ]
@@ -96,25 +103,41 @@ test-bevy = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_
 test-godot = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_godot_scene_generation -v"  
 test-arcade = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_arcade_web_generation -v"
 test-agents = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_multi_agent_handoffs -v"
-generate-examples = "python -m openai_mcp_server.examples.generate_all"
+generate-examples = "python -m ai_game_dev.examples.generate_all"
 # Dogfooding - use our own system to generate content for the codebase
-dogfood-generate = "python -m openai_mcp_server.build.dogfood"
+dogfood-generate = "python -m ai_game_dev.build.dogfood"
 # End-to-end testing with real MCP clients
 test-e2e-python = "python tests/e2e/test_python_client.py"
 test-e2e-rust = "cd tests/e2e/rust_client && cargo test"
 test-e2e-node = "cd tests/e2e/node_client && npm test"
 test-e2e-all = ["test-e2e-python", "test-e2e-rust", "test-e2e-node"]
-setup-e2e-clients = "python -m openai_mcp_server.build.setup_e2e_clients"
+setup-e2e-clients = "python -m ai_game_dev.build.setup_e2e_clients"
+# Nuitka compilation commands
+compile-standalone = "python -m ai_game_dev.compilation.compile_standalone"
+compile-c-bindings = "python -m ai_game_dev.compilation.create_c_bindings"
+compile-node-bindings = "python -m ai_game_dev.compilation.create_node_bindings"
+compile-go-bindings = "python -m ai_game_dev.compilation.create_go_bindings"
+compile-all-bindings = ["compile-c-bindings", "compile-node-bindings", "compile-go-bindings"]
 show-examples = "ls -la generated_examples/"
 
 [project.scripts]
-openai-mcp-server = "openai_mcp_server.main:main"
+ai-game-dev = "ai_game_dev.main:main"
+ai-game-dev-server = "ai_game_dev.server:run_mcp_server"
+ai-game-dev-library = "ai_game_dev.library:demo"
+ai-game-dev-compile = "ai_game_dev.compilation:compile_binary"
 
 [tool.hatch.version]
-path = "src/openai_mcp_server/__init__.py"
+path = "src/ai_game_dev/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/openai_mcp_server"]
+packages = ["src/ai_game_dev"]
+
+# PyO3 Rust extension configuration
+[tool.maturin]
+module-name = "ai_game_dev._rust"
+features = ["pyo3/extension-module"]
+python-source = "src"
+bindings = "pyo3"
 
 [tool.black]
 target-version = ["py312"]

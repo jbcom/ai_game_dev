@@ -1,0 +1,72 @@
+[workspace]
+members = [
+    ".",
+    "crates/bevy_game_dev",
+    "crates/godot_game_dev",
+]
+resolver = "2"
+
+[package]
+name = "ai-game-dev"
+version = "1.0.0"
+edition = "2021"
+description = "Core Rust acceleration for AI Game Development library via PyO3"
+authors = ["AI Game Dev Team"]
+license = "MIT"
+repository = "https://github.com/ai-game-dev/ai-game-dev"
+
+[lib]
+name = "_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+bevy_ecs = "0.14"
+bevy_math = "0.14"
+anyhow = "1.0"
+
+[dependencies.bevy]
+version = "0.14"
+default-features = false
+features = [
+    "bevy_core_pipeline",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "bevy_winit",
+    "bevy_asset",
+    "png",
+    "x11"
+]
+
+[build-dependencies]
+pyo3-build-config = "0.22"
+
+[[bin]]
+name = "bevy_optimizer"
+path = "src/bin/bevy_optimizer.rs"
+
+[workspace.dependencies]
+# Shared dependencies across workspace
+ai-game-dev = { path = ".", version = "1.0.0" }
+pyo3 = "0.22"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[features]
+default = ["bevy_integration"]
+bevy_integration = ["bevy", "bevy_ecs", "bevy_math"]
+performance_profiling = []
+memory_optimization = []
