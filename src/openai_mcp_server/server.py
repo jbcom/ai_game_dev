@@ -29,6 +29,7 @@ from openai_mcp_server.models import (
     ImageEditRequest, VerificationCriteria, WorkflowSpec, UIElementSpec,
     MaskRegion, EditOperation, VerificationMode, WorkflowType
 )
+from openai_mcp_server.bevy_assets import BevyAssetGenerator, BevyAssetType, BevyMaterialType
 
 
 def create_server() -> FastMCP:
@@ -65,18 +66,18 @@ def create_server() -> FastMCP:
                 "status": "ready",
                 "openai_connected": True,
                 "capabilities": [
+                    "Specialized Bevy game engine asset generation",
+                    "Complete game asset pack generation",
+                    "Bevy 2D sprite generation with animation support",
+                    "Tilemap generation with Bevy tilemap integration",
+                    "UI theme generation for Bevy UI system",
+                    "Particle texture generation for Bevy particle systems",
+                    "PBR material generation for Bevy StandardMaterial",
                     "Advanced image generation with masking and targeted edits",
-                    "Image variations with structure preservation",
                     "Vision-based verification with automatic regeneration",
                     "Intelligent workflow generation from task descriptions",
-                    "UI element generation for game development",
                     "Configuration-based batch processing (TOML/YAML/JSON)",
-                    "3D model generation (Bevy-compatible GLTF)",
-                    "Advanced caching system with TTL/LRU eviction",
-                    "AI-powered content validation and safety checks",
-                    "Multi-format export (PNG, JPEG, WebP, GLB, OBJ)",
-                    "Performance metrics and monitoring",
-                    "Structured logging with Rich formatting"
+                    "AI-powered content validation and safety checks"
                 ],
                 "cache_stats": cache_manager.get_stats(),
                 "metrics": metrics.get_summary(),
@@ -595,6 +596,254 @@ def create_server() -> FastMCP:
             
         except Exception as e:
             logger.error(f"Config batch processing failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    # Specialized Bevy game development tools
+    @mcp.tool()
+    async def generate_bevy_sprite(
+        name: str,
+        description: str,
+        size: ImageSize = "512x512",
+        style: str = "pixel art",
+        transparent: bool = True,
+        animation_frames: int = 1
+    ) -> dict[str, Any]:
+        """Generate 2D sprite optimized for Bevy game engine."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            result = await bevy_generator.generate_sprite_2d(
+                name=name,
+                description=description,
+                size=size,
+                transparent=transparent,
+                style=style,
+                animation_frames=animation_frames
+            )
+            
+            return {
+                "status": "generated",
+                "sprite": result.model_dump(),
+                "bevy_ready": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Bevy sprite generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_bevy_tilemap(
+        theme: str,
+        tile_count: int = 16,
+        tile_width: int = 64,
+        tile_height: int = 64,
+        seamless: bool = True
+    ) -> dict[str, Any]:
+        """Generate complete tilemap set for Bevy tilemaps."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            result = await bevy_generator.generate_tilemap_set(
+                theme=theme,
+                tile_count=tile_count,
+                tile_size=(tile_width, tile_height),
+                seamless=seamless
+            )
+            
+            return {
+                "status": "generated",
+                "tilemap": result,
+                "bevy_ready": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Bevy tilemap generation failed: {e}")
+            return {
+                "status": "error", 
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_bevy_ui_theme(
+        theme_name: str,
+        style: str = "fantasy",
+        elements: list[str] = None
+    ) -> dict[str, Any]:
+        """Generate complete UI theme for Bevy UI system."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            result = await bevy_generator.generate_ui_theme(
+                theme_name=theme_name,
+                style=style,
+                elements=elements
+            )
+            
+            return {
+                "status": "generated",
+                "ui_theme": result,
+                "bevy_ready": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Bevy UI theme generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_bevy_particles(
+        effect_type: str,
+        particle_count: int = 8,
+        size: ImageSize = "256x256"
+    ) -> dict[str, Any]:
+        """Generate particle textures for Bevy particle systems."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            result = await bevy_generator.generate_particle_textures(
+                effect_type=effect_type,
+                count=particle_count,
+                size=size
+            )
+            
+            return {
+                "status": "generated",
+                "particles": result,
+                "bevy_ready": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Bevy particle generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_bevy_pbr_material(
+        material_name: str,
+        description: str,
+        size: ImageSize = "1024x1024"
+    ) -> dict[str, Any]:
+        """Generate complete PBR material set for Bevy StandardMaterial."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            result = await bevy_generator.generate_pbr_material_set(
+                material_name=material_name,
+                description=description,
+                size=size
+            )
+            
+            return {
+                "status": "generated",
+                "material": result,
+                "bevy_ready": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Bevy PBR material generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_complete_game_assets(
+        game_theme: str,
+        game_type: str = "2d_platformer",
+        include_sprites: bool = True,
+        include_tilemap: bool = True,
+        include_ui: bool = True,
+        include_particles: bool = True
+    ) -> dict[str, Any]:
+        """Generate complete asset pack for a Bevy game project."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            assets = {"game_theme": game_theme, "game_type": game_type, "assets": {}}
+            
+            # Generate sprites
+            if include_sprites:
+                sprite_types = {
+                    "2d_platformer": ["player_character", "enemy_basic", "collectible_coin", "power_up"],
+                    "rpg": ["hero_warrior", "enemy_goblin", "chest_treasure", "potion_health"],
+                    "puzzle": ["block_movable", "target_goal", "obstacle_fixed", "bonus_star"],
+                    "shooter": ["player_ship", "enemy_fighter", "projectile_bullet", "explosion_small"]
+                }
+                
+                sprites = []
+                for sprite_name in sprite_types.get(game_type, ["game_sprite_1", "game_sprite_2"]):
+                    sprite = await bevy_generator.generate_sprite_2d(
+                        name=f"{game_theme}_{sprite_name}",
+                        description=f"{sprite_name} for {game_theme} {game_type}",
+                        style="pixel art" if "platformer" in game_type else "game art"
+                    )
+                    sprites.append(sprite.model_dump())
+                
+                assets["assets"]["sprites"] = sprites
+            
+            # Generate tilemap
+            if include_tilemap:
+                tilemap = await bevy_generator.generate_tilemap_set(theme=game_theme, tile_count=12)
+                assets["assets"]["tilemap"] = tilemap
+            
+            # Generate UI theme
+            if include_ui:
+                ui_theme = await bevy_generator.generate_ui_theme(
+                    theme_name=f"{game_theme}_ui",
+                    style=game_theme
+                )
+                assets["assets"]["ui_theme"] = ui_theme
+            
+            # Generate particle effects
+            if include_particles:
+                particle_effects = ["fire", "magic", "explosion"]
+                particles = {}
+                for effect in particle_effects[:2]:  # Limit to 2 effects
+                    effect_particles = await bevy_generator.generate_particle_textures(
+                        effect_type=effect,
+                        count=4
+                    )
+                    particles[effect] = effect_particles
+                
+                assets["assets"]["particles"] = particles
+            
+            return {
+                "status": "generated",
+                "complete_asset_pack": assets,
+                "bevy_ready": True,
+                "asset_count": sum(len(v) if isinstance(v, list) else 1 for v in assets["assets"].values())
+            }
+            
+        except Exception as e:
+            logger.error(f"Complete game asset generation failed: {e}")
             return {
                 "status": "error",
                 "error": str(e)
