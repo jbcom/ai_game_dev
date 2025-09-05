@@ -21,6 +21,7 @@ import tiktoken
 # Type definitions for OpenAI API
 ImageSize = Literal["1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
 ImageQuality = Literal["standard", "hd", "low", "medium", "high"]
+ImageDetail = Literal["low", "high", "auto"]
 
 # Initialize the MCP server
 mcp = FastMCP("openai-multimodal-server")
@@ -81,10 +82,12 @@ def get_server_status() -> dict[str, Any]:
             "status": "ready",
             "openai_connected": True,
             "capabilities": [
-                "gpt-image-1 image generation",
-                "vision-based image verification", 
+                "gpt-image-1 image generation (Images API)",
+                "Enhanced image generation (Responses API)",
+                "Advanced vision analysis with detail control",
+                "Legacy vision-based image verification", 
                 "3D model generation (Bevy-compatible GLTF)",
-                "idempotent caching system"
+                "Idempotent caching system"
             ],
             "cache_stats": {
                 "images_cached": len(list(IMAGES_DIR.glob("*.png"))),
@@ -104,7 +107,8 @@ async def generate_image(
     prompt: str,
     size: ImageSize = "1024x1024",
     quality: ImageQuality = "standard",
-    force_regenerate: bool = False
+    force_regenerate: bool = False,
+    use_responses_api: bool = False
 ) -> dict[str, Any]:
     """
     Generate an image using OpenAI's gpt-image-1 model with idempotent caching
@@ -114,6 +118,7 @@ async def generate_image(
         size: Image dimensions (1024x1024, 1536x1024, 4096x4096, etc.)
         quality: Image quality (standard, high)
         force_regenerate: If True, bypass cache and regenerate the image
+        use_responses_api: If True, use new Responses API instead of Images API
     """
     global openai_client
     if openai_client is None:
@@ -133,26 +138,47 @@ async def generate_image(
         }
     
     try:
-        # Generate image using gpt-image-1 with base64 response
-        response = openai_client.images.generate(
-            model="gpt-image-1",
-            prompt=prompt,
-            size=size,
-            quality=quality,
-            n=1,
-            response_format="b64_json"
-        )
-        
-        # Get base64 image data and save directly
-        if response.data and len(response.data) > 0:
-            import base64
-            image_b64 = response.data[0].b64_json
-            if image_b64:
-                image_data = base64.b64decode(image_b64)
+        if use_responses_api:
+            # Use the new Responses API for image generation
+            response = openai_client.responses.create(
+                model="gpt-4.1-mini",  # Updated model for Responses API
+                input=prompt,
+                tools=[{"type": "image_generation"}],
+            )
+            
+            # Extract image data from response
+            image_data_list = [
+                output.result
+                for output in response.output
+                if output.type == "image_generation_call"
+            ]
+            
+            if image_data_list and image_data_list[0]:
+                import base64
+                image_data = base64.b64decode(image_data_list[0])
+            else:
+                raise ValueError("No image data returned from Responses API")
+        else:
+            # Use traditional Images API with gpt-image-1
+            response = openai_client.images.generate(
+                model="gpt-image-1",
+                prompt=prompt,
+                size=size,
+                quality=quality,
+                n=1,
+                response_format="b64_json"
+            )
+            
+            # Get base64 image data and decode
+            if response.data and len(response.data) > 0:
+                import base64
+                image_b64 = response.data[0].b64_json
+                if image_b64:
+                    image_data = base64.b64decode(image_b64)
+                else:
+                    raise ValueError("No image data returned from OpenAI API")
             else:
                 raise ValueError("No image data returned from OpenAI API")
-        else:
-            raise ValueError("No image data returned from OpenAI API")
         
         # Save to cache
         with open(image_path, 'wb') as f:
@@ -175,10 +201,75 @@ async def generate_image(
         }
 
 @mcp.tool()
+async def analyze_image_with_responses_api(
+    image_path: str,
+    analysis_prompt: str = "What's in this image?",
+    detail_level: ImageDetail = "auto"
+) -> dict[str, Any]:
+    """
+    Analyze an image using the new Responses API for enhanced multimodal capabilities
+    
+    Args:
+        image_path: Path to the image file to analyze
+        analysis_prompt: Prompt for the analysis
+        detail_level: Processing detail level (low, high, auto)
+    """
+    global openai_client
+    if openai_client is None:
+        openai_client = initialize_openai_client()
+    
+    image_file = Path(image_path)
+    if not image_file.exists():
+        return {
+            "status": "error",
+            "error": f"Image file not found: {image_path}"
+        }
+    
+    try:
+        # Encode image to base64
+        import base64
+        with open(image_file, "rb") as f:
+            image_data = base64.b64encode(f.read()).decode()
+        
+        # Use Responses API for image analysis
+        response = openai_client.responses.create(
+            model="gpt-4.1-mini",
+            input=[{
+                "role": "user", 
+                "content": [
+                    {"type": "input_text", "text": analysis_prompt},
+                    {
+                        "type": "input_image",
+                        "image_url": f"data:image/png;base64,{image_data}",
+                        "detail": detail_level
+                    }
+                ]
+            }]
+        )
+        
+        return {
+            "status": "analyzed",
+            "image_path": image_path,
+            "analysis_prompt": analysis_prompt,
+            "analysis": response.output_text,
+            "detail_level": detail_level,
+            "model_used": "gpt-4.1-mini (Responses API)",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "image_path": image_path
+        }
+
+@mcp.tool()
 async def verify_image_with_vision(
     image_path: str,
     verification_prompt: str = "Describe this image in detail",
-    use_cache: bool = True
+    use_cache: bool = True,
+    detail_level: ImageDetail = "auto"
 ) -> dict[str, Any]:
     """
     Verify and analyze an image using OpenAI's vision capabilities
@@ -187,6 +278,7 @@ async def verify_image_with_vision(
         image_path: Path to the image file to analyze
         verification_prompt: Prompt for the vision model
         use_cache: Whether to use cached verification results
+        detail_level: Processing detail level (low, high, auto)
     """
     global openai_client
     if openai_client is None:
@@ -227,9 +319,10 @@ async def verify_image_with_vision(
                     "content": [
                         {"type": "text", "text": verification_prompt},
                         {
-                            "type": "image_url",
+                            "type": "image_url", 
                             "image_url": {
-                                "url": f"data:image/png;base64,{image_data}"
+                                "url": f"data:image/png;base64,{image_data}",
+                                "detail": detail_level
                             }
                         }
                     ]
