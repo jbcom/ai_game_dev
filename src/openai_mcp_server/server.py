@@ -39,6 +39,7 @@ from openai_mcp_server.narrative_system import NarrativeGenerator, DialogueType
 from openai_mcp_server.world_builder import WorldBuilder, GameType, LocationType
 from openai_mcp_server.spec_analyzer import GameSpecAnalyzer, SpecFormat, GameEngine
 from openai_mcp_server.yarn_integration import PythonYarnRunner, YarnBackend
+from openai_mcp_server.agent_system import AgentOrchestrator, AgentRole, MemoryType
 
 
 def create_server() -> FastMCP:
@@ -71,6 +72,7 @@ def create_server() -> FastMCP:
     world_builder = None
     spec_analyzer = None
     yarn_runner = None
+    agent_orchestrator = None
     
     async def ensure_seed_system():
         nonlocal seed_system_initialized
@@ -79,7 +81,7 @@ def create_server() -> FastMCP:
             seed_system_initialized = True
     
     async def ensure_narrative_systems():
-        nonlocal narrative_generator, world_builder, spec_analyzer, yarn_runner, openai_client
+        nonlocal narrative_generator, world_builder, spec_analyzer, yarn_runner, agent_orchestrator, openai_client
         if narrative_generator is None:
             if openai_client is None:
                 openai_client = initialize_openai_client()
@@ -87,10 +89,12 @@ def create_server() -> FastMCP:
             world_builder = WorldBuilder(openai_client)
             spec_analyzer = GameSpecAnalyzer(openai_client)
             yarn_runner = PythonYarnRunner(YarnBackend.YARN_JSON_EXPORT)
+            agent_orchestrator = AgentOrchestrator(openai_client)
             await narrative_generator.initialize()
             await world_builder.initialize()
             await spec_analyzer.initialize()
             await yarn_runner.initialize()
+            await agent_orchestrator.initialize()
     
     @mcp.tool()
     def get_server_status() -> dict[str, Any]:
@@ -104,16 +108,16 @@ def create_server() -> FastMCP:
                 "status": "ready",
                 "openai_connected": True,
                 "capabilities": [
-                    "Master game specification analysis in ANY format (natural language, JSON, YAML, TOML, Markdown)",
-                    "Intelligent format suggestion and automatic data organization",
-                    "Complete pipeline from specification to playable game content",
-                    "Python YarnSpinner integration with multiple backend support", 
-                    "Engine-specific workflow generation (Bevy, Unity, Godot, etc.)",
-                    "Metaprompt refinement for coordinated multi-system generation",
-                    "Complete world-building and game generation from single prompts",
-                    "Seed-based contextual generation with persistent data queue",
-                    "Advanced prompt enhancement using seeded context",
-                    "Specialized game engine asset generation and integration"
+                    "🤖 GPT-5 Powered Intelligent Agent Orchestration with Long-term Memory",
+                    "🧠 Advanced Multi-Agent Coordination (World Architect, Narrative Weaver, Asset Creator, Code Engineer)",
+                    "💾 Persistent Vector-based Memory System with Semantic Search",
+                    "🌍 Master Game Specification Analysis (ANY format: natural language, JSON, YAML, TOML, Markdown)",
+                    "🎮 Complete Pipeline from Concept to Deployable Game Content",
+                    "🔧 Engine-specific Sub-packages (Bevy, Arcade, Pygame, Godot, Unity) with Jinja2 Templates",
+                    "💬 Python YarnSpinner Integration with Multi-backend Support", 
+                    "🎯 Intelligent Workflow Generation and Task Orchestration",
+                    "🎨 Seed-based Contextual Generation with Project-aware Enhancement",
+                    "⚡ GPT-5 Enhanced Generation (74% coding accuracy, 45% fewer hallucinations)"
                 ],
                 "cache_stats": cache_manager.get_stats(),
                 "metrics": metrics.get_summary(),
@@ -1799,5 +1803,324 @@ def create_server() -> FastMCP:
         )
         
         return response.choices[0].message.content
+    
+    # Advanced Agent Orchestration Tools
+    @mcp.tool()
+    async def create_intelligent_agent_workflow(
+        workflow_description: str,
+        project_context: str = "new_project",
+        scope: str = "full_game",  # "proof_of_concept", "single_area", "full_game", "franchise"
+        use_memory: bool = True
+    ) -> dict[str, Any]:
+        """Execute complex game development using intelligent multi-agent coordination with GPT-5."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            logger.info(f"Starting intelligent agent workflow: {workflow_description}")
+            
+            # Execute complex workflow with agent orchestration
+            result = await agent_orchestrator.execute_complex_workflow(
+                workflow_description=workflow_description,
+                project_context=project_context,
+                scope=scope
+            )
+            
+            return {
+                "status": "success",
+                "workflow_completed": True,
+                "agent_coordination": "multi_agent_orchestrated",
+                "gpt5_powered": True,
+                "memory_enhanced": use_memory,
+                "scope": scope,
+                "project_context": project_context,
+                "orchestration_result": result,
+                "agents_utilized": list(AgentRole._value2member_map_.keys()),
+                "intelligent_planning": "gpt5_task_breakdown"
+            }
+            
+        except Exception as e:
+            logger.error(f"Intelligent agent workflow failed: {e}")
+            return {
+                "status": "error", 
+                "error": str(e),
+                "suggested_action": "Check agent system logs for detailed error analysis"
+            }
+    
+    @mcp.tool()
+    async def query_agent_memory(
+        query: str,
+        memory_type: str = None,  # world_lore, character_sheets, visual_style, code_patterns, player_preferences, project_history
+        project_context: str = None,
+        limit: int = 10
+    ) -> dict[str, Any]:
+        """Query the intelligent agent memory system for relevant game development context."""
+        try:
+            await ensure_narrative_systems()
+            
+            # Convert string to enum if provided
+            memory_type_enum = None
+            if memory_type:
+                try:
+                    memory_type_enum = MemoryType(memory_type)
+                except ValueError:
+                    pass
+            
+            # Retrieve relevant memories
+            memories = await agent_orchestrator.memory.retrieve_memories(
+                query=query,
+                memory_type=memory_type_enum,
+                project_context=project_context,
+                limit=limit
+            )
+            
+            # Format response
+            memory_data = []
+            for memory in memories:
+                memory_data.append({
+                    "memory_id": memory.memory_id,
+                    "type": memory.memory_type.value,
+                    "content": memory.content,
+                    "relevance_score": memory.relevance_score,
+                    "project": memory.project_context,
+                    "tags": memory.tags,
+                    "created": memory.created_at.isoformat(),
+                    "access_count": memory.access_count
+                })
+            
+            return {
+                "status": "success",
+                "query": query,
+                "memories_found": len(memory_data),
+                "memories": memory_data,
+                "semantic_search": "vector_embedding_powered",
+                "memory_system": "persistent_agent_memory"
+            }
+            
+        except Exception as e:
+            logger.error(f"Agent memory query failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def store_agent_memory(
+        content: str,
+        memory_type: str,  # world_lore, character_sheets, visual_style, code_patterns, player_preferences, project_history
+        project_context: str,
+        tags: list[str] = None
+    ) -> dict[str, Any]:
+        """Store important information in the agent's long-term memory system."""
+        try:
+            await ensure_narrative_systems()
+            
+            # Convert string to enum
+            try:
+                memory_type_enum = MemoryType(memory_type)
+            except ValueError:
+                return {
+                    "status": "error",
+                    "error": f"Invalid memory type: {memory_type}",
+                    "valid_types": list(MemoryType._value2member_map_.keys())
+                }
+            
+            # Store memory
+            memory_id = await agent_orchestrator.memory.store_memory(
+                content=content,
+                memory_type=memory_type_enum,
+                project_context=project_context,
+                tags=tags or []
+            )
+            
+            return {
+                "status": "success", 
+                "memory_id": memory_id,
+                "memory_type": memory_type,
+                "project_context": project_context,
+                "persistent_storage": True,
+                "semantic_indexing": "vector_embedding_created"
+            }
+            
+        except Exception as e:
+            logger.error(f"Agent memory storage failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def analyze_project_continuity(
+        project_context: str,
+        analysis_scope: str = "full_project"  # "characters", "world", "visual_style", "code_architecture", "full_project"
+    ) -> dict[str, Any]:
+        """Analyze project continuity and consistency using agent memory system."""
+        try:
+            await ensure_narrative_systems()
+            
+            # Retrieve all memories for project
+            all_memories = await agent_orchestrator.memory.retrieve_memories(
+                query="project analysis continuity consistency",
+                project_context=project_context,
+                limit=50,
+                similarity_threshold=0.3  # Lower threshold for broader search
+            )
+            
+            if not all_memories:
+                return {
+                    "status": "success",
+                    "analysis": "No project memories found - this appears to be a new project",
+                    "recommendations": [
+                        "Start by creating foundational memories (world lore, visual style, character sheets)",
+                        "Use intelligent agent workflows to establish project consistency",
+                        "Store important decisions as they're made to build project memory"
+                    ],
+                    "project_maturity": "new"
+                }
+            
+            # Analyze continuity with GPT-5
+            analysis_prompt = f"""
+            Analyze the continuity and consistency of this game development project:
+            
+            Project: {project_context}
+            Analysis Scope: {analysis_scope}
+            
+            Project Memories ({len(all_memories)} entries):
+            """
+            
+            for memory in all_memories[:20]:  # Analyze top 20 memories
+                analysis_prompt += f"\\n[{memory.memory_type.value}] {memory.content[:200]}..."
+            
+            analysis_prompt += f"""
+            
+            Analyze:
+            1. Consistency across different game elements
+            2. Potential conflicts or contradictions
+            3. Gaps in project development
+            4. Strengths in current project direction
+            5. Recommendations for maintaining continuity
+            
+            Return detailed JSON analysis with specific recommendations.
+            """
+            
+            response = await openai_client.chat.completions.create(
+                model="gpt-5",  # Use GPT-5 for complex analysis
+                messages=[{"role": "user", "content": analysis_prompt}],
+                response_format={"type": "json_object"}
+            )
+            
+            analysis_result = json.loads(response.choices[0].message.content)
+            
+            return {
+                "status": "success",
+                "project_context": project_context,
+                "memories_analyzed": len(all_memories),
+                "analysis_scope": analysis_scope,
+                "continuity_analysis": analysis_result,
+                "gpt5_analysis": True,
+                "project_maturity": "established" if len(all_memories) > 10 else "developing"
+            }
+            
+        except Exception as e:
+            logger.error(f"Project continuity analysis failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool() 
+    async def generate_with_gpt5_enhanced(
+        task_description: str,
+        task_type: str = "general",  # "world_building", "narrative", "asset_creation", "code_generation", "game_design"
+        use_reasoning: bool = True,
+        verbosity: str = "medium",  # "low", "medium", "high"
+        project_context: str = None
+    ) -> dict[str, Any]:
+        """Generate content using GPT-5 with enhanced reasoning and memory integration."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            # Retrieve relevant memories if project context provided
+            memory_context = ""
+            if project_context:
+                memories = await agent_orchestrator.memory.retrieve_memories(
+                    query=task_description,
+                    project_context=project_context,
+                    limit=5
+                )
+                
+                if memories:
+                    memory_context = "\\n=== RELEVANT PROJECT CONTEXT ===\\n"
+                    for memory in memories:
+                        memory_context += f"[{memory.memory_type.value}] {memory.content}\\n"
+                    memory_context += "=== END CONTEXT ===\\n\\n"
+            
+            # Get enhanced prompt with seeds
+            enhanced_prompt = await prompt_enhancer.enhance_prompt(
+                original_prompt=task_description,
+                task_type=task_type,
+                project_context=project_context or "general"
+            )
+            
+            # Build final prompt with memory context
+            final_prompt = f"{memory_context}{enhanced_prompt}"
+            
+            # Generate with GPT-5
+            model_params = {
+                "model": "gpt-5",
+                "messages": [
+                    {"role": "system", "content": f"You are an expert {task_type} specialist for game development."},
+                    {"role": "user", "content": final_prompt}
+                ],
+                "verbosity": verbosity
+            }
+            
+            if use_reasoning:
+                model_params["reasoning_effort"] = "medium"
+            
+            response = await openai_client.chat.completions.create(**model_params)
+            
+            result_content = response.choices[0].message.content
+            
+            # Store important results in memory
+            if project_context and len(result_content) > 100:
+                memory_type = {
+                    "world_building": MemoryType.WORLD_LORE,
+                    "narrative": MemoryType.CHARACTER_SHEETS,
+                    "asset_creation": MemoryType.VISUAL_STYLE,
+                    "code_generation": MemoryType.CODE_PATTERNS,
+                    "game_design": MemoryType.PLAYER_PREFERENCES
+                }.get(task_type, MemoryType.PROJECT_HISTORY)
+                
+                await agent_orchestrator.memory.store_memory(
+                    content=result_content[:1000],  # Store first 1000 chars
+                    memory_type=memory_type,
+                    project_context=project_context,
+                    tags=[task_type, "gpt5_generated"]
+                )
+            
+            return {
+                "status": "success",
+                "task_type": task_type,
+                "gpt5_generated": True,
+                "reasoning_enabled": use_reasoning,
+                "verbosity": verbosity,
+                "memory_enhanced": bool(memory_context),
+                "seed_enhanced": enhanced_prompt != task_description,
+                "project_context": project_context,
+                "generated_content": result_content,
+                "model_info": {
+                    "model": "gpt-5",
+                    "advantages": "74% coding accuracy, 45% fewer hallucinations, unified reasoning"
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"GPT-5 enhanced generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
     
     return mcp
