@@ -23,7 +23,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Framework
 - **MCP Server Architecture**: Built using FastMCP framework for handling Model Context Protocol communications
-- **Modular Design**: Structured library with separate modules for different concerns
+- **LangGraph Agent System**: Advanced multi-agent coordination with SQLite state persistence and specialized subgraphs
+- **Structured Tool Integration**: LangChain-compatible tools for seamless OpenAI API integration
 - **Async/Await Pattern**: Leverages Python's asyncio for non-blocking operations and improved performance
 - **Type Safety**: Implements comprehensive type hints with modern Python typing features for better code reliability
 

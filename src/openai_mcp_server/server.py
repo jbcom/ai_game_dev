@@ -40,6 +40,7 @@ from openai_mcp_server.world_builder import WorldBuilder, GameType, LocationType
 from openai_mcp_server.spec_analyzer import GameSpecAnalyzer, SpecFormat, GameEngine
 from openai_mcp_server.yarn_integration import PythonYarnRunner, YarnBackend
 from openai_mcp_server.agent_system import AgentOrchestrator, AgentRole, MemoryType
+from openai_mcp_server.langgraph_agents import create_langgraph_agent
 
 
 def create_server() -> FastMCP:
@@ -73,6 +74,7 @@ def create_server() -> FastMCP:
     spec_analyzer = None
     yarn_runner = None
     agent_orchestrator = None
+    langgraph_agent = None
     
     async def ensure_seed_system():
         nonlocal seed_system_initialized
@@ -81,7 +83,7 @@ def create_server() -> FastMCP:
             seed_system_initialized = True
     
     async def ensure_narrative_systems():
-        nonlocal narrative_generator, world_builder, spec_analyzer, yarn_runner, agent_orchestrator, openai_client
+        nonlocal narrative_generator, world_builder, spec_analyzer, yarn_runner, agent_orchestrator, langgraph_agent, openai_client
         if narrative_generator is None:
             if openai_client is None:
                 openai_client = initialize_openai_client()
@@ -90,6 +92,7 @@ def create_server() -> FastMCP:
             spec_analyzer = GameSpecAnalyzer(openai_client)
             yarn_runner = PythonYarnRunner(YarnBackend.YARN_JSON_EXPORT)
             agent_orchestrator = AgentOrchestrator(openai_client)
+            langgraph_agent = create_langgraph_agent()
             await narrative_generator.initialize()
             await world_builder.initialize()
             await spec_analyzer.initialize()
@@ -115,9 +118,10 @@ def create_server() -> FastMCP:
                     "🎮 Complete Pipeline from Concept to Deployable Game Content",
                     "🔧 Engine-specific Sub-packages (Bevy, Arcade, Pygame, Godot, Unity) with Jinja2 Templates",
                     "💬 Python YarnSpinner Integration with Multi-backend Support", 
-                    "🎯 Intelligent Workflow Generation and Task Orchestration",
-                    "🎨 Seed-based Contextual Generation with Project-aware Enhancement",
-                    "⚡ GPT-5 Enhanced Generation (74% coding accuracy, 45% fewer hallucinations)"
+                    "🎯 LangGraph Workflows with SQLite State Persistence and Subgraph Orchestration",
+                    "🎨 Structured LangChain Tools with OpenAI Media Generation Integration",
+                    "⚡ GPT-5 Enhanced Generation (74% coding accuracy, 45% fewer hallucinations)",
+                    "🏗️ Advanced Agent Coordination with Persistent Memory and Cache Management"
                 ],
                 "cache_stats": cache_manager.get_stats(),
                 "metrics": metrics.get_summary(),
@@ -2121,6 +2125,50 @@ def create_server() -> FastMCP:
             return {
                 "status": "error",
                 "error": str(e)
+            }
+    
+    # LangGraph Agent Integration Tools
+    @mcp.tool()
+    async def create_langgraph_workflow(
+        request: str,
+        project_context: str = "new_project",
+        use_subgraphs: bool = False,
+        thread_id: str = None
+    ) -> dict[str, Any]:
+        """Execute game development requests using advanced LangGraph agents with SQLite state persistence."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            logger.info(f"Starting LangGraph workflow: {request}")
+            
+            # Process request with LangGraph agent
+            result = await langgraph_agent.process_request(
+                request=request,
+                project_context=project_context,
+                thread_id=thread_id
+            )
+            
+            return {
+                "status": "success",
+                "request": request,
+                "project_context": project_context,
+                "langgraph_result": result,
+                "sqlite_state": True,
+                "persistent_memory": True,
+                "structured_tools": True,
+                "subgraph_capable": use_subgraphs,
+                "thread_id": result.get("thread_id"),
+                "framework": "LangGraph + GPT-5",
+                "state_management": "SQLite checkpointer"
+            }
+            
+        except Exception as e:
+            logger.error(f"LangGraph workflow failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "suggested_action": "Check LangGraph agent logs for detailed error analysis"
             }
     
     return mcp

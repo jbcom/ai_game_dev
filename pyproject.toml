@@ -44,6 +44,12 @@ dependencies = [
     "openai-agents>=0.2.11",
     "numpy>=2.3.2",
     "scikit-learn>=1.7.1",
+    "langchain>=0.3.27",
+    "langchain-openai>=0.3.32",
+    "langgraph>=0.6.6",
+    "langchain-community>=0.3.29",
+    "langsmith>=0.4.25",
+    "langchain-core>=0.3.75",
 ]
 
 [project.optional-dependencies]
