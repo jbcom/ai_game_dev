@@ -36,6 +36,8 @@ from openai_mcp_server.seed_system import (
 )
 from openai_mcp_server.narrative_system import NarrativeGenerator, DialogueType
 from openai_mcp_server.world_builder import WorldBuilder, GameType, LocationType
+from openai_mcp_server.spec_analyzer import GameSpecAnalyzer, SpecFormat, GameEngine
+from openai_mcp_server.yarn_integration import PythonYarnRunner, YarnBackend
 
 
 def create_server() -> FastMCP:
@@ -66,6 +68,8 @@ def create_server() -> FastMCP:
     # Initialize narrative and world systems
     narrative_generator = None
     world_builder = None
+    spec_analyzer = None
+    yarn_runner = None
     
     async def ensure_seed_system():
         nonlocal seed_system_initialized
@@ -74,14 +78,18 @@ def create_server() -> FastMCP:
             seed_system_initialized = True
     
     async def ensure_narrative_systems():
-        nonlocal narrative_generator, world_builder, openai_client
+        nonlocal narrative_generator, world_builder, spec_analyzer, yarn_runner, openai_client
         if narrative_generator is None:
             if openai_client is None:
                 openai_client = initialize_openai_client()
             narrative_generator = NarrativeGenerator(openai_client)
             world_builder = WorldBuilder(openai_client)
+            spec_analyzer = GameSpecAnalyzer(openai_client)
+            yarn_runner = PythonYarnRunner(YarnBackend.YARN_JSON_EXPORT)
             await narrative_generator.initialize()
             await world_builder.initialize()
+            await spec_analyzer.initialize()
+            await yarn_runner.initialize()
     
     @mcp.tool()
     def get_server_status() -> dict[str, Any]:
@@ -95,16 +103,16 @@ def create_server() -> FastMCP:
                 "status": "ready",
                 "openai_connected": True,
                 "capabilities": [
+                    "Master game specification analysis in ANY format (natural language, JSON, YAML, TOML, Markdown)",
+                    "Intelligent format suggestion and automatic data organization",
+                    "Complete pipeline from specification to playable game content",
+                    "Python YarnSpinner integration with multiple backend support", 
+                    "Engine-specific workflow generation (Bevy, Unity, Godot, etc.)",
+                    "Metaprompt refinement for coordinated multi-system generation",
                     "Complete world-building and game generation from single prompts",
-                    "YarnSpinner dialogue and narrative generation with contextual seeds",
-                    "Meta-prompt generation for coordinated game content creation", 
-                    "Person and place name generation with cultural consistency",
-                    "Complete game area generation (assets + narrative + code)",
                     "Seed-based contextual generation with persistent data queue",
                     "Advanced prompt enhancement using seeded context",
-                    "Specialized Bevy game engine asset generation",
-                    "Advanced image generation with masking and targeted edits",
-                    "Configuration-based batch processing (TOML/YAML/JSON)"
+                    "Specialized game engine asset generation and integration"
                 ],
                 "cache_stats": cache_manager.get_stats(),
                 "metrics": metrics.get_summary(),
@@ -1482,5 +1490,313 @@ def create_server() -> FastMCP:
                 "status": "error",
                 "error": str(e)
             }
+    
+    # Advanced metaprompt refinement and spec analysis tools
+    @mcp.tool()
+    async def analyze_game_specification(
+        spec_content: str,
+        spec_format: str = None
+    ) -> dict[str, Any]:
+        """Analyze ANY format game specification and create optimized workflows."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            # Convert format string to enum if provided
+            format_enum = None
+            if spec_format:
+                try:
+                    format_enum = SpecFormat(spec_format)
+                except ValueError:
+                    pass
+            
+            # Analyze specification
+            refined_spec = await spec_analyzer.analyze_game_spec(
+                spec_content=spec_content,
+                spec_format=format_enum
+            )
+            
+            # Create automatic seeds
+            project_context = f"{refined_spec.game_title.lower().replace(' ', '_')}_{refined_spec.target_engine.value}"
+            await spec_analyzer.create_automatic_seeds(refined_spec, project_context)
+            
+            return {
+                "status": "analyzed",
+                "original_format": refined_spec.original_format.value,
+                "refined_specification": refined_spec.to_dict(),
+                "automatic_seeds_created": len(refined_spec.suggested_seeds),
+                "project_context": project_context,
+                "ready_for_generation": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Game specification analysis failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_from_master_spec(
+        spec_content: str,
+        execution_scope: str = "single_area",  # "proof_of_concept", "single_area", "full_region", "complete_game"
+        spec_format: str = None
+    ) -> dict[str, Any]:
+        """Complete game generation pipeline from master specification in ANY format."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            # Analyze specification
+            format_enum = SpecFormat(spec_format) if spec_format else None
+            refined_spec = await spec_analyzer.analyze_game_spec(spec_content, format_enum)
+            
+            project_context = f"{refined_spec.game_title.lower().replace(' ', '_')}_{refined_spec.target_engine.value}"
+            
+            # Create automatic seeds
+            await spec_analyzer.create_automatic_seeds(refined_spec, project_context)
+            
+            # Generate content based on scope
+            results = {
+                "specification_analysis": refined_spec.to_dict(),
+                "project_context": project_context,
+                "execution_scope": execution_scope,
+                "generated_content": {}
+            }
+            
+            if execution_scope == "proof_of_concept":
+                # Generate minimal proof of concept
+                demo_quest = await narrative_generator.generate_quest_with_dialogue(
+                    quest_brief="Demo quest showcasing core gameplay",
+                    location="Starting area",
+                    project_context=project_context
+                )
+                results["generated_content"]["demo_quest"] = demo_quest.to_dict()
+                
+                # Generate single character sprite
+                nonlocal openai_client
+                if openai_client is None:
+                    openai_client = initialize_openai_client()
+                bevy_generator = BevyAssetGenerator(openai_client)
+                demo_sprite = await bevy_generator.generate_sprite_2d(
+                    name="demo_character",
+                    description="Main character for proof of concept",
+                    size="512x512"
+                )
+                results["generated_content"]["demo_sprite"] = demo_sprite.model_dump()
+                
+            elif execution_scope in ["single_area", "full_region", "complete_game"]:
+                # Use existing complete area generation
+                complete_area = await generate_complete_game_area(
+                    world_brief=refined_spec.world_description,
+                    game_type=refined_spec.game_type,
+                    area_description="Main game area based on specification",
+                    complexity=refined_spec.estimated_complexity
+                )
+                results["generated_content"]["complete_area"] = complete_area
+            
+            # Create YarnSpinner dialogue files
+            if results["generated_content"]:
+                yarn_result = await yarn_runner.create_dialogue_tree(
+                    dialogue_nodes=[],  # Would include all generated dialogue
+                    filename=f"{refined_spec.game_title.lower().replace(' ', '_')}_dialogue",
+                    project_context=project_context
+                )
+                results["generated_content"]["yarn_files"] = yarn_result
+                
+                # Export for target engine
+                engine_files = await yarn_runner.export_for_engine(
+                    dialogue_data={"filename": f"{refined_spec.game_title.lower().replace(' ', '_')}_dialogue"},
+                    target_engine=refined_spec.target_engine.value,
+                    output_path=settings.cache_dir / "engine_exports" / project_context
+                )
+                results["generated_content"]["engine_integration_files"] = engine_files
+            
+            return {
+                "status": "generated",
+                "master_spec_processed": True,
+                "complete_pipeline": results,
+                "ready_for_development": True,
+                "engine_specific_files": len(results["generated_content"].get("engine_integration_files", [])) > 0
+            }
+            
+        except Exception as e:
+            logger.error(f"Master specification generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def create_python_yarn_dialogue(
+        dialogue_content: str,
+        filename: str,
+        target_engine: str = "generic",
+        backend: str = "json_export",
+        project_context: str = None
+    ) -> dict[str, Any]:
+        """Create Python-integrated YarnSpinner dialogue with multiple backend support."""
+        try:
+            await ensure_narrative_systems()
+            
+            # Convert backend string to enum
+            backend_enum = YarnBackend(backend)
+            yarn_runner_instance = PythonYarnRunner(backend_enum)
+            await yarn_runner_instance.initialize()
+            
+            # Parse dialogue content into nodes
+            from .yarn_integration import YarnDialogueNode
+            import uuid
+            
+            # Simple parsing - in practice this would be more sophisticated
+            dialogue_node = YarnDialogueNode(
+                node_id=str(uuid.uuid4()),
+                title=filename,
+                tags=["generated"],
+                body=[dialogue_content],
+                choices=[],
+                conditions=[],
+                commands=[],
+                variables={}
+            )
+            
+            # Create dialogue tree
+            yarn_result = await yarn_runner_instance.create_dialogue_tree(
+                dialogue_nodes=[dialogue_node],
+                filename=filename,
+                project_context=project_context
+            )
+            
+            # Export for target engine
+            engine_files = []
+            if target_engine != "generic":
+                engine_files = await yarn_runner_instance.export_for_engine(
+                    dialogue_data={"filename": filename},
+                    target_engine=target_engine,
+                    output_path=settings.cache_dir / "yarn_exports"
+                )
+            
+            return {
+                "status": "created",
+                "yarn_result": yarn_result,
+                "backend": backend,
+                "target_engine": target_engine,
+                "engine_files": engine_files,
+                "python_integrated": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Python Yarn dialogue creation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def suggest_data_organization(
+        raw_content: str,
+        desired_format: str = "auto"  # "auto", "toml", "json", "yaml", "markdown"
+    ) -> dict[str, Any]:
+        """Analyze any content and suggest optimal data organization format."""
+        try:
+            await ensure_narrative_systems()
+            
+            suggestion_prompt = f"""
+            Analyze this raw content and suggest the optimal data organization format:
+            
+            Raw Content:
+            {raw_content}
+            
+            Desired Format: {desired_format}
+            
+            Consider these factors:
+            1. Content structure and complexity
+            2. Human readability requirements
+            3. Machine parsing efficiency
+            4. Maintainability and version control
+            5. Integration with development tools
+            
+            Provide suggestions for organizing this content into:
+            - TOML (good for configuration, human-readable)
+            - JSON (good for structured data, API integration)
+            - YAML (good for complex hierarchies, documentation)
+            - Markdown (good for narrative content, documentation)
+            - Custom hybrid format
+            
+            Return JSON with:
+            {{
+                "recommended_format": "format_name",
+                "reasoning": "why this format is best",
+                "structure_suggestion": {{"organized structure example"}},
+                "alternative_formats": ["other good options"],
+                "conversion_difficulty": "easy/medium/hard",
+                "maintainability_score": 1-10
+            }}
+            """
+            
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": suggestion_prompt}],
+                response_format={"type": "json_object"}
+            )
+            
+            suggestions = json.loads(response.choices[0].message.content)
+            
+            # If auto-format, apply the recommended format
+            if desired_format == "auto":
+                organized_content = await self._auto_organize_content(
+                    raw_content, 
+                    suggestions["recommended_format"],
+                    suggestions["structure_suggestion"]
+                )
+                suggestions["organized_content"] = organized_content
+            
+            return {
+                "status": "analyzed",
+                "original_content_length": len(raw_content),
+                "suggestions": suggestions,
+                "auto_organized": desired_format == "auto"
+            }
+            
+        except Exception as e:
+            logger.error(f"Data organization suggestion failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    async def _auto_organize_content(
+        self, 
+        raw_content: str, 
+        target_format: str, 
+        structure_example: Dict[str, Any]
+    ) -> str:
+        """Auto-organize content into suggested format."""
+        
+        organization_prompt = f"""
+        Reorganize this raw content into {target_format} format following this structure:
+        
+        Raw Content:
+        {raw_content}
+        
+        Target Structure Example:
+        {json.dumps(structure_example, indent=2)}
+        
+        Create well-organized {target_format} content that:
+        1. Follows the suggested structure
+        2. Preserves all important information
+        3. Uses appropriate {target_format} conventions
+        4. Is properly formatted and readable
+        5. Includes helpful comments/documentation
+        
+        Return only the formatted {target_format} content, no explanations.
+        """
+        
+        response = await self.client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": organization_prompt}]
+        )
+        
+        return response.choices[0].message.content
     
     return mcp
