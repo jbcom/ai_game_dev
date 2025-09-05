@@ -29,3 +29,8 @@ async def save_verification_cache(cache_path: Path, cache: dict[str, Any]) -> No
     """Save the verification cache to disk."""
     async with aiofiles.open(cache_path, 'w') as f:
         await f.write(json.dumps(cache, indent=2))
+
+async def ensure_directory_exists(directory: Path) -> None:
+    """Ensure directory exists, creating it if necessary."""
+    if not directory.exists():
+        directory.mkdir(parents=True, exist_ok=True)

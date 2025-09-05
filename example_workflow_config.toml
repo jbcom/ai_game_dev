@@ -1,0 +1,57 @@
+# Example workflow configuration for batch processing
+# This demonstrates the advanced capabilities of the OpenAI MCP Server
+
+# High-level task description - the server will analyze this and generate a workflow automatically
+task = """
+Create all the buttons and panels and textures for a fantasy RPG game with medieval theming.
+Need inventory panels, action buttons, health/mana bars, spell icons, and decorative frames.
+Should have a dark stone/wood aesthetic with gold accents. All elements need hover and pressed states.
+Target resolution is 1024x1024 for panels, 512x512 for buttons.
+"""
+
+# Alternative: Explicit workflow specification
+[[workflows]]
+name = "Fantasy RPG UI Kit"
+type = "ui_elements" 
+description = "Complete UI asset generation for fantasy RPG"
+output_format = "png"
+optimization = "quality"
+
+# UI Elements to generate
+[[workflows.ui_elements]]
+type = "button"
+style = "fantasy medieval"
+size = "512x512"
+colors = ["#2C1810", "#8B4513", "#DAA520"]  # Dark brown, saddle brown, gold
+states = ["normal", "hover", "pressed", "disabled"]
+text = "Attack"
+effects = ["gold border", "stone texture", "subtle glow"]
+
+[[workflows.ui_elements]]
+type = "panel"
+style = "fantasy medieval"  
+size = "1024x1024"
+colors = ["#2F2F2F", "#8B4513", "#DAA520"]  # Dark gray, brown, gold
+effects = ["ornate frame", "wood grain", "metal corners"]
+
+[[workflows.ui_elements]]
+type = "icon"
+style = "fantasy medieval spell icons"
+size = "256x256" 
+colors = ["#1E1E1E", "#4A90E2", "#DAA520"]  # Dark, blue magic, gold
+effects = ["magical glow", "runic symbols"]
+
+# Verification settings
+[workflows.verification]
+mode = "basic"
+style_consistency = true
+quality_threshold = 0.8
+max_regenerations = 2
+required_objects = ["medieval", "fantasy"]
+forbidden_objects = ["modern", "futuristic", "cartoon"]
+
+# Batch processing settings  
+[workflows.batch_settings]
+concurrent_limit = 3
+retry_failed = true
+group_by_type = true
