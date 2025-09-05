@@ -33,10 +33,12 @@ class GameDevState(TypedDict):
     messages: list[BaseMessage]
     project_context: str
     current_task: str
-    target_engine: str
+    target_engine: str | None
     generated_assets: list[dict[str, Any]]
     subgraph_results: dict[str, Any]
     workflow_status: str
+    game_description: str
+    engine_analysis: str
 
 
 class GameDevelopmentAgent:
@@ -98,79 +100,115 @@ class GameDevelopmentAgent:
                 self.subgraphs = {}
     
     def _build_graph(self) -> StateGraph:
-        """Build the main LangGraph workflow."""
+        """Build the main LangGraph workflow following best practices."""
         
         workflow = StateGraph(GameDevState)
         
-        # Add nodes
-        workflow.add_node("agent", self._agent_node)
-        workflow.add_node("engine_router", self._engine_router_node)
-        workflow.add_node("bevy_handler", self._bevy_handler_node)
-        workflow.add_node("godot_handler", self._godot_handler_node)
+        # Add nodes following LangGraph patterns
+        workflow.add_node("analyze_request", self._analyze_request_node)
+        workflow.add_node("route_engine", self._route_engine_node) 
+        workflow.add_node("bevy_workflow", self._bevy_workflow_node)
+        workflow.add_node("godot_workflow", self._godot_workflow_node)
         workflow.add_node("tools", self.tool_node)
         
-        # Add edges
-        workflow.add_edge(START, "agent")
+        # Set entry point
+        workflow.set_entry_point("analyze_request")
+        
+        # Add edges following tutorial patterns
         workflow.add_conditional_edges(
-            "agent",
-            self._should_continue,
-            {"engine": "engine_router", "tools": "tools", "end": END}
+            "analyze_request",
+            self._determine_next_step,
+            {
+                "route_engine": "route_engine",
+                "use_tools": "tools",
+                "end": END
+            }
         )
+        
         workflow.add_conditional_edges(
-            "engine_router",
-            self._route_to_engine,
-            {"bevy": "bevy_handler", "godot": "godot_handler", "end": END}
+            "route_engine", 
+            self._select_engine,
+            {
+                "bevy": "bevy_workflow",
+                "godot": "godot_workflow",
+                "end": END
+            }
         )
-        workflow.add_edge("bevy_handler", END)
-        workflow.add_edge("godot_handler", END)
-        workflow.add_edge("tools", "agent")
+        
+        workflow.add_edge("bevy_workflow", END)
+        workflow.add_edge("godot_workflow", END)
+        workflow.add_edge("tools", "analyze_request")
         
         if self.checkpointer:
             return workflow.compile(checkpointer=self.checkpointer)
         else:
             return workflow.compile()
     
-    def _agent_node(self, state: GameDevState) -> dict[str, Any]:
-        """Agent reasoning node."""
+    def _analyze_request_node(self, state: GameDevState) -> GameDevState:
+        """Analyze the game development request."""
+        current_task = state.get("current_task", "")
         messages = state.get("messages", [])
-        response = self.llm.invoke(messages)
         
+        # Create analysis prompt
+        analysis_prompt = f"""
+        Analyze this game development request:
+        
+        Request: {current_task}
+        
+        Determine:
+        1. What type of game is being requested?
+        2. What game engine would be most suitable?
+        3. What specific features are needed?
+        
+        Provide a brief analysis focusing on engine selection.
+        """
+        
+        response = self.llm.invoke([HumanMessage(content=analysis_prompt)])
+        
+        # Update state following LangGraph patterns
         return {
+            **state,
             "messages": messages + [response],
-            "workflow_status": "processing"
+            "engine_analysis": response.content,
+            "workflow_status": "analyzed"
         }
     
-    def _should_continue(self, state: GameDevState) -> str:
-        """Determine next step in workflow."""
+    def _determine_next_step(self, state: GameDevState) -> str:
+        """Determine next step following LangGraph patterns."""
         messages = state.get("messages", [])
         last_message = messages[-1] if messages else None
-        
-        # Check if we need engine-specific processing
         current_task = state.get("current_task", "").lower()
-        if any(engine in current_task for engine in ["bevy", "godot", "unity", "unreal"]):
-            return "engine"
         
-        # Check if we have tool calls
+        # Check for tool calls first
         if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
-            return "tools"
+            return "use_tools"
+        
+        # Check if we need engine routing
+        if any(engine in current_task for engine in ["bevy", "godot", "game", "create"]):
+            return "route_engine"
         
         return "end"
     
-    def _route_to_engine(self, state: GameDevState) -> str:
-        """Route to appropriate engine subgraph."""
+    def _select_engine(self, state: GameDevState) -> str:
+        """Select engine based on analysis following tutorial patterns."""
+        engine_analysis = state.get("engine_analysis", "").lower()
         current_task = state.get("current_task", "").lower()
         target_engine = state.get("target_engine", "").lower()
         
-        # Priority routing based on explicit engine mention
-        if "bevy" in current_task or target_engine == "bevy":
+        # Priority routing based on explicit mentions
+        if "bevy" in current_task or "bevy" in engine_analysis or target_engine == "bevy":
             return "bevy"
-        elif "godot" in current_task or target_engine == "godot":
+        elif "godot" in current_task or "godot" in engine_analysis or target_engine == "godot":
             return "godot"
+        elif "rust" in current_task or "ecs" in current_task:
+            return "bevy"  # Bevy uses Rust and ECS
+        elif "gdscript" in current_task or "scene" in current_task:
+            return "godot"  # Godot uses GDScript and scenes
         
-        # Default fallback
+        # Default to Bevy for new projects
         return "bevy"
     
-    async def _engine_router_node(self, state: GameDevState) -> dict[str, Any]:
+    def _route_engine_node(self, state: GameDevState) -> GameDevState:
         """Router node to determine target engine."""
         current_task = state.get("current_task", "")
         
@@ -185,7 +223,7 @@ class GameDevelopmentAgent:
         Which engine is most suitable? Return just the engine name: "bevy" or "godot"
         """
         
-        response = await self.llm.ainvoke([HumanMessage(content=analysis_prompt)])
+        response = self.llm.invoke([HumanMessage(content=analysis_prompt)])
         target_engine = response.content.strip().lower()
         
         if target_engine not in ["bevy", "godot"]:
@@ -197,7 +235,7 @@ class GameDevelopmentAgent:
             "workflow_status": f"routed_to_{target_engine}"
         }
     
-    async def _bevy_handler_node(self, state: GameDevState) -> dict[str, Any]:
+    async def _bevy_workflow_node(self, state: GameDevState) -> GameDevState:
         """Handle Bevy-specific processing using composed subgraph."""
         await self._ensure_subgraphs_initialized()
         
@@ -220,7 +258,7 @@ class GameDevelopmentAgent:
             "workflow_status": "bevy_complete"
         }
     
-    async def _godot_handler_node(self, state: GameDevState) -> dict[str, Any]:
+    async def _godot_workflow_node(self, state: GameDevState) -> GameDevState:
         """Handle Godot-specific processing using composed subgraph."""
         await self._ensure_subgraphs_initialized()
         
