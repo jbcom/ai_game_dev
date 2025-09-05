@@ -3,10 +3,10 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 from datetime import datetime
 
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
+from langchain_core.messages import HumanMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
@@ -30,12 +30,12 @@ logger = get_logger(__name__, component="langgraph_agents")
 
 class GameDevState(TypedDict):
     """State for game development agent workflow."""
-    messages: List[BaseMessage]
+    messages: list[BaseMessage]
     project_context: str
     current_task: str
     target_engine: str
-    generated_assets: List[Dict[str, Any]]
-    subgraph_results: Dict[str, Any]
+    generated_assets: list[dict[str, Any]]
+    subgraph_results: dict[str, Any]
     workflow_status: str
 
 
@@ -61,6 +61,13 @@ class GameDevelopmentAgent:
         self.tools = get_langchain_tools()
         self.tool_node = ToolNode(self.tools)
         
+        # Store model config for subgraphs
+        self.model_config = {
+            "model": model,
+            "temperature": 0.7,
+            "api_key": api_key
+        }
+        
         # Initialize engine subgraphs
         self.subgraphs = {}
         self._initialize_subgraphs_task = None
@@ -80,10 +87,11 @@ class GameDevelopmentAgent:
         if not self.subgraphs:
             try:
                 from openai import AsyncOpenAI
-                client = AsyncOpenAI(api_key=api_key if 'api_key' in locals() else "")
+                client = AsyncOpenAI(api_key=self.model_config["api_key"])
                 
-                self.subgraphs["bevy"] = await create_bevy_subgraph(client)
-                self.subgraphs["godot"] = await create_godot_subgraph(client)
+                # Pass model config to subgraphs
+                self.subgraphs["bevy"] = await create_bevy_subgraph(client, self.model_config)
+                self.subgraphs["godot"] = await create_godot_subgraph(client, self.model_config)
                 logger.info("Initialized engine subgraphs: bevy, godot")
             except Exception as e:
                 logger.error(f"Failed to initialize subgraphs: {e}")
@@ -97,8 +105,8 @@ class GameDevelopmentAgent:
         # Add nodes
         workflow.add_node("agent", self._agent_node)
         workflow.add_node("engine_router", self._engine_router_node)
-        workflow.add_node("bevy_subgraph", self._bevy_subgraph_node)
-        workflow.add_node("godot_subgraph", self._godot_subgraph_node)
+        workflow.add_node("bevy_handler", self._bevy_handler_node)
+        workflow.add_node("godot_handler", self._godot_handler_node)
         workflow.add_node("tools", self.tool_node)
         
         # Add edges
@@ -111,10 +119,10 @@ class GameDevelopmentAgent:
         workflow.add_conditional_edges(
             "engine_router",
             self._route_to_engine,
-            {"bevy": "bevy_subgraph", "godot": "godot_subgraph", "end": END}
+            {"bevy": "bevy_handler", "godot": "godot_handler", "end": END}
         )
-        workflow.add_edge("bevy_subgraph", END)
-        workflow.add_edge("godot_subgraph", END)
+        workflow.add_edge("bevy_handler", END)
+        workflow.add_edge("godot_handler", END)
         workflow.add_edge("tools", "agent")
         
         if self.checkpointer:
@@ -122,7 +130,7 @@ class GameDevelopmentAgent:
         else:
             return workflow.compile()
     
-    def _agent_node(self, state: GameDevState) -> Dict[str, Any]:
+    def _agent_node(self, state: GameDevState) -> dict[str, Any]:
         """Agent reasoning node."""
         messages = state.get("messages", [])
         response = self.llm.invoke(messages)
@@ -162,7 +170,7 @@ class GameDevelopmentAgent:
         # Default fallback
         return "bevy"
     
-    async def _engine_router_node(self, state: GameDevState) -> Dict[str, Any]:
+    async def _engine_router_node(self, state: GameDevState) -> dict[str, Any]:
         """Router node to determine target engine."""
         current_task = state.get("current_task", "")
         
@@ -189,8 +197,8 @@ class GameDevelopmentAgent:
             "workflow_status": f"routed_to_{target_engine}"
         }
     
-    async def _bevy_subgraph_node(self, state: GameDevState) -> Dict[str, Any]:
-        """Execute Bevy subgraph workflow."""
+    async def _bevy_handler_node(self, state: GameDevState) -> dict[str, Any]:
+        """Handle Bevy-specific processing using composed subgraph."""
         await self._ensure_subgraphs_initialized()
         
         if "bevy" not in self.subgraphs:
@@ -203,17 +211,17 @@ class GameDevelopmentAgent:
         current_task = state.get("current_task", "")
         bevy_workflow = self.subgraphs["bevy"]
         
-        # Execute Bevy-specific workflow
+        # Execute Bevy subgraph workflow directly
         result = await bevy_workflow.process_bevy_request(current_task)
         
         return {
             **state,
             "subgraph_results": result,
-            "workflow_status": "bevy_subgraph_complete"
+            "workflow_status": "bevy_complete"
         }
     
-    async def _godot_subgraph_node(self, state: GameDevState) -> Dict[str, Any]:
-        """Execute Godot subgraph workflow."""
+    async def _godot_handler_node(self, state: GameDevState) -> dict[str, Any]:
+        """Handle Godot-specific processing using composed subgraph."""
         await self._ensure_subgraphs_initialized()
         
         if "godot" not in self.subgraphs:
@@ -226,13 +234,13 @@ class GameDevelopmentAgent:
         current_task = state.get("current_task", "")
         godot_workflow = self.subgraphs["godot"]
         
-        # Execute Godot-specific workflow
+        # Execute Godot subgraph workflow directly  
         result = await godot_workflow.process_godot_request(current_task)
         
         return {
             **state,
             "subgraph_results": result,
-            "workflow_status": "godot_subgraph_complete"
+            "workflow_status": "godot_complete"
         }
     
     async def _ensure_subgraphs_initialized(self):
@@ -246,7 +254,7 @@ class GameDevelopmentAgent:
         request: str,
         project_context: str = "new_project",
         thread_id: str = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Process a game development request."""
         
         initial_state = {

@@ -1,10 +1,10 @@
 """Godot-specific LangGraph subgraph workflows."""
 
 import json
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 from datetime import datetime
 
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
+from langchain_core.messages import HumanMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END, START
 
@@ -16,24 +16,27 @@ logger = get_logger(__name__, component="godot_workflow")
 
 class GodotWorkflowState(TypedDict):
     """State for Godot-specific workflow."""
-    messages: List[BaseMessage]
+    messages: list[BaseMessage]
     game_description: str
-    scenes_required: List[str]
-    scripts_generated: Dict[str, str]
-    assets_required: List[Dict[str, Any]]
-    project_structure: Dict[str, Any]
+    scenes_required: list[str]
+    scripts_generated: dict[str, str]
+    assets_required: list[dict[str, Any]]
+    project_structure: dict[str, Any]
     workflow_status: str
 
 
 class GodotWorkflowGraph:
     """LangGraph subgraph for Godot game engine workflows."""
     
-    def __init__(self, openai_client):
+    def __init__(self, openai_client, model_config: dict[str, Any] | None = None):
         self.client = openai_client
+        
+        # Use passed config or defaults
+        config = model_config or {}
         self.llm = ChatOpenAI(
-            model="gpt-4o",
-            temperature=0.7,
-            api_key=self._get_api_key()
+            model=config.get("model", "gpt-4o"),
+            temperature=config.get("temperature", 0.7),
+            api_key=config.get("api_key", self._get_api_key())
         )
         
         # Build the Godot workflow graph
@@ -64,7 +67,7 @@ class GodotWorkflowGraph:
         
         return workflow.compile()
     
-    async def _analyze_scenes_node(self, state: GodotWorkflowState) -> Dict[str, Any]:
+    async def _analyze_scenes_node(self, state: GodotWorkflowState) -> dict[str, Any]:
         """Analyze game for required Godot scenes."""
         game_description = state.get("game_description", "")
         
@@ -99,7 +102,7 @@ class GodotWorkflowGraph:
             "messages": state.get("messages", []) + [response]
         }
     
-    async def _generate_scripts_node(self, state: GodotWorkflowState) -> Dict[str, Any]:
+    async def _generate_scripts_node(self, state: GodotWorkflowState) -> dict[str, Any]:
         """Generate GDScript files for scenes."""
         scenes = state.get("scenes_required", [])
         game_description = state.get("game_description", "")
@@ -133,7 +136,7 @@ class GodotWorkflowGraph:
             "workflow_status": "scripts_generated"
         }
     
-    async def _create_project_node(self, state: GodotWorkflowState) -> Dict[str, Any]:
+    async def _create_project_node(self, state: GodotWorkflowState) -> dict[str, Any]:
         """Create complete Godot project structure."""
         scripts = state.get("scripts_generated", {})
         game_description = state.get("game_description", "")
@@ -167,7 +170,7 @@ textures/vram_compression/import_etc2_astc=true
             "workflow_status": "project_created"
         }
     
-    def _extract_json_from_response(self, content: str) -> Dict[str, Any]:
+    def _extract_json_from_response(self, content: str) -> dict[str, Any]:
         """Extract JSON from LLM response."""
         try:
             start = content.find('{')
@@ -182,8 +185,8 @@ textures/vram_compression/import_etc2_astc=true
     async def process_godot_request(
         self,
         game_description: str,
-        thread_id: str = None
-    ) -> Dict[str, Any]:
+        thread_id: str | None = None
+    ) -> dict[str, Any]:
         """Process a complete Godot game development request."""
         
         initial_state = {
@@ -218,6 +221,6 @@ textures/vram_compression/import_etc2_astc=true
             }
 
 
-async def create_godot_subgraph(openai_client) -> GodotWorkflowGraph:
+async def create_godot_subgraph(openai_client, model_config: dict[str, Any] | None = None) -> GodotWorkflowGraph:
     """Create and initialize Godot workflow subgraph."""
-    return GodotWorkflowGraph(openai_client)
+    return GodotWorkflowGraph(openai_client, model_config)

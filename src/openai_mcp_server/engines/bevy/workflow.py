@@ -1,10 +1,10 @@
 """Bevy-specific LangGraph subgraph workflows."""
 
 import json
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 from datetime import datetime
 
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
+from langchain_core.messages import HumanMessage, BaseMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
@@ -19,25 +19,28 @@ logger = get_logger(__name__, component="bevy_workflow")
 
 class BevyWorkflowState(TypedDict):
     """State for Bevy-specific workflow."""
-    messages: List[BaseMessage]
+    messages: list[BaseMessage]
     game_description: str
-    entities: List[str]
-    assets_required: List[Dict[str, Any]]
-    generated_assets: List[Dict[str, Any]]
-    generated_code: Dict[str, str]
-    bevy_architecture: Dict[str, Any]
+    entities: list[str]
+    assets_required: list[dict[str, Any]]
+    generated_assets: list[dict[str, Any]]
+    generated_code: dict[str, str]
+    bevy_architecture: dict[str, Any]
     workflow_status: str
 
 
 class BevyWorkflowGraph:
     """LangGraph subgraph for Bevy game engine workflows."""
     
-    def __init__(self, openai_client):
+    def __init__(self, openai_client, model_config: dict[str, Any] | None = None):
         self.client = openai_client
+        
+        # Use passed config or defaults
+        config = model_config or {}
         self.llm = ChatOpenAI(
-            model="gpt-4o",
-            temperature=0.7,
-            api_key=self._get_api_key()
+            model=config.get("model", "gpt-4o"),
+            temperature=config.get("temperature", 0.7),
+            api_key=config.get("api_key", self._get_api_key())
         )
         
         # Initialize Bevy-specific generators
@@ -76,7 +79,7 @@ class BevyWorkflowGraph:
         
         return workflow.compile()
     
-    async def _analyze_requirements_node(self, state: BevyWorkflowState) -> Dict[str, Any]:
+    async def _analyze_requirements_node(self, state: BevyWorkflowState) -> dict[str, Any]:
         """Analyze game requirements for Bevy-specific implementation."""
         game_description = state.get("game_description", "")
         
@@ -119,7 +122,7 @@ class BevyWorkflowGraph:
             "messages": state.get("messages", []) + [response]
         }
     
-    async def _design_architecture_node(self, state: BevyWorkflowState) -> Dict[str, Any]:
+    async def _design_architecture_node(self, state: BevyWorkflowState) -> dict[str, Any]:
         """Design Bevy ECS architecture."""
         game_description = state.get("game_description", "")
         entities = state.get("entities", [])
@@ -137,7 +140,7 @@ class BevyWorkflowGraph:
             "workflow_status": "architecture_designed"
         }
     
-    async def _generate_assets_node(self, state: BevyWorkflowState) -> Dict[str, Any]:
+    async def _generate_assets_node(self, state: BevyWorkflowState) -> dict[str, Any]:
         """Generate Bevy-compatible assets."""
         assets_required = state.get("assets_required", [])
         generated_assets = []
@@ -181,7 +184,7 @@ class BevyWorkflowGraph:
             "workflow_status": "assets_generated"
         }
     
-    async def _generate_code_node(self, state: BevyWorkflowState) -> Dict[str, Any]:
+    async def _generate_code_node(self, state: BevyWorkflowState) -> dict[str, Any]:
         """Generate Bevy Rust code."""
         architecture = state.get("bevy_architecture", {})
         
@@ -194,7 +197,7 @@ class BevyWorkflowGraph:
             "workflow_status": "code_generated"
         }
     
-    async def _integrate_components_node(self, state: BevyWorkflowState) -> Dict[str, Any]:
+    async def _integrate_components_node(self, state: BevyWorkflowState) -> dict[str, Any]:
         """Integrate assets and code into final Bevy project."""
         generated_assets = state.get("generated_assets", [])
         generated_code = state.get("generated_code", {})
@@ -229,7 +232,7 @@ class BevyWorkflowGraph:
         }
         return asset_map.get(asset_type_str, BevyAssetType.SPRITE_2D)
     
-    def _extract_json_from_response(self, content: str) -> Dict[str, Any]:
+    def _extract_json_from_response(self, content: str) -> dict[str, Any]:
         """Extract JSON from LLM response."""
         try:
             # Try to find JSON block in response
@@ -245,8 +248,8 @@ class BevyWorkflowGraph:
     async def process_bevy_request(
         self,
         game_description: str,
-        thread_id: str = None
-    ) -> Dict[str, Any]:
+        thread_id: str | None = None
+    ) -> dict[str, Any]:
         """Process a complete Bevy game development request."""
         
         initial_state = {
@@ -282,9 +285,9 @@ class BevyWorkflowGraph:
             }
 
 
-async def create_bevy_subgraph(openai_client) -> BevyWorkflowGraph:
+async def create_bevy_subgraph(openai_client, model_config: dict[str, Any] | None = None) -> BevyWorkflowGraph:
     """Create and initialize Bevy workflow subgraph."""
-    workflow = BevyWorkflowGraph(openai_client)
+    workflow = BevyWorkflowGraph(openai_client, model_config)
     await workflow.bevy_generator.initialize()
     await workflow.asset_generator.initialize()
     return workflow
