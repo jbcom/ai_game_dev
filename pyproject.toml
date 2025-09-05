@@ -49,6 +49,8 @@ dependencies = [
     "langchain-core>=0.3.75",
     "langgraph>=0.6.6",
     "langgraph-checkpoint>=2.1.1",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.1.0",
 ]
 
 [project.optional-dependencies]
@@ -88,6 +90,22 @@ format = ["black src tests", "ruff check --fix src tests"]
 lint = ["ruff check src tests", "mypy src"]
 docs = "sphinx-build -b html docs docs/_build/html"
 clean = "rm -rf build dist .pytest_cache .coverage htmlcov docs/_build"
+# Game development system commands
+test-engines = "pytest tests/test_engine_generation.py -v"
+test-bevy = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_bevy_ecs_generation -v"
+test-godot = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_godot_scene_generation -v"  
+test-arcade = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_arcade_web_generation -v"
+test-agents = "pytest tests/test_engine_generation.py::TestEngineGeneration::test_multi_agent_handoffs -v"
+generate-examples = "python -m openai_mcp_server.examples.generate_all"
+# Dogfooding - use our own system to generate content for the codebase
+dogfood-generate = "python -m openai_mcp_server.build.dogfood"
+# End-to-end testing with real MCP clients
+test-e2e-python = "python tests/e2e/test_python_client.py"
+test-e2e-rust = "cd tests/e2e/rust_client && cargo test"
+test-e2e-node = "cd tests/e2e/node_client && npm test"
+test-e2e-all = ["test-e2e-python", "test-e2e-rust", "test-e2e-node"]
+setup-e2e-clients = "python -m openai_mcp_server.build.setup_e2e_clients"
+show-examples = "ls -la generated_examples/"
 
 [project.scripts]
 openai-mcp-server = "openai_mcp_server.main:main"

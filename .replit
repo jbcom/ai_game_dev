@@ -1,10 +1,10 @@
-modules = ["python-3.11"]
+modules = ["python-3.11", "nodejs-20", "bash", "go-1.24", "nix", "nodejs-24", "docker", "pyright-extended", "pyright", "typescript-language-server", "rust-stable", "ruby-3.2", "python-base-3.13"]
 [agent]
 expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["bash", "cargo", "freetype", "glibcLocales", "lcms2", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "libyaml", "openjpeg", "rustc", "tcl", "tk", "zlib"]
+packages = ["bash", "cargo", "freetype", "glibcLocales", "lcms2", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "libyaml", "openjpeg", "rustc", "tcl", "tk", "zlib", "hatch", "uv", "cargo-edit"]
 
 [workflows]
 runButton = "Project"
