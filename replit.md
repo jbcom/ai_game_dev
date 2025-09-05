@@ -10,13 +10,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **September 2025**: Major feature enhancement with advanced AI capabilities
+- **September 2025**: Revolutionary seed-based contextual generation system
+- **Seed Data Queue**: Persistent contextual data storage with intelligent consumption
+- **Enhanced Prompts**: Automatic prompt enhancement using stored seed context
+- **Project Context**: Seed data organization by project for targeted generation
+- **Priority System**: Critical, high, medium, low priority seeds with smart filtering
 - **Advanced Image Generation**: Implemented masking, variations, targeted edits with vision verification
 - **Intelligent Workflows**: Added AI-powered task analysis and automatic workflow generation
 - **Configuration Processing**: Support for TOML/YAML/JSON batch specifications
-- **UI Generation System**: Specialized game development asset creation with state variants
-- **Vision Verification**: Automatic quality checking with regeneration loops
-- **Module Separation**: Professional package structure with proper separation of concerns
+- **Bevy Game Assets**: Specialized game development asset creation with ECS integration
 - **Production Ready**: TTL caching, async optimization, comprehensive error handling
 
 ## System Architecture
@@ -44,17 +46,20 @@ src/openai_mcp_server/
 ├── cache_manager.py     # Advanced TTL caching system
 ├── content_validator.py # Safety and quality validation
 ├── batch_processor.py   # Bulk operations and batch processing
-└── export_formats.py    # Multi-format export capabilities
+├── export_formats.py    # Multi-format export capabilities
+├── seed_system.py       # Seed data management and contextual enhancement
+└── bevy_assets_simple.py # Simplified Bevy game asset generation
 ```
 
-### Content Generation System
-- **OpenAI Integration**: Uses OpenAI client for image generation and vision analysis capabilities
+### Seed-Enhanced Generation System
+- **Contextual Seeds**: Store reusable context data (style guides, character sheets, color palettes)
+- **Smart Consumption**: Automatically enhance prompts with relevant seed data
+- **Project Organization**: Group seeds by project context for targeted enhancement
+- **Priority-Based Filtering**: Critical seeds always included, others based on relevance
+- **Usage Tracking**: Monitor seed consumption with optional usage limits and expiration
 - **Multi-format Support**: Handles various image sizes and qualities through typed literals
-- **3D Model Creation**: Includes infrastructure for 3D model generation and management
-- **Structured Outputs**: Leverages OpenAI's structured output features for precise 3D specifications
-- **Batch Processing**: Generate multiple images or models simultaneously with concurrency control
+- **Batch Processing**: Generate multiple assets simultaneously with seed enhancement
 - **Content Validation**: AI-powered safety checks and quality validation for all generated content
-- **Export Flexibility**: Convert between formats (PNG/JPEG/WebP for images, GLTF/GLB/OBJ for 3D models)
 
 ### Caching and Storage
 - **Advanced TTL Caching**: Time-based expiration with automatic cleanup and LRU eviction

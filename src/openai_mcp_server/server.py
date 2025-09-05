@@ -29,7 +29,11 @@ from openai_mcp_server.models import (
     ImageEditRequest, VerificationCriteria, WorkflowSpec, UIElementSpec,
     MaskRegion, EditOperation, VerificationMode, WorkflowType
 )
-from openai_mcp_server.bevy_assets import BevyAssetGenerator, BevyAssetType, BevyMaterialType
+from openai_mcp_server.bevy_assets_simple import BevyAssetGenerator, BevyAssetType
+from openai_mcp_server.seed_system import (
+    seed_queue, prompt_enhancer, SeedType, SeedPriority, 
+    initialize_seed_system
+)
 
 
 def create_server() -> FastMCP:
@@ -54,6 +58,15 @@ def create_server() -> FastMCP:
     # Ensure directories exist
     setup_directories()
     
+    # Initialize seed system on first tool call
+    seed_system_initialized = False
+    
+    async def ensure_seed_system():
+        nonlocal seed_system_initialized
+        if not seed_system_initialized:
+            await initialize_seed_system()
+            seed_system_initialized = True
+    
     @mcp.tool()
     def get_server_status() -> dict[str, Any]:
         """Get the current status of the MCP server and available capabilities."""
@@ -66,13 +79,11 @@ def create_server() -> FastMCP:
                 "status": "ready",
                 "openai_connected": True,
                 "capabilities": [
+                    "Seed-based contextual generation with persistent data queue",
+                    "Advanced prompt enhancement using seeded context",
                     "Specialized Bevy game engine asset generation",
                     "Complete game asset pack generation",
-                    "Bevy 2D sprite generation with animation support",
-                    "Tilemap generation with Bevy tilemap integration",
-                    "UI theme generation for Bevy UI system",
-                    "Particle texture generation for Bevy particle systems",
-                    "PBR material generation for Bevy StandardMaterial",
+                    "Contextual asset generation using project seeds",
                     "Advanced image generation with masking and targeted edits",
                     "Vision-based verification with automatic regeneration",
                     "Intelligent workflow generation from task descriptions",
@@ -844,6 +855,255 @@ def create_server() -> FastMCP:
             
         except Exception as e:
             logger.error(f"Complete game asset generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    # Seed data management tools
+    @mcp.tool()
+    async def add_seed_data(
+        seed_type: str,
+        title: str,
+        content: str,
+        priority: str = "medium",
+        tags: list[str] = None,
+        expires_in_hours: int = None,
+        max_usage: int = None,
+        project_context: str = None
+    ) -> dict[str, Any]:
+        """Add seed data for future prompt enhancement."""
+        try:
+            await ensure_seed_system()
+            seed_id = await seed_queue.add_seed(
+                seed_type=SeedType(seed_type),
+                title=title,
+                content=content,
+                priority=SeedPriority(priority),
+                tags=tags or [],
+                expires_in_hours=expires_in_hours,
+                max_usage=max_usage,
+                project_context=project_context
+            )
+            
+            return {
+                "status": "added",
+                "seed_id": seed_id,
+                "title": title,
+                "seed_type": seed_type
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to add seed data: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_with_seeds(
+        base_prompt: str,
+        context_tags: list[str] = None,
+        project_context: str = None,
+        max_seeds: int = 5,
+        size: ImageSize = "1024x1024",
+        quality: ImageQuality = "standard"
+    ) -> dict[str, Any]:
+        """Generate image using seed-enhanced prompts."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            # Enhance prompt with seeds
+            enhancement = await prompt_enhancer.enhance_prompt(
+                base_prompt=base_prompt,
+                context_tags=context_tags,
+                project_context=project_context,
+                max_seeds=max_seeds
+            )
+            
+            # Generate with enhanced prompt
+            response = await openai_client.images.generate(
+                prompt=enhancement["enhanced_prompt"],
+                size=size,
+                quality=quality,
+                n=1
+            )
+            
+            # Save generated image
+            from uuid import uuid4
+            result_id = str(uuid4())
+            
+            import aiohttp
+            from pathlib import Path
+            output_dir = settings.cache_dir / "seed_generated"
+            await ensure_directory_exists(output_dir)
+            output_path = output_dir / f"seed_gen_{result_id}.png"
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(response.data[0].url) as img_response:
+                    if img_response.status == 200:
+                        async with aiofiles.open(output_path, 'wb') as f:
+                            await f.write(await img_response.read())
+            
+            return {
+                "status": "generated",
+                "file_path": str(output_path),
+                "enhancement_applied": enhancement["enhancement_applied"],
+                "seeds_used": enhancement["seeds_used"],
+                "original_prompt": base_prompt,
+                "enhanced_prompt": enhancement["enhanced_prompt"]
+            }
+            
+        except Exception as e:
+            logger.error(f"Seed-enhanced generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def list_seeds(
+        seed_type: str = None,
+        project_context: str = None,
+        active_only: bool = True
+    ) -> dict[str, Any]:
+        """List available seed data."""
+        try:
+            seeds = await seed_queue.list_seeds(
+                seed_type=SeedType(seed_type) if seed_type else None,
+                project_context=project_context,
+                active_only=active_only
+            )
+            
+            seed_list = []
+            for seed in seeds:
+                seed_list.append({
+                    "id": seed.id,
+                    "title": seed.title,
+                    "seed_type": seed.seed_type.value,
+                    "priority": seed.priority.value,
+                    "tags": seed.tags,
+                    "usage_count": seed.usage_count,
+                    "created_at": seed.created_at,
+                    "project_context": seed.project_context
+                })
+            
+            return {
+                "status": "listed",
+                "seeds": seed_list,
+                "total_count": len(seed_list)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to list seeds: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def remove_seed_data(seed_id: str) -> dict[str, Any]:
+        """Remove seed data from queue."""
+        try:
+            success = await seed_queue.remove_seed(seed_id)
+            
+            return {
+                "status": "removed" if success else "not_found",
+                "seed_id": seed_id
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to remove seed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_bevy_asset_with_seeds(
+        asset_type: str,
+        name: str,
+        description: str,
+        project_context: str = None,
+        size: ImageSize = "512x512"
+    ) -> dict[str, Any]:
+        """Generate Bevy asset using contextual seeds."""
+        try:
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            # Create contextual prompt using seeds
+            enhanced_prompt = await prompt_enhancer.create_contextual_prompt(
+                task_description=description,
+                asset_type=asset_type,
+                project_context=project_context
+            )
+            
+            # Generate asset using enhanced prompt
+            bevy_generator = BevyAssetGenerator(openai_client)
+            
+            if asset_type == "sprite":
+                result = await bevy_generator.generate_sprite_2d(
+                    name=name,
+                    description=enhanced_prompt,
+                    size=size
+                )
+            else:
+                # Fallback to general generation
+                response = await openai_client.images.generate(
+                    prompt=enhanced_prompt,
+                    size=size,
+                    quality="standard",
+                    n=1
+                )
+                
+                from uuid import uuid4
+                result_id = str(uuid4())
+                asset_path = await bevy_generator._save_asset(response.data[0].url, name, asset_type)
+                
+                from .models import GenerationResult
+                result = GenerationResult(
+                    id=result_id,
+                    type="image",
+                    file_path=str(asset_path),
+                    metadata={
+                        "name": name,
+                        "asset_type": asset_type,
+                        "enhanced_prompt": enhanced_prompt,
+                        "original_description": description
+                    }
+                )
+            
+            return {
+                "status": "generated",
+                "asset": result.model_dump(),
+                "bevy_ready": True,
+                "seed_enhanced": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Seed-enhanced Bevy asset generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def cleanup_expired_seeds() -> dict[str, Any]:
+        """Clean up expired and exhausted seed data."""
+        try:
+            removed_count = await seed_queue.cleanup_expired()
+            
+            return {
+                "status": "cleaned",
+                "removed_count": removed_count
+            }
+            
+        except Exception as e:
+            logger.error(f"Seed cleanup failed: {e}")
             return {
                 "status": "error",
                 "error": str(e)

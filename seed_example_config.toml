@@ -1,0 +1,80 @@
+# Example Seed Data Configuration
+# This shows how to set up contextual seed data for enhanced generation
+
+[project]
+name = "FantasyRPG"
+context = "medieval_fantasy_rpg"
+
+# Style guide seed - critical priority for consistent visuals
+[[seeds]]
+type = "style_guide"
+priority = "critical"
+title = "Medieval Fantasy Art Style"
+content = "Dark medieval fantasy aesthetic with muted earth tones, weathered textures, hand-painted look, inspired by classic RPGs like Baldur's Gate. Avoid bright cartoon colors or modern elements."
+tags = ["fantasy", "medieval", "art_style", "rpg"]
+project_context = "medieval_fantasy_rpg"
+expires_in_hours = 168  # 1 week
+
+# Character design seeds
+[[seeds]]
+type = "character_sheet"
+priority = "high"
+title = "Hero Warrior Design"
+content = "Grizzled human warrior, plate armor with battle scars, short beard, determined expression, carries ancient sword and wooden shield with family crest"
+tags = ["character", "warrior", "hero", "human"]
+project_context = "medieval_fantasy_rpg"
+max_usage = 10
+
+[[seeds]]
+type = "character_sheet"
+priority = "high"
+title = "Goblin Enemy Design"
+content = "Small green-skinned goblin, crude leather armor, jagged dagger, sneaky expression, pointed ears, red eyes, tribal markings"
+tags = ["character", "enemy", "goblin", "monster"]
+project_context = "medieval_fantasy_rpg"
+max_usage = 5
+
+# Color palette seed
+[[seeds]]
+type = "color_palette"
+priority = "medium"
+title = "Fantasy RPG Color Scheme"
+content = "Primary: Deep forest green #2D4A2B, Stone gray #6B6B6B, Iron blue #4A5568. Accent: Gold highlights #D4AF37, Blood red #8B0000. Background: Parchment #F4E4B8"
+tags = ["colors", "palette", "ui", "environment"]
+project_context = "medieval_fantasy_rpg"
+
+# World lore for context
+[[seeds]]
+type = "world_lore"
+priority = "medium"
+title = "Kingdom of Eldoria Setting"
+content = "Ancient kingdom threatened by orc invasions, crumbling stone castles, enchanted forests with dangerous creatures, underground dungeons filled with treasure and traps"
+tags = ["world", "lore", "setting", "fantasy"]
+project_context = "medieval_fantasy_rpg"
+
+# Technical specifications
+[[seeds]]
+type = "technical_spec"
+priority = "high"
+title = "Bevy Asset Requirements"
+content = "All sprites must be 64x64 pixels for characters, 32x32 for tiles, transparent PNG format, pixel art style with clean edges suitable for scaling"
+tags = ["technical", "bevy", "sprites", "specifications"]
+project_context = "medieval_fantasy_rpg"
+
+# UI design seeds
+[[seeds]]
+type = "asset_template"
+priority = "medium"
+title = "UI Button Style"
+content = "Stone-carved appearance with wooden trim, raised edges when normal, pressed inward when clicked, gold text with drop shadows"
+tags = ["ui", "button", "interface", "stone", "wood"]
+project_context = "medieval_fantasy_rpg"
+
+# Gameplay context
+[[seeds]]
+type = "gameplay_mechanic"
+priority = "low"
+title = "Combat System"
+content = "Turn-based combat with action points, weapon durability system, magic spells consume mana, critical hits based on weapon type and character stats"
+tags = ["gameplay", "combat", "mechanics"]
+project_context = "medieval_fantasy_rpg"

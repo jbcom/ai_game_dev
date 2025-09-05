@@ -555,7 +555,7 @@ class BevyAssetGenerator:
     def _generate_bevy_tilemap_code(self, theme: str, tiles: List[Dict]) -> str:
         """Generate Bevy tilemap setup code."""
         
-        return f'''
+        return f"""
 // Bevy tilemap setup for {theme}
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
@@ -589,7 +589,7 @@ fn setup_{theme}_tilemap(
         ..Default::default()
     }});
 }}
-'''
+"""
     
     def _generate_ui_theme_config(self, theme_name: str, ui_assets: Dict) -> Dict[str, Any]:
         """Generate UI theme configuration."""
