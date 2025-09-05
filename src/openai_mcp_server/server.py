@@ -2127,15 +2127,14 @@ def create_server() -> FastMCP:
                 "error": str(e)
             }
     
-    # LangGraph Agent Integration Tools
+    # LangGraph Agent Integration
     @mcp.tool()
     async def create_langgraph_workflow(
         request: str,
         project_context: str = "new_project",
-        use_subgraphs: bool = False,
         thread_id: str = None
     ) -> dict[str, Any]:
-        """Execute game development requests using advanced LangGraph agents with SQLite state persistence."""
+        """Execute game development requests using LangGraph agents with SQLite state persistence."""
         try:
             await ensure_narrative_systems()
             await ensure_seed_system()
@@ -2155,20 +2154,15 @@ def create_server() -> FastMCP:
                 "project_context": project_context,
                 "langgraph_result": result,
                 "sqlite_state": True,
-                "persistent_memory": True,
-                "structured_tools": True,
-                "subgraph_capable": use_subgraphs,
                 "thread_id": result.get("thread_id"),
-                "framework": "LangGraph + GPT-5",
-                "state_management": "SQLite checkpointer"
+                "framework": "LangGraph + GPT-5"
             }
             
         except Exception as e:
             logger.error(f"LangGraph workflow failed: {e}")
             return {
                 "status": "error",
-                "error": str(e),
-                "suggested_action": "Check LangGraph agent logs for detailed error analysis"
+                "error": str(e)
             }
     
     return mcp

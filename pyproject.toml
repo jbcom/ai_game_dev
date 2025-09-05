@@ -41,25 +41,53 @@ dependencies = [
     "aiohttp>=3.12.15",
     "tomli>=2.2.1",
     "jinja2>=3.1.6",
-    "openai-agents>=0.2.11",
     "numpy>=2.3.2",
     "scikit-learn>=1.7.1",
     "langchain>=0.3.27",
     "langchain-openai>=0.3.32",
-    "langgraph>=0.6.6",
     "langchain-community>=0.3.29",
-    "langsmith>=0.4.25",
     "langchain-core>=0.3.75",
+    "langgraph>=0.6.6",
+    "langgraph-checkpoint>=2.1.1",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
+    "pytest-vcr>=1.0.2",
+    "pytest-mock>=3.12.0",
     "black>=24.0.0",
     "ruff>=0.6.0",
     "mypy>=1.11.0",
+    "sphinx>=7.4.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "coverage>=7.6.0",
 ]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-vcr>=1.0.2",
+    "pytest-mock>=3.12.0",
+    "black>=24.0.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+    "sphinx>=7.4.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "coverage>=7.6.0",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = ["- coverage combine", "coverage report"]
+cov-html = ["- coverage combine", "coverage html"]
+format = ["black src tests", "ruff check --fix src tests"]
+lint = ["ruff check src tests", "mypy src"]
+docs = "sphinx-build -b html docs docs/_build/html"
+clean = "rm -rf build dist .pytest_cache .coverage htmlcov docs/_build"
 
 [project.scripts]
 openai-mcp-server = "openai_mcp_server.main:main"
