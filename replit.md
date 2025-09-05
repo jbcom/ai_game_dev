@@ -10,61 +10,58 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (September 2025)
 
-- **✅ PRODUCTION READY**: Complete LangGraph agent system with SQLite state persistence restored and fully functional
-- **🤖 GPT-5 Integration**: Complete upgrade to GPT-5 with 74% coding accuracy and 45% fewer hallucinations
-- **🧠 LangGraph Subgraph Orchestration**: Revolutionary multi-agent system with engine-specific subgraph workflows
-- **⚡ Workflow Composition Architecture**: Engine subpackages provide specialized subgraph workflows vs direct OpenAI calls
-- **🔀 Intelligent Engine Routing**: Main orchestrator routes to Bevy, Godot, Unity subgraph workflows based on task analysis
+- **🏗️ UV WORKSPACE ARCHITECTURE**: Complete migration to UV workspace with separated concerns
+- **🎨 AI GAME ASSETS LIBRARY**: Standalone multimedia package with OpenAI TTS, music21, Google Fonts, CC0 libraries
+- **🧠 PURE LANGGRAPH CORE**: Clean separation of orchestration logic from multimedia generation
+- **🔧 LANGUAGE-NATIVE ENGINES**: Engine adapters generate native Rust (Bevy), GDScript (Godot), Python (Pygame/Arcade)
+- **🎵 COMPREHENSIVE AUDIO**: TTS with voice selection, procedural music generation, Freesound API integration
+- **🌐 ASSET ECOSYSTEM**: Google Fonts, CC0 libraries, Internet Archive seeding with PyTorch embeddings
+- **⚡ STRUCTURED TOOLS**: LangChain-compatible tools for seamless agent workflow integration
 - **💾 SQLite State Management**: Full persistence across development sessions with checkpointing support
-- **🎯 LangChain Tool Integration**: Structured tools for image generation, analysis, and seed management
+- **🎯 LangChain Tool Integration**: Structured tools for complete multimedia asset generation
 - **🌍 Universal Format Analysis**: Master any specification format with intelligent workflow recommendations
-- **🔧 Engine-specific Subgraph Workflows**: Complete Bevy and Godot subgraph workflows with specialized ECS/scene generation
 - **⚡ Advanced Test Suite**: pytest with asyncio, VCR recording, and comprehensive mocking
 - **📚 Professional Documentation**: Sphinx with RTD theme and comprehensive API documentation
-- **🛠️ Production Tooling**: Hatch build system, Black/Ruff formatting, mypy type checking
+- **🛠️ Production Tooling**: UV workspace management, Black/Ruff formatting, mypy type checking
 
 ## System Architecture
 
+### UV Workspace Structure
+```
+packages/
+├── ai-game-dev-core/           # Pure LangChain/LangGraph orchestration
+│   └── src/ai_game_dev/
+│       ├── __init__.py
+│       ├── library.py          # Main AIGameDev class
+│       ├── models.py           # Core data models
+│       ├── langgraph_agents.py # Multi-agent orchestration
+│       ├── engine_adapters.py  # Language-native engine interfaces
+│       └── config.py           # Configuration management
+├── ai-game-assets/             # Standalone multimedia generation
+│   └── src/ai_game_assets/
+│       ├── audio/              # TTS, music21, Freesound integration
+│       │   ├── tts_generator.py
+│       │   ├── music_generator.py
+│       │   ├── freesound_client.py
+│       │   └── audio_tools.py
+│       └── assets/             # Visual assets and fonts
+│           ├── cc0_libraries.py
+│           ├── google_fonts.py
+│           ├── archive_seeder.py
+│           └── asset_tools.py
+└── web-portal/                 # Mesop web interface
+    └── src/web_portal/
+        └── app.py
+```
+
 ### Core Framework
-- **MCP Server Architecture**: Built using FastMCP framework for handling Model Context Protocol communications
-- **LangGraph Subgraph Orchestration**: Revolutionary multi-agent system where engine subpackages provide specialized workflow subgraphs
-- **Workflow Composition**: Main orchestrator composes engine-specific subgraphs instead of direct OpenAI API calls
-- **Intelligent Engine Routing**: Automatic analysis and routing to appropriate engine workflows (Bevy, Godot, Unity)
-- **Structured Tool Integration**: LangChain-compatible tools for seamless integration across all subgraph workflows
+- **Pure LangGraph Orchestration**: Clean separation of AI orchestration from multimedia generation
+- **UV Workspace Management**: Modern Python project structure with proper dependency isolation
+- **Language-Native Engine Adapters**: Generate Rust (Bevy), GDScript (Godot), Python (Pygame/Arcade) code
+- **Standalone Asset Library**: Independent multimedia package for TTS, music, fonts, and visual assets
+- **Structured Tool Integration**: LangChain-compatible tools for seamless agent workflow integration
 - **Async/Await Pattern**: Leverages Python's asyncio for non-blocking operations and improved performance
 - **Type Safety**: Implements comprehensive type hints with modern Python typing features for better code reliability
-
-### Project Structure
-```
-src/openai_mcp_server/
-├── __init__.py          # Package exports and version
-├── main.py              # Main entry point
-├── server.py            # Enhanced MCP server implementation
-├── models.py            # Pydantic models and type definitions
-├── generators.py        # Image and 3D model generation
-├── analyzers.py         # Image analysis and vision capabilities
-├── config.py            # Configuration with pydantic-settings and XDG
-├── utils.py             # Utility functions
-├── exceptions.py        # Custom exception hierarchy
-├── logging_config.py    # Structured logging with Rich
-├── metrics.py           # Performance monitoring and tracking
-├── cache_manager.py     # Advanced TTL caching system
-├── content_validator.py # Safety and quality validation
-├── batch_processor.py   # Bulk operations and batch processing
-├── export_formats.py    # Multi-format export capabilities
-├── seed_system.py       # Seed data management and contextual enhancement
-├── langgraph_agents.py  # Main orchestrator with subgraph composition
-├── langchain_tools.py   # LangChain tool integration
-└── engines/             # Engine-specific subgraph workflows
-    ├── bevy/
-    │   ├── __init__.py
-    │   ├── workflow.py  # Bevy LangGraph subgraph workflow
-    │   ├── generator.py # Bevy ECS architecture generation
-    │   └── assets.py    # Bevy asset specification and generation
-    └── godot/
-        ├── __init__.py
-        └── workflow.py  # Godot LangGraph subgraph workflow
-```
 
 ### Seed-Enhanced Generation System
 - **Contextual Seeds**: Store reusable context data (style guides, character sheets, color palettes)

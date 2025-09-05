@@ -1,0 +1,42 @@
+[project]
+name = "ai-game-dev-core"
+version = "1.0.0"
+description = "Core AI-powered game development library with LangGraph multi-agent orchestration"
+authors = [
+    {name = "AI Game Dev Team"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+dependencies = [
+    # Asset generation capabilities
+    "ai-game-assets",
+    
+    # Core AI and Language Models (Pure LangChain/LangGraph)
+    "langchain>=0.3.9",
+    "langchain-core>=0.3.21", 
+    "langchain-community>=0.3.8",
+    "langchain-openai>=0.2.11",
+    "langgraph>=0.2.45",
+    "langgraph-checkpoint>=2.0.4",
+    
+    # MCP Server Framework
+    "fastmcp>=0.10.0",
+    
+    # Core Libraries
+    "pydantic>=2.8.0",
+    "pydantic-settings>=2.4.0",
+    "aiofiles>=23.2.1",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0",
+    "rich>=13.7.0",
+    "tomli>=2.0.0",
+    "xdg-base-dirs>=6.0.0",
+]
+
+[build-system]
+requires = ["uv>=0.5.0"]
+build-backend = "uv"
+
+[tool.uv.sources]
+ai-game-assets = { workspace = true }

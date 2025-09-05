@@ -21,9 +21,16 @@ except ImportError:
         # Fallback - create a simple state manager without checkpointing
         SqliteSaver = None
 
-from openai_mcp_server.langchain_tools import get_langchain_tools
-from openai_mcp_server.config import settings
-from openai_mcp_server.logging_config import get_logger
+from .engine_adapters import EngineAdapterManager
+from .config import get_config
+from .logging_config import get_logger
+
+# Import asset generation tools from the separate package
+try:
+    from ai_game_assets import AudioTools, AssetTools
+except ImportError:
+    AudioTools = None
+    AssetTools = None
 
 logger = get_logger(__name__, component="langgraph_agents")
 
