@@ -133,35 +133,34 @@ async def generate_image(
         }
     
     try:
-        # Generate image using gpt-image-1
+        # Generate image using gpt-image-1 with base64 response
         response = openai_client.images.generate(
             model="gpt-image-1",
             prompt=prompt,
             size=size,
             quality=quality,
-            n=1
+            n=1,
+            response_format="b64_json"
         )
         
-        # Download and save the image
-        import requests
+        # Get base64 image data and save directly
         if response.data and len(response.data) > 0:
-            image_url = response.data[0].url
-            if image_url:
-                image_response = requests.get(image_url)
-                image_response.raise_for_status()
+            import base64
+            image_b64 = response.data[0].b64_json
+            if image_b64:
+                image_data = base64.b64decode(image_b64)
             else:
-                raise ValueError("No image URL returned from OpenAI API")
+                raise ValueError("No image data returned from OpenAI API")
         else:
             raise ValueError("No image data returned from OpenAI API")
         
         # Save to cache
         with open(image_path, 'wb') as f:
-            f.write(image_response.content)
+            f.write(image_data)
         
         return {
             "status": "generated",
             "image_path": str(image_path),
-            "image_url": image_url,
             "prompt": prompt,
             "size": size,
             "quality": quality,
@@ -343,21 +342,21 @@ async def generate_3d_model(
                         prompt=texture_desc,
                         size="1024x1024",
                         quality="hd",
-                        n=1
+                        n=1,
+                        response_format="b64_json"
                     )
                     
                     if texture_response.data and len(texture_response.data) > 0:
-                        texture_url = texture_response.data[0].url
-                        if texture_url:
-                            # Download texture
-                            import requests
-                            texture_img_response = requests.get(texture_url)
-                            texture_img_response.raise_for_status()
+                        texture_b64 = texture_response.data[0].b64_json
+                        if texture_b64:
+                            # Decode base64 texture data
+                            import base64
+                            texture_data = base64.b64decode(texture_b64)
                             
                             # Save texture to model directory
                             dst_path = model_dir / f"{material_name}_{texture_type}.png"
                             with open(dst_path, 'wb') as f:
-                                f.write(texture_img_response.content)
+                                f.write(texture_data)
                             
                             textures[f"{material_name}_{texture_type}"] = str(dst_path.relative_to(model_dir))
                 except Exception as texture_error:
