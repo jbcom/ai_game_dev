@@ -1,12 +1,17 @@
 """Bevy game engine integration with ECS optimizations."""
 
-from .generator import BevyGenerator
-from .ecs_components import ECSlibrary
-from .asset_pipeline import BevyAssetPipeline
-from .templates import BevyTemplateManager
+from openai_mcp_server.engines.bevy.generator import BevyGenerator
+from openai_mcp_server.engines.bevy.assets import BevyAssetGenerator, BevyAssetType, BevyMaterialType, BevyAssetSpec
+from openai_mcp_server.engines.bevy.ecs_components import ECSlibrary
+from openai_mcp_server.engines.bevy.asset_pipeline import BevyAssetPipeline
+from openai_mcp_server.engines.bevy.templates import BevyTemplateManager
 
 __all__ = [
     "BevyGenerator",
+    "BevyAssetGenerator",
+    "BevyAssetType", 
+    "BevyMaterialType",
+    "BevyAssetSpec",
     "ECSlibrary", 
     "BevyAssetPipeline",
     "BevyTemplateManager"

@@ -197,13 +197,28 @@ class ContentValidator:
                         "severity": "high"
                     }
                 
-                # Check polygon count if available
+                # Calculate actual polygon count from GLTF data
                 polygon_count = 0
                 for mesh in gltf_data.get("meshes", []):
                     for primitive in mesh.get("primitives", []):
-                        # Estimate polygon count (simplified)
-                        if "indices" in primitive:
-                            polygon_count += 1000  # Placeholder estimation
+                        # Get accessor for indices to calculate triangle count
+                        indices_accessor = primitive.get("indices")
+                        if indices_accessor is not None:
+                            accessors = gltf_data.get("accessors", [])
+                            if indices_accessor < len(accessors):
+                                accessor = accessors[indices_accessor]
+                                index_count = accessor.get("count", 0)
+                                # Most GLTF primitives are triangulated (mode 4)
+                                triangles = index_count // 3
+                                polygon_count += triangles
+                        else:
+                            # If no indices, estimate from position accessor
+                            position_accessor = primitive.get("attributes", {}).get("POSITION")
+                            if position_accessor is not None and position_accessor < len(accessors):
+                                accessor = accessors[position_accessor]
+                                vertex_count = accessor.get("count", 0)
+                                # Estimate triangles from vertices (assuming triangulated)
+                                polygon_count += vertex_count // 3
                 
                 if polygon_count > 100000:
                     return {

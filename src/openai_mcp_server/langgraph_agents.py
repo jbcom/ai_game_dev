@@ -19,9 +19,9 @@ except ImportError:
         # Fallback - create a simple state manager without checkpointing
         SqliteSaver = None
 
-from .langchain_tools import get_langchain_tools
-from .config import settings
-from .logging_config import get_logger
+from openai_mcp_server.langchain_tools import get_langchain_tools
+from openai_mcp_server.config import settings
+from openai_mcp_server.logging_config import get_logger
 
 logger = get_logger(__name__, component="langgraph_agents")
 

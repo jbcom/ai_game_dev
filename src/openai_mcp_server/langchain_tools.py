@@ -8,9 +8,9 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 from openai import AsyncOpenAI
 
-from .config import settings
-from .logging_config import get_logger
-from .models import ImageSize, ImageQuality
+from openai_mcp_server.config import settings
+from openai_mcp_server.logging_config import get_logger
+from openai_mcp_server.models import ImageSize, ImageQuality
 
 logger = get_logger(__name__, component="langchain_tools")
 

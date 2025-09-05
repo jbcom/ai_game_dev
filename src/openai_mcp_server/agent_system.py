@@ -14,10 +14,10 @@ from openai import AsyncOpenAI
 # Note: openai-agents package integration for future enhancement
 # Currently using custom agent implementation with OpenAI API
 
-from .config import settings
-from .logging_config import get_logger
-from .seed_system import seed_queue, SeedType, SeedPriority
-from .utils import ensure_directory_exists
+from openai_mcp_server.config import settings
+from openai_mcp_server.logging_config import get_logger
+from openai_mcp_server.seed_system import seed_queue, SeedType, SeedPriority
+from openai_mcp_server.utils import ensure_directory_exists
 
 logger = get_logger(__name__, component="agent_system")
 

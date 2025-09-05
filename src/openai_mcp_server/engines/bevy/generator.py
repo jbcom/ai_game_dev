@@ -8,9 +8,10 @@ from dataclasses import dataclass
 from openai import AsyncOpenAI
 from jinja2 import Environment, FileSystemLoader
 
-from ...config import settings
-from ...logging_config import get_logger
-from ...utils import ensure_directory_exists
+from openai_mcp_server.config import settings
+from openai_mcp_server.logging_config import get_logger
+from openai_mcp_server.utils import ensure_directory_exists
+from openai_mcp_server.models import ImageSize, GenerationResult
 
 logger = get_logger(__name__, component="bevy_generator")
 
