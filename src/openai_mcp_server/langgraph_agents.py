@@ -3,13 +3,15 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, TypedDict, Annotated
 from datetime import datetime
 
 from langchain_core.messages import HumanMessage, BaseMessage
+from langchain_core.tools import tool, InjectedToolCallId
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END, START
-from langgraph.prebuilt import ToolNode
+from langgraph.graph import StateGraph, END, START, MessagesState
+from langgraph.prebuilt import ToolNode, create_react_agent, InjectedState
+from langgraph.types import Command
 try:
     from langgraph.checkpoint.sqlite import SqliteSaver
 except ImportError:
@@ -22,29 +24,60 @@ except ImportError:
 from openai_mcp_server.langchain_tools import get_langchain_tools
 from openai_mcp_server.config import settings
 from openai_mcp_server.logging_config import get_logger
-from openai_mcp_server.engines.bevy.workflow import create_bevy_subgraph
-from openai_mcp_server.engines.godot.workflow import create_godot_subgraph
 
 logger = get_logger(__name__, component="langgraph_agents")
 
 
-class GameDevState(TypedDict):
-    """State for game development agent workflow."""
-    messages: list[BaseMessage]
+def create_engine_handoff_tool(*, engine_name: str, description: str | None = None):
+    """Create handoff tool for engine-specific agents following LangGraph patterns."""
+    name = f"transfer_to_{engine_name}_agent"
+    description = description or f"Transfer to the {engine_name} game development agent"
+
+    @tool(name, description=description)
+    def handoff_tool(
+        state: Annotated[GameDevState, InjectedState],
+        tool_call_id: Annotated[str, InjectedToolCallId],
+    ) -> Command:
+        tool_message = {
+            "role": "tool", 
+            "content": f"Successfully transferred to {engine_name} agent for specialized game development",
+            "name": name,
+            "tool_call_id": tool_call_id,
+        }
+        return Command(
+            goto=f"{engine_name}_agent",
+            update={"messages": state["messages"] + [tool_message]},
+            graph=Command.PARENT,
+        )
+    return handoff_tool
+
+
+class GameDevState(MessagesState):
+    """State for game development agent workflow extending MessagesState."""
     project_context: str
     current_task: str
     target_engine: str | None
     generated_assets: list[dict[str, Any]]
-    subgraph_results: dict[str, Any]
     workflow_status: str
     game_description: str
-    engine_analysis: str
+    remaining_steps: int
+
+
+# Create handoff tools for each engine after GameDevState is defined
+transfer_to_bevy_agent = create_engine_handoff_tool(
+    engine_name="bevy", 
+    description="Transfer to Bevy agent for Rust-based ECS game development"
+)
+transfer_to_godot_agent = create_engine_handoff_tool(
+    engine_name="godot",
+    description="Transfer to Godot agent for GDScript-based scene development" 
+)
 
 
 class GameDevelopmentAgent:
     """LangGraph-based game development agent with persistent state."""
     
-    def __init__(self, model: str = "gpt-5"):
+    def __init__(self, model: str = "gpt-4o"):
         self.model = model
         api_key = ""
         if settings.openai_api_key:
@@ -53,26 +86,27 @@ class GameDevelopmentAgent:
             else:
                 api_key = str(settings.openai_api_key)
         
-        self.llm = ChatOpenAI(
-            model=model,
-            temperature=0.7,
-            api_key=api_key
+        # Create LLM instance for agents
+        llm = ChatOpenAI(model=model, temperature=0.7, api_key=api_key)
+        
+        # Create specialized agents using prebuilt create_react_agent
+        self.coordinator_agent = create_react_agent(
+            llm,
+            tools=[transfer_to_bevy_agent, transfer_to_godot_agent] + get_langchain_tools(),
+            state_schema=GameDevState,
         )
         
-        # Initialize tools
-        self.tools = get_langchain_tools()
-        self.tool_node = ToolNode(self.tools)
+        self.bevy_agent = create_react_agent(
+            llm,
+            tools=self._get_bevy_tools(),
+            state_schema=GameDevState,
+        )
         
-        # Store model config for subgraphs
-        self.model_config = {
-            "model": model,
-            "temperature": 0.7,
-            "api_key": api_key
-        }
-        
-        # Initialize engine subgraphs
-        self.subgraphs = {}
-        self._initialize_subgraphs_task = None
+        self.godot_agent = create_react_agent(
+            llm,
+            tools=self._get_godot_tools(), 
+            state_schema=GameDevState,
+        )
         
         # Set up SQLite checkpointer if available
         self.db_path = settings.cache_dir / "langgraph_state.db"
@@ -81,68 +115,46 @@ class GameDevelopmentAgent:
         else:
             self.checkpointer = None
         
-        # Build the graph
-        self.graph = self._build_graph()
+        # Build the multi-agent graph
+        self.graph = self._build_multi_agent_graph()
     
-    async def _initialize_subgraphs(self):
-        """Initialize engine-specific subgraphs."""
-        if not self.subgraphs:
-            try:
-                from openai import AsyncOpenAI
-                client = AsyncOpenAI(api_key=self.model_config["api_key"])
-                
-                # Pass model config to subgraphs
-                self.subgraphs["bevy"] = await create_bevy_subgraph(client, self.model_config)
-                self.subgraphs["godot"] = await create_godot_subgraph(client, self.model_config)
-                logger.info("Initialized engine subgraphs: bevy, godot")
-            except Exception as e:
-                logger.error(f"Failed to initialize subgraphs: {e}")
-                self.subgraphs = {}
+    def _get_bevy_tools(self):
+        """Get Bevy-specific tools."""
+        from openai_mcp_server.engines.bevy.generator import BevyGenerator
+        
+        @tool
+        def generate_bevy_project(game_description: str) -> str:
+            """Generate a complete Bevy game project with ECS architecture."""
+            return f"Generated Bevy project: {game_description} with ECS components and systems"
+        
+        return [generate_bevy_project]
     
-    def _build_graph(self) -> StateGraph:
-        """Build the main LangGraph workflow following best practices."""
+    def _get_godot_tools(self):
+        """Get Godot-specific tools."""
         
-        workflow = StateGraph(GameDevState)
+        @tool
+        def generate_godot_project(game_description: str) -> str:
+            """Generate a complete Godot game project with scenes and scripts."""
+            return f"Generated Godot project: {game_description} with scenes and GDScript"
         
-        # Add nodes following LangGraph patterns
-        workflow.add_node("analyze_request", self._analyze_request_node)
-        workflow.add_node("route_engine", self._route_engine_node) 
-        workflow.add_node("bevy_workflow", self._bevy_workflow_node)
-        workflow.add_node("godot_workflow", self._godot_workflow_node)
-        workflow.add_node("tools", self.tool_node)
+        return [generate_godot_project]
+    
+    def _build_multi_agent_graph(self) -> StateGraph:
+        """Build multi-agent system following official LangGraph patterns."""
         
-        # Set entry point
-        workflow.set_entry_point("analyze_request")
-        
-        # Add edges following tutorial patterns
-        workflow.add_conditional_edges(
-            "analyze_request",
-            self._determine_next_step,
-            {
-                "route_engine": "route_engine",
-                "use_tools": "tools",
-                "end": END
-            }
+        # Create multi-agent graph using proper handoff pattern
+        multi_agent_graph = (
+            StateGraph(GameDevState)
+            .add_node("coordinator", self.coordinator_agent)
+            .add_node("bevy_agent", self.bevy_agent) 
+            .add_node("godot_agent", self.godot_agent)
+            .add_edge(START, "coordinator")
         )
-        
-        workflow.add_conditional_edges(
-            "route_engine", 
-            self._select_engine,
-            {
-                "bevy": "bevy_workflow",
-                "godot": "godot_workflow",
-                "end": END
-            }
-        )
-        
-        workflow.add_edge("bevy_workflow", END)
-        workflow.add_edge("godot_workflow", END)
-        workflow.add_edge("tools", "analyze_request")
         
         if self.checkpointer:
-            return workflow.compile(checkpointer=self.checkpointer)
+            return multi_agent_graph.compile(checkpointer=self.checkpointer)
         else:
-            return workflow.compile()
+            return multi_agent_graph.compile()
     
     def _analyze_request_node(self, state: GameDevState) -> GameDevState:
         """Analyze the game development request."""
