@@ -1,0 +1,71 @@
+# Complete World Generation Configuration
+# This demonstrates how to create entire game worlds and areas from simple descriptions
+
+[world]
+name = "Kingdoms of Aethermoor"
+brief = "A high-fantasy realm where ancient magic has awakened, kingdoms clash over mystical crystals, and heroes must unite diverse races to prevent an otherworldly invasion"
+game_type = "rpg"  # rpg, platformer, fps, puzzle, adventure, roguelike, strategy
+complexity = "complex"  # simple, medium, complex
+scope = "full_region"  # single_area, full_region, entire_world
+
+# Game area to generate
+[area]
+name = "Crystalvein Village"
+description = "A mining town built around magical crystal deposits, where dwarven miners work alongside human traders and elven artificers"
+location_type = "town"
+importance = "high"  # low, medium, high
+
+# Content targets
+[generation_targets]
+locations = 3           # Main locations in the area
+quests = 5             # Number of quests 
+npcs = 15              # Number of named NPCs
+sprites = 25           # Character and item sprites
+tiles = 15             # Tilemap assets
+ui_elements = 8        # UI components
+dialogue_trees = 10    # YarnSpinner dialogue files
+
+# Specific narrative elements
+[[narrative_seeds]]
+type = "world_lore"
+title = "The Crystal Awakening"
+content = "Three months ago, the ancient crystals began resonating with otherworldly energy, opening small rifts that leak dangerous creatures and valuable magical essence"
+priority = "critical"
+
+[[narrative_seeds]]
+type = "character_sheet" 
+title = "Master Thorgrim Ironbeard"
+content = "Dwarven mining foreman, 200 years old, missing left eye from a crystal beast attack, leads the miners with gruff wisdom and protective instincts"
+priority = "high"
+
+[[narrative_seeds]]
+type = "narrative_context"
+title = "Village Tensions"
+content = "Growing conflict between traditional dwarven miners who want to seal the crystals and entrepreneurial humans/elves who see profit opportunities"
+priority = "high"
+
+# Asset generation requirements
+[bevy_requirements]
+sprite_size = "64x64"
+tile_size = "32x32"
+ui_theme = "medieval_fantasy"
+art_style = "hand_painted"
+color_palette = "earthy_mystical"  # Will be enhanced by seeds
+
+# Auto-generation features
+[auto_features]
+generate_world_map = true
+create_faction_relationships = true
+link_quest_narratives = true
+export_bevy_components = true
+create_yarnspinner_files = true
+generate_item_descriptions = true
+create_combat_barks = true
+
+# This configuration will generate:
+# - Complete world format with consistent naming conventions
+# - All location assets (sprites, tiles, backgrounds)
+# - Full narrative content (quests, NPCs, dialogue trees)
+# - YarnSpinner .yarn files ready for game integration
+# - Bevy-compatible components and setup code
+# - Interconnected storylines and character relationships

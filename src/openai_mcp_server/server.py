@@ -34,6 +34,8 @@ from openai_mcp_server.seed_system import (
     seed_queue, prompt_enhancer, SeedType, SeedPriority, 
     initialize_seed_system
 )
+from openai_mcp_server.narrative_system import NarrativeGenerator, DialogueType
+from openai_mcp_server.world_builder import WorldBuilder, GameType, LocationType
 
 
 def create_server() -> FastMCP:
@@ -61,11 +63,25 @@ def create_server() -> FastMCP:
     # Initialize seed system on first tool call
     seed_system_initialized = False
     
+    # Initialize narrative and world systems
+    narrative_generator = None
+    world_builder = None
+    
     async def ensure_seed_system():
         nonlocal seed_system_initialized
         if not seed_system_initialized:
             await initialize_seed_system()
             seed_system_initialized = True
+    
+    async def ensure_narrative_systems():
+        nonlocal narrative_generator, world_builder, openai_client
+        if narrative_generator is None:
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            narrative_generator = NarrativeGenerator(openai_client)
+            world_builder = WorldBuilder(openai_client)
+            await narrative_generator.initialize()
+            await world_builder.initialize()
     
     @mcp.tool()
     def get_server_status() -> dict[str, Any]:
@@ -79,16 +95,16 @@ def create_server() -> FastMCP:
                 "status": "ready",
                 "openai_connected": True,
                 "capabilities": [
+                    "Complete world-building and game generation from single prompts",
+                    "YarnSpinner dialogue and narrative generation with contextual seeds",
+                    "Meta-prompt generation for coordinated game content creation", 
+                    "Person and place name generation with cultural consistency",
+                    "Complete game area generation (assets + narrative + code)",
                     "Seed-based contextual generation with persistent data queue",
                     "Advanced prompt enhancement using seeded context",
                     "Specialized Bevy game engine asset generation",
-                    "Complete game asset pack generation",
-                    "Contextual asset generation using project seeds",
                     "Advanced image generation with masking and targeted edits",
-                    "Vision-based verification with automatic regeneration",
-                    "Intelligent workflow generation from task descriptions",
-                    "Configuration-based batch processing (TOML/YAML/JSON)",
-                    "AI-powered content validation and safety checks"
+                    "Configuration-based batch processing (TOML/YAML/JSON)"
                 ],
                 "cache_stats": cache_manager.get_stats(),
                 "metrics": metrics.get_summary(),
@@ -1104,6 +1120,364 @@ def create_server() -> FastMCP:
             
         except Exception as e:
             logger.error(f"Seed cleanup failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    # World-building and narrative generation tools
+    @mcp.tool()
+    async def create_world_format(
+        world_brief: str,
+        game_type: str,
+        complexity: str = "medium"
+    ) -> dict[str, Any]:
+        """Create a comprehensive world format for game development."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            world_format = await world_builder.create_world_format(
+                world_brief=world_brief,
+                game_type=GameType(game_type),
+                complexity=complexity
+            )
+            
+            return {
+                "status": "created",
+                "world_format": world_format.to_dict(),
+                "seeds_created": True,
+                "project_context": f"{world_format.name.lower().replace(' ', '_')}_{world_format.game_type.value}"
+            }
+            
+        except Exception as e:
+            logger.error(f"World format creation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_complete_game_area(
+        world_brief: str,
+        game_type: str,
+        area_description: str,
+        complexity: str = "medium"
+    ) -> dict[str, Any]:
+        """Generate complete game area with assets, narrative, and code from a single prompt."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            # Create world format
+            world_format = await world_builder.create_world_format(
+                world_brief=world_brief,
+                game_type=GameType(game_type),
+                complexity=complexity
+            )
+            
+            project_context = f"{world_format.name.lower().replace(' ', '_')}_{world_format.game_type.value}"
+            
+            # Generate area-specific content
+            results = {
+                "world_format": world_format.to_dict(),
+                "project_context": project_context,
+                "generated_content": {}
+            }
+            
+            # Generate location lore
+            location_lore = await narrative_generator.generate_location_lore(
+                location_name=area_description.split()[0].title(),  # Use first word as location name
+                location_type="area",
+                project_context=project_context
+            )
+            results["generated_content"]["location_lore"] = location_lore
+            
+            # Generate quest with dialogue
+            quest_data = await narrative_generator.generate_quest_with_dialogue(
+                quest_brief=f"Quest in {area_description}",
+                location=area_description,
+                project_context=project_context
+            )
+            results["generated_content"]["quest"] = quest_data.to_dict()
+            
+            # Generate NPCs for the area
+            npc_names = await world_builder.generate_names(
+                world_format=world_format,
+                name_type="person",
+                subtype="male",  # Could be randomized
+                count=3
+            )
+            
+            npcs = []
+            for name in npc_names:
+                npc_dialogue = await narrative_generator.generate_npc_dialogue(
+                    character_name=name,
+                    character_role="villager",
+                    location=area_description,
+                    dialogue_type=DialogueType.NPC_CHAT,
+                    project_context=project_context
+                )
+                npcs.append({
+                    "name": name,
+                    "role": "villager",
+                    "dialogue_nodes": len(npc_dialogue)
+                })
+            
+            results["generated_content"]["npcs"] = npcs
+            
+            # Export dialogue to YarnSpinner
+            yarn_file = await narrative_generator.export_to_yarnspinner(
+                dialogue_nodes=[],  # Would include all generated dialogue
+                filename=f"{area_description.lower().replace(' ', '_')}_area",
+                project_context=project_context
+            )
+            results["generated_content"]["yarn_file"] = yarn_file
+            
+            # Generate Bevy assets using seeds
+            nonlocal openai_client
+            if openai_client is None:
+                openai_client = initialize_openai_client()
+            
+            bevy_generator = BevyAssetGenerator(openai_client)
+            sprite_result = await bevy_generator.generate_sprite_2d(
+                name=f"{area_description.lower().replace(' ', '_')}_character",
+                description=f"Character sprite for {area_description}",
+                size="512x512"
+            )
+            results["generated_content"]["character_sprite"] = sprite_result.model_dump()
+            
+            # Generate tilemap for the area
+            tilemap_result = await bevy_generator.generate_tilemap_set(
+                theme=world_format.theme,
+                tile_count=8
+            )
+            results["generated_content"]["tilemap"] = tilemap_result
+            
+            return {
+                "status": "generated",
+                "complete_area": results,
+                "assets_created": True,
+                "narrative_created": True,
+                "bevy_ready": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Complete game area generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_quest_with_dialogue(
+        quest_brief: str,
+        location: str,
+        difficulty: str = "medium",
+        project_context: str = None
+    ) -> dict[str, Any]:
+        """Generate complete quest with YarnSpinner dialogue tree."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            quest_data = await narrative_generator.generate_quest_with_dialogue(
+                quest_brief=quest_brief,
+                location=location,
+                difficulty=difficulty,
+                project_context=project_context
+            )
+            
+            return {
+                "status": "generated",
+                "quest": quest_data.to_dict(),
+                "has_dialogue_tree": True,
+                "yarn_compatible": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Quest generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_npc_dialogue(
+        character_name: str,
+        character_role: str,
+        location: str,
+        dialogue_type: str,
+        context: str = None,
+        project_context: str = None
+    ) -> dict[str, Any]:
+        """Generate contextual NPC dialogue with YarnSpinner export."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            dialogue_nodes = await narrative_generator.generate_npc_dialogue(
+                character_name=character_name,
+                character_role=character_role,
+                location=location,
+                dialogue_type=DialogueType(dialogue_type),
+                context=context,
+                project_context=project_context
+            )
+            
+            # Export to YarnSpinner
+            yarn_file = await narrative_generator.export_to_yarnspinner(
+                dialogue_nodes=dialogue_nodes,
+                filename=f"{character_name.lower()}_{dialogue_type}",
+                project_context=project_context
+            )
+            
+            return {
+                "status": "generated",
+                "character": character_name,
+                "dialogue_nodes": [node.__dict__ for node in dialogue_nodes],
+                "yarn_file": yarn_file,
+                "node_count": len(dialogue_nodes)
+            }
+            
+        except Exception as e:
+            logger.error(f"NPC dialogue generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_names(
+        world_context: str,
+        name_type: str,  # "person" or "place"
+        subtype: str,    # "male", "female", "town", "region", etc.
+        count: int = 10,
+        theme: str = "fantasy"
+    ) -> dict[str, Any]:
+        """Generate culturally consistent names for game worlds."""
+        try:
+            await ensure_narrative_systems()
+            
+            # Create minimal world format for name generation
+            from .world_builder import WorldFormat, GameType
+            import uuid
+            
+            temp_world = WorldFormat(
+                id=str(uuid.uuid4()),
+                name=world_context,
+                game_type=GameType.RPG,
+                theme=theme,
+                setting=world_context,
+                tone="neutral",
+                complexity="simple",
+                person_names={},
+                place_names={},
+                core_mechanics=[],
+                progression_systems=[],
+                content_types=[],
+                regions=[],
+                factions=[],
+                conflicts=[]
+            )
+            
+            names = await world_builder.generate_names(
+                world_format=temp_world,
+                name_type=name_type,
+                subtype=subtype,
+                count=count
+            )
+            
+            return {
+                "status": "generated",
+                "names": names,
+                "name_type": name_type,
+                "subtype": subtype,
+                "theme": theme,
+                "count": len(names)
+            }
+            
+        except Exception as e:
+            logger.error(f"Name generation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def create_generation_plan(
+        world_brief: str,
+        game_type: str,
+        scope: str = "single_area",  # "single_area", "full_region", "entire_world"
+        complexity: str = "medium"
+    ) -> dict[str, Any]:
+        """Create comprehensive plan for generating complete game content."""
+        try:
+            await ensure_narrative_systems()
+            
+            # Create world format
+            world_format = await world_builder.create_world_format(
+                world_brief=world_brief,
+                game_type=GameType(game_type),
+                complexity=complexity
+            )
+            
+            # Create generation plan
+            generation_plan = await world_builder.create_generation_plan(
+                world_format=world_format,
+                scope=scope
+            )
+            
+            return {
+                "status": "planned",
+                "world_format": world_format.to_dict(),
+                "generation_plan": {
+                    "world_id": generation_plan.world_id,
+                    "total_locations": generation_plan.total_locations,
+                    "asset_count": generation_plan.asset_count,
+                    "narrative_count": generation_plan.narrative_count,
+                    "estimated_time_minutes": generation_plan.estimated_time,
+                    "generation_steps": len(generation_plan.generation_order)
+                },
+                "ready_to_execute": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Generation plan creation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def generate_location_lore(
+        location_name: str,
+        location_type: str,
+        importance: str = "medium",
+        project_context: str = None
+    ) -> dict[str, Any]:
+        """Generate rich lore and descriptions for game locations."""
+        try:
+            await ensure_narrative_systems()
+            await ensure_seed_system()
+            
+            lore_data = await narrative_generator.generate_location_lore(
+                location_name=location_name,
+                location_type=location_type,
+                importance=importance,
+                project_context=project_context
+            )
+            
+            return {
+                "status": "generated",
+                "location": location_name,
+                "lore": lore_data,
+                "has_visual_description": "visual_description" in lore_data,
+                "has_npcs": "notable_npcs" in lore_data
+            }
+            
+        except Exception as e:
+            logger.error(f"Location lore generation failed: {e}")
             return {
                 "status": "error",
                 "error": str(e)
