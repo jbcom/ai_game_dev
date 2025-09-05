@@ -1,8 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
+name = "openai-mcp-server"
+dynamic = ["version"]
+description = "Advanced Python MCP Server for OpenAI multimodal capabilities"
 requires-python = ">=3.11"
+authors = [
+    { name = "OpenAI MCP Server", email = "dev@example.com" },
+]
+keywords = [
+    "openai",
+    "mcp", 
+    "multimodal",
+    "image-generation",
+    "3d-models",
+    "bevy",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "aiofiles>=24.1.0",
     "fastmcp>=2.12.2",
@@ -11,3 +35,46 @@ dependencies = [
     "pydantic>=2.11.7",
     "tiktoken>=0.11.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "black>=24.0.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+]
+
+[project.scripts]
+openai-mcp-server = "openai_mcp_server.main:main"
+
+[tool.hatch.version]
+path = "src/openai_mcp_server/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openai_mcp_server"]
+
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+skip-string-normalization = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+select = [
+    "E", "F", "I", "N", "UP", "B", "C", "ARG", "DTZ", "EM", "ICN", 
+    "ISC", "PLC", "PLE", "PLR", "PLW", "Q", "RUF", "S", "T", "TID", "W", "YTT"
+]
+ignore = [
+    "B027", "FBT003", "S105", "S106", "S107", "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915"
+]
+
+[tool.ruff.isort]
+known-first-party = ["openai_mcp_server"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
