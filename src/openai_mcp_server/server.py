@@ -1,6 +1,7 @@
 """Main MCP server implementation with advanced features."""
 
-from typing import Any, Optional
+import json
+from typing import Any, Optional, Dict
 from openai import OpenAI
 from fastmcp import FastMCP
 

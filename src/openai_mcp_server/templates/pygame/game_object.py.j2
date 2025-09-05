@@ -1,0 +1,28 @@
+import pygame
+from typing import Tuple, Optional
+
+class {{ class_name }}:
+    """{{ description }}"""
+    
+    def __init__(self{% for param in init_params %}, {{ param.name }}: {{ param.type }}{% endfor %}):
+{% for param in init_params %}
+        self.{{ param.name }} = {{ param.name }}
+{% endfor %}
+        self.rect = pygame.Rect({{ initial_rect }})
+        self.image = None
+        self.velocity = pygame.math.Vector2(0, 0)
+    
+    def update(self, dt: float):
+        """Update game object state."""
+        {{ update_body | default("pass") | indent(8) }}
+    
+    def draw(self, screen: pygame.Surface):
+        """Draw game object to screen."""
+        {{ draw_body | default("if self.image: screen.blit(self.image, self.rect)") | indent(8) }}
+    
+{% for method in custom_methods %}
+    def {{ method.name }}(self{% if method.params %}, {{ method.params | join(", ") }}{% endif %}):
+        """{{ method.description }}"""
+        {{ method.body | indent(8) }}
+
+{% endfor %}
