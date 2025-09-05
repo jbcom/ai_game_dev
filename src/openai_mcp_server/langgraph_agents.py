@@ -89,23 +89,26 @@ class GameDevelopmentAgent:
         # Create LLM instance for agents
         llm = ChatOpenAI(model=model, temperature=0.7, api_key=api_key)
         
-        # Create specialized agents using prebuilt create_react_agent
+        # Define agents exactly like the official examples
         self.coordinator_agent = create_react_agent(
             llm,
             tools=[transfer_to_bevy_agent, transfer_to_godot_agent] + get_langchain_tools(),
             state_schema=GameDevState,
+            name="coordinator"
         )
         
         self.bevy_agent = create_react_agent(
             llm,
             tools=self._get_bevy_tools(),
             state_schema=GameDevState,
+            name="bevy_agent"
         )
         
         self.godot_agent = create_react_agent(
             llm,
             tools=self._get_godot_tools(), 
             state_schema=GameDevState,
+            name="godot_agent"
         )
         
         # Set up SQLite checkpointer if available
@@ -142,19 +145,17 @@ class GameDevelopmentAgent:
     def _build_multi_agent_graph(self) -> StateGraph:
         """Build multi-agent system following official LangGraph patterns."""
         
-        # Create multi-agent graph using proper handoff pattern
+        # Define multi-agent graph exactly like the official examples
         multi_agent_graph = (
             StateGraph(GameDevState)
-            .add_node("coordinator", self.coordinator_agent)
-            .add_node("bevy_agent", self.bevy_agent) 
-            .add_node("godot_agent", self.godot_agent)
+            .add_node(self.coordinator_agent)
+            .add_node(self.bevy_agent) 
+            .add_node(self.godot_agent)
             .add_edge(START, "coordinator")
+            .compile(checkpointer=self.checkpointer if self.checkpointer else None)
         )
         
-        if self.checkpointer:
-            return multi_agent_graph.compile(checkpointer=self.checkpointer)
-        else:
-            return multi_agent_graph.compile()
+        return multi_agent_graph
     
     def _analyze_request_node(self, state: GameDevState) -> GameDevState:
         """Analyze the game development request."""
