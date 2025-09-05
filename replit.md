@@ -12,11 +12,13 @@ Preferred communication style: Simple, everyday language.
 
 - **✅ PRODUCTION READY**: Complete LangGraph agent system with SQLite state persistence restored and fully functional
 - **🤖 GPT-5 Integration**: Complete upgrade to GPT-5 with 74% coding accuracy and 45% fewer hallucinations
-- **🧠 LangGraph Agent Orchestration**: Multi-agent system with structured tools and persistent state management
+- **🧠 LangGraph Subgraph Orchestration**: Revolutionary multi-agent system with engine-specific subgraph workflows
+- **⚡ Workflow Composition Architecture**: Engine subpackages provide specialized subgraph workflows vs direct OpenAI calls
+- **🔀 Intelligent Engine Routing**: Main orchestrator routes to Bevy, Godot, Unity subgraph workflows based on task analysis
 - **💾 SQLite State Management**: Full persistence across development sessions with checkpointing support
 - **🎯 LangChain Tool Integration**: Structured tools for image generation, analysis, and seed management
 - **🌍 Universal Format Analysis**: Master any specification format with intelligent workflow recommendations
-- **🔧 Engine-specific Sub-packages**: Complete Bevy, Arcade, Pygame, Godot, Unity integration with Jinja2 templates
+- **🔧 Engine-specific Subgraph Workflows**: Complete Bevy and Godot subgraph workflows with specialized ECS/scene generation
 - **⚡ Advanced Test Suite**: pytest with asyncio, VCR recording, and comprehensive mocking
 - **📚 Professional Documentation**: Sphinx with RTD theme and comprehensive API documentation
 - **🛠️ Production Tooling**: Hatch build system, Black/Ruff formatting, mypy type checking
@@ -25,8 +27,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Framework
 - **MCP Server Architecture**: Built using FastMCP framework for handling Model Context Protocol communications
-- **LangGraph Agent System**: Advanced multi-agent coordination with SQLite state persistence and specialized subgraphs
-- **Structured Tool Integration**: LangChain-compatible tools for seamless OpenAI API integration
+- **LangGraph Subgraph Orchestration**: Revolutionary multi-agent system where engine subpackages provide specialized workflow subgraphs
+- **Workflow Composition**: Main orchestrator composes engine-specific subgraphs instead of direct OpenAI API calls
+- **Intelligent Engine Routing**: Automatic analysis and routing to appropriate engine workflows (Bevy, Godot, Unity)
+- **Structured Tool Integration**: LangChain-compatible tools for seamless integration across all subgraph workflows
 - **Async/Await Pattern**: Leverages Python's asyncio for non-blocking operations and improved performance
 - **Type Safety**: Implements comprehensive type hints with modern Python typing features for better code reliability
 
@@ -49,7 +53,17 @@ src/openai_mcp_server/
 ├── batch_processor.py   # Bulk operations and batch processing
 ├── export_formats.py    # Multi-format export capabilities
 ├── seed_system.py       # Seed data management and contextual enhancement
-└── bevy_assets_simple.py # Simplified Bevy game asset generation
+├── langgraph_agents.py  # Main orchestrator with subgraph composition
+├── langchain_tools.py   # LangChain tool integration
+└── engines/             # Engine-specific subgraph workflows
+    ├── bevy/
+    │   ├── __init__.py
+    │   ├── workflow.py  # Bevy LangGraph subgraph workflow
+    │   ├── generator.py # Bevy ECS architecture generation
+    │   └── assets.py    # Bevy asset specification and generation
+    └── godot/
+        ├── __init__.py
+        └── workflow.py  # Godot LangGraph subgraph workflow
 ```
 
 ### Seed-Enhanced Generation System
