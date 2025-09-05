@@ -1,4 +1,4 @@
-"""Main MCP server implementation."""
+"""Main MCP server implementation with advanced features."""
 
 from typing import Any, Optional
 from openai import OpenAI
@@ -9,20 +9,34 @@ from openai_mcp_server.config import (
     get_openai_api_key,
     IMAGES_DIR, 
     MODELS_3D_DIR,
-    CACHE_DIR
+    CACHE_DIR,
+    settings
 )
 from openai_mcp_server.models import ImageSize, ImageQuality, ImageDetail
 from openai_mcp_server.generators import ImageGenerator, Model3DGenerator
 from openai_mcp_server.analyzers import ImageAnalyzer
+from openai_mcp_server.content_validator import ContentValidator
+from openai_mcp_server.batch_processor import ImageBatchGenerator, ModelBatchGenerator
+from openai_mcp_server.export_formats import UniversalExporter
+from openai_mcp_server.cache_manager import cache_manager
+from openai_mcp_server.metrics import metrics, track_operation
+from openai_mcp_server.logging_config import setup_logging, get_logger
+from openai_mcp_server.exceptions import OpenAIMCPError
 
 
 def create_server() -> FastMCP:
     """Create and configure the MCP server with all tools."""
+    # Setup logging
+    setup_logging(log_level=getattr(settings, 'log_level', 'INFO'))
+    logger = get_logger(__name__, component="server", operation="startup")
+    
     # Initialize the MCP server
-    mcp = FastMCP("openai-multimodal-server")
+    mcp = FastMCP(settings.server_name)
     
     # Global OpenAI client (will be initialized when API key is available)
     openai_client: Optional[OpenAI] = None
+    
+    logger.info("Starting OpenAI MCP Server with advanced features")
     
     def initialize_openai_client() -> OpenAI:
         """Initialize OpenAI client with API key."""
@@ -49,15 +63,24 @@ def create_server() -> FastMCP:
                     "Advanced vision analysis with detail control",
                     "Legacy vision-based image verification", 
                     "3D model generation (Bevy-compatible GLTF)",
-                    "Idempotent caching system"
+                    "Idempotent caching system with TTL",
+                    "Content validation and safety checks",
+                    "Batch processing for bulk operations",
+                    "Multiple export formats (PNG, JPEG, WebP, GLB, OBJ)",
+                    "Performance metrics and monitoring",
+                    "Structured logging with Rich formatting"
                 ],
-                "cache_stats": {
-                    "images_cached": len(list(IMAGES_DIR.glob("*.png"))),
-                    "3d_models_cached": len(list(MODELS_3D_DIR.glob("*/*.gltf"))),
-                    "cache_directory": str(CACHE_DIR.absolute())
+                "cache_stats": cache_manager.get_stats(),
+                "metrics": metrics.get_summary(),
+                "settings": {
+                    "cache_enabled": settings.enable_caching,
+                    "server_name": settings.server_name,
+                    "cache_directory": str(settings.cache_dir),
+                    "data_directory": str(settings.data_base_dir)
                 }
             }
         except Exception as e:
+            logger.error(f"Server status check failed: {e}")
             return {
                 "status": "error",
                 "error": str(e),
@@ -177,6 +200,116 @@ def create_server() -> FastMCP:
                 "message": "All cached assets have been removed"
             }
         except Exception as e:
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    # Advanced tools for enhanced functionality
+    @mcp.tool()
+    async def validate_content(
+        content_path: str,
+        content_type: str = "auto"
+    ) -> dict[str, Any]:
+        """Validate content for safety and quality."""
+        nonlocal openai_client
+        if openai_client is None:
+            openai_client = initialize_openai_client()
+        
+        validator = ContentValidator(openai_client)
+        
+        try:
+            from pathlib import Path
+            path = Path(content_path)
+            
+            if content_type == "auto":
+                if path.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
+                    content_type = "image"
+                elif path.suffix.lower() in [".gltf", ".glb"]:
+                    content_type = "3d_model"
+                else:
+                    return {
+                        "status": "error",
+                        "error": "Cannot determine content type"
+                    }
+            
+            if content_type == "image":
+                return await validator.validate_image(path)
+            elif content_type == "3d_model":
+                return await validator.validate_3d_model(path)
+            else:
+                return {
+                    "status": "error",
+                    "error": f"Unsupported content type: {content_type}"
+                }
+        
+        except Exception as e:
+            logger.error(f"Content validation failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    async def batch_generate_images(
+        prompts: list[str],
+        size: ImageSize = "1024x1024",
+        quality: ImageQuality = "standard"
+    ) -> dict[str, Any]:
+        """Generate multiple images in batch."""
+        nonlocal openai_client
+        if openai_client is None:
+            openai_client = initialize_openai_client()
+        
+        generator = ImageGenerator(openai_client)
+        batch_generator = ImageBatchGenerator(generator)
+        
+        return await batch_generator.generate_images_batch(
+            prompts, size, quality
+        )
+    
+    @mcp.tool()
+    async def export_content(
+        source_path: str,
+        target_format: str,
+        quality: int = 85,
+        optimize: bool = True
+    ) -> dict[str, Any]:
+        """Export content to different formats."""
+        exporter = UniversalExporter()
+        
+        try:
+            from pathlib import Path
+            return await exporter.export_content(
+                Path(source_path),
+                target_format,
+                quality=quality,
+                optimize=optimize
+            )
+        except Exception as e:
+            logger.error(f"Content export failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    @mcp.tool()
+    def get_metrics() -> dict[str, Any]:
+        """Get detailed performance metrics."""
+        return metrics.get_summary()
+    
+    @mcp.tool()
+    async def cleanup_cache() -> dict[str, Any]:
+        """Clean up expired cache entries."""
+        try:
+            cleanup_stats = await cache_manager.cleanup_all()
+            return {
+                "status": "cleaned",
+                "cleanup_stats": cleanup_stats,
+                "cache_stats": cache_manager.get_stats()
+            }
+        except Exception as e:
+            logger.error(f"Cache cleanup failed: {e}")
             return {
                 "status": "error",
                 "error": str(e)
