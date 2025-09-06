@@ -1,0 +1,241 @@
+# AI Game Development Web Platform Specification
+# This TOML spec defines our unified web server platform for testing
+# asset generation, variant creation, and full development workflows
+
+[platform]
+name = "AI Game Dev Web Platform"
+type = "web_server"
+language = "python"
+framework = "fastapi"
+version = "1.0.0"
+description = "Unified AI-powered game development platform with real-time generation"
+
+[platform.dependencies]
+core = ["fastapi", "uvicorn", "jinja2", "python-multipart"]
+ai = ["langchain", "langchain-openai", "langchain-anthropic", "openai"]
+assets = ["pillow", "numpy", "librosa", "soundfile"]
+database = ["sqlalchemy", "alembic", "psycopg2-binary"]
+websockets = ["websockets", "python-socketio"]
+
+[architecture]
+pattern = "mvc"
+real_time = true
+asset_generation = true
+multi_llm = true
+websocket_support = true
+
+[ui_components]
+[ui_components.navigation]
+type = "horizontal_carousel"
+style = "cyberpunk"
+elements = ["back_button", "next_button", "engine_showcase"]
+glow_effects = true
+transparent_backgrounds = true
+
+[ui_components.audio_controls]
+type = "media_player"
+style = "sci_fi_neon"
+buttons = ["play", "pause", "stop", "skip_forward", "skip_backward"]
+sliders = ["volume", "progress", "equalizer"]
+visualizer = "waveform"
+glow_colors = ["cyan", "pink", "blue", "orange", "green"]
+
+[ui_components.tech_frames]
+type = "container"
+style = "cyberpunk_frame"
+variants = ["basic", "with_lightning", "with_circuit_pattern"]
+safe_zones = true
+responsive = true
+
+[ui_components.glass_panels]
+type = "overlay"
+style = "frosted_glass"
+opacity_levels = [0.2, 0.4, 0.6]
+blur_strength = "medium"
+border_glow = true
+
+[ui_components.engine_panels]
+type = "showcase_card"
+engines = ["pygame", "bevy", "godot"]
+dimensions = [320, 240]
+style = "engine_specific"
+hover_effects = true
+
+[asset_generation]
+[asset_generation.images]
+provider = "openai_dalle"
+fallback = "local_generator"
+formats = ["PNG", "JPEG", "SVG"]
+transparent_backgrounds = true
+batch_generation = true
+
+[asset_generation.images.ui_icons]
+dimensions = [[64, 64], [128, 128], [256, 256]]
+styles = ["cyberpunk", "sci_fi", "neon", "tech"]
+categories = ["buttons", "controls", "indicators", "navigation"]
+glow_effects = true
+
+[asset_generation.images.textures]
+categories = ["circuit_patterns", "tech_frames", "glass_panels", "energy_fields"]
+tiling_support = true
+normal_maps = false
+variants_per_texture = 3
+
+[asset_generation.images.engine_artwork]
+engines = ["pygame", "bevy", "godot"]
+style = "engine_representative"
+showcase_quality = true
+custom_branding = true
+
+[asset_generation.audio]
+provider = "openai_tts"
+formats = ["WAV", "MP3", "OGG"]
+sample_rates = [22050, 44100, 48000]
+
+[asset_generation.audio.sound_effects]
+categories = ["ui_sounds", "game_effects", "ambient", "feedback"]
+duration_range = [0.1, 5.0]
+procedural_generation = true
+
+[asset_generation.audio.music]
+genres = ["chiptune", "ambient", "electronic", "orchestral"]
+loop_support = true
+adaptive_layers = true
+duration_range = [30, 300]
+
+[generation_workflows]
+[generation_workflows.project_creation]
+steps = ["analyze_description", "plan_architecture", "generate_code", "create_assets", "finalize_project"]
+real_time_updates = true
+websocket_streaming = true
+progress_tracking = true
+
+[generation_workflows.asset_variants]
+max_variants = 5
+parallel_generation = true
+style_variations = true
+dimension_variations = true
+color_variations = true
+
+[generation_workflows.batch_processing]
+max_concurrent = 10
+queue_management = true
+priority_levels = ["high", "normal", "low"]
+caching_strategy = "intelligent"
+
+[ui_features]
+[ui_features.dashboard]
+layout = "single_panel_focus"
+aspect_ratio = [16, 10]
+above_fold_optimization = true
+engine_carousel = true
+navigation_buttons = true
+
+[ui_features.project_editor]
+real_time_preview = true
+code_highlighting = true
+asset_preview = true
+collaborative_editing = false
+
+[ui_features.asset_browser]
+grid_layout = true
+filtering = true
+search = true
+variant_comparison = true
+batch_operations = true
+
+[testing_capabilities]
+[testing_capabilities.asset_generation]
+test_all_categories = true
+variant_testing = true
+batch_testing = true
+performance_testing = true
+quality_validation = true
+
+[testing_capabilities.ui_components]
+responsive_testing = true
+accessibility_testing = true
+cross_browser_testing = true
+performance_metrics = true
+
+[testing_capabilities.workflows]
+end_to_end_testing = true
+real_time_simulation = true
+stress_testing = true
+error_handling = true
+
+[deployment]
+[deployment.development]
+hot_reload = true
+debug_mode = true
+asset_regeneration = true
+websocket_debugging = true
+
+[deployment.production]
+static_asset_optimization = true
+cdn_integration = true
+caching_strategy = "aggressive"
+monitoring = true
+scaling = "horizontal"
+
+[integrations]
+[integrations.llm_providers]
+openai = true
+anthropic = true
+google = true
+local_ollama = true
+fallback_chain = true
+
+[integrations.asset_providers]
+dalle = true
+midjourney = false
+stable_diffusion = false
+local_generation = true
+
+[integrations.databases]
+postgresql = true
+sqlite = true
+redis_cache = true
+
+[api_endpoints]
+[api_endpoints.generation]
+"/api/generate/project" = "POST"
+"/api/generate/assets" = "POST"
+"/api/generate/variants" = "POST"
+"/api/generate/batch" = "POST"
+
+[api_endpoints.assets]
+"/api/assets/list" = "GET"
+"/api/assets/upload" = "POST"
+"/api/assets/download" = "GET"
+"/api/assets/variants" = "GET"
+
+[api_endpoints.projects]
+"/api/projects/list" = "GET"
+"/api/projects/create" = "POST"
+"/api/projects/load" = "GET"
+"/api/projects/save" = "POST"
+
+[websocket_endpoints]
+"/ws/generation" = "real_time_updates"
+"/ws/collaboration" = "multi_user_editing"
+"/ws/assets" = "asset_streaming"
+
+[performance]
+[performance.targets]
+page_load_time = "< 2s"
+asset_generation_time = "< 30s"
+websocket_latency = "< 100ms"
+concurrent_users = 100
+
+[performance.optimization]
+asset_caching = true
+compression = true
+lazy_loading = true
+progressive_enhancement = true
+
+[monitoring]
+metrics = ["response_time", "error_rate", "asset_generation_success", "user_engagement"]
+logging_level = "info"
+performance_tracking = true
+user_analytics = true
