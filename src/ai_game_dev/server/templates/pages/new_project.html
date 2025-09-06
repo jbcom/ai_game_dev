@@ -270,6 +270,7 @@ async function generateProject() {
     const description = formData.get('description');
     
     if (!description || description.length < 10) {
+        audioManager.play('error');
         alert('Please provide a more detailed game description');
         return;
     }
@@ -277,6 +278,9 @@ async function generateProject() {
     const generateBtn = document.getElementById('generateBtn');
     generateBtn.disabled = true;
     generateBtn.innerHTML = '⚡ Generating...';
+    
+    // Play notification sound
+    audioManager.play('notification');
     
     // Show results section
     document.getElementById('generationResults').classList.remove('hidden');
@@ -300,7 +304,11 @@ async function generateProject() {
         const result = await response.text();
         document.getElementById('resultContent').innerHTML = result;
         
+        // Play success sound
+        audioManager.play('success');
+        
     } catch (error) {
+        audioManager.play('error');
         document.getElementById('resultContent').innerHTML = `
             <div class="alert alert-error">
                 <span>❌ Generation failed: ${error.message}</span>

@@ -55,6 +55,79 @@
     <!-- Code Preview Component -->
     {% include 'components/code_preview.html' %}
     
+    <!-- Audio Assets Integration -->
+    <script>
+        // Audio system for UI feedback
+        class AudioManager {
+            constructor() {
+                this.sounds = {
+                    click: new Audio('/static/assets/audio/button_click_futuristic.wav'),
+                    hover: new Audio('/static/assets/audio/hover_beep_cyberpunk.wav'),
+                    success: new Audio('/static/assets/audio/success_ding_pleasant.wav'),
+                    error: new Audio('/static/assets/audio/error_buzz_warning.wav'),
+                    notification: new Audio('/static/assets/audio/notification_chime_tech.wav'),
+                    typing: new Audio('/static/assets/audio/typing_mechanical_keyboard.wav')
+                };
+                this.enabled = true;
+                this.volume = 0.3;
+                
+                // Set volume for all sounds
+                Object.values(this.sounds).forEach(sound => {
+                    sound.volume = this.volume;
+                });
+            }
+            
+            play(soundName) {
+                if (this.enabled && this.sounds[soundName]) {
+                    this.sounds[soundName].currentTime = 0;
+                    this.sounds[soundName].play().catch(() => {
+                        // Ignore autoplay policy errors
+                    });
+                }
+            }
+            
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+        
+        // Initialize audio manager
+        const audioManager = new AudioManager();
+        
+        // Add sound effects to buttons and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Button clicks
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('button, .btn, a[href]')) {
+                    audioManager.play('click');
+                }
+            });
+            
+            // Hover effects on interactive elements
+            document.addEventListener('mouseover', function(e) {
+                if (e.target.matches('button, .btn, .tab, .engine-card')) {
+                    audioManager.play('hover');
+                }
+            });
+            
+            // Typing in text areas
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('textarea, input[type="text"]')) {
+                    audioManager.play('typing');
+                }
+            });
+        });
+        
+        // Audio toggle function
+        function toggleAudio() {
+            const enabled = audioManager.toggle();
+            const toggle = document.getElementById('audioToggle');
+            toggle.textContent = enabled ? '🔊' : '🔇';
+            toggle.title = enabled ? 'Disable Sound Effects' : 'Enable Sound Effects';
+        }
+    </script>
+    
     <!-- Custom styles with generated assets -->
     <style>
         * {
