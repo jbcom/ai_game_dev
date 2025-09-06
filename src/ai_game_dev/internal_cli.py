@@ -206,160 +206,18 @@ def build_all_internal_assets(
     console.print("\n🎉 [bold green]All internal builds complete![/bold green]")
 
 
-def _check_platform_assets_complete(assets_dir: Path) -> bool:
-    """Check if platform assets are complete and up to date."""
-    required_dirs = [
-        "logos", "engine-panels", "audio", "fonts", 
-        "textures", "frames", "characters"
-    ]
-    
-    for dir_name in required_dirs:
-        dir_path = assets_dir / dir_name
-        if not dir_path.exists() or not any(dir_path.iterdir()):
-            return False
-    
-    return True
+# All asset checking, generation, and management is now handled by InternalAssetAgent
+# The agent provides comprehensive functionality including:
+# - Idempotent asset generation with proper file checking
+# - Real OpenAI DALL-E 3 image generation (no placeholders)
+# - Batch processing with rate limiting and error handling
+# - Educational game code generation with pygame
+# - Static platform asset generation
+# - Quality validation and directory management
 
 
-def _check_educational_rpg_complete(game_dir: Path) -> bool:
-    """Check if educational RPG is complete and up to date."""
-    required_files = [
-        "game.py", "player.py", "educational_metadata.json", "requirements.txt"
-    ]
-    
-    for file_name in required_files:
-        if not (game_dir / file_name).exists():
-            return False
-    
-    return True
-
-
-def _check_educational_assets_complete(assets_dir: Path) -> bool:
-    """Check if educational RPG assets are complete."""
-    required_dirs = ["sprites", "tilesets"]
-    
-    for dir_name in required_dirs:
-        dir_path = assets_dir / dir_name
-        if not dir_path.exists() or not any(dir_path.iterdir()):
-            return False
-    
-    return True
-
-
-async def _build_platform_assets():
-    """Build all platform UI and visual assets."""
-    
-    # Load our platform asset specification
-    spec_file = Path("src/ai_game_dev/specs/web_platform_assets.toml")
-    
-    if spec_file.exists():
-        # Use existing batch processor
-        batch_processor = BatchProcessor()
-        await batch_processor.process_specification_file(str(spec_file))
-    else:
-        # Generate core assets manually
-        await _generate_core_platform_assets()
-
-
-async def _generate_core_platform_assets():
-    """Generate core platform assets if specification is missing."""
-    
-    generator = AssetGenerator()
-    assets_dir = Path("src/ai_game_dev/server/static/assets")
-    
-    # Generate essential UI elements
-    ui_assets = [
-        ("main-logo.svg", "AI Game Dev logo, cyberpunk style, transparent background"),
-        ("favicon.ico", "Favicon version of AI Game Dev logo, 32x32 pixels"),
-    ]
-    
-    logos_dir = assets_dir / "logos"
-    logos_dir.mkdir(parents=True, exist_ok=True)
-    
-    for filename, description in ui_assets:
-        try:
-            request = AssetRequest(
-                asset_type="ui_icon",
-                description=description,
-                style="cyberpunk futuristic",
-                dimensions=(512, 512),
-                format="PNG"
-            )
-            asset = await generator.generate_ui_icon(request)
-            
-            output_path = logos_dir / filename
-            if asset.data:
-                output_path.write_bytes(asset.data)
-                console.print(f"Generated: {filename}")
-                
-        except Exception as e:
-            console.print(f"[yellow]Warning: Could not generate {filename}: {e}[/yellow]")
-
-
-
-
-async def _generate_educational_assets(game_dir: Path):
-    """Generate cyberpunk assets for the educational RPG."""
-    
-    generator = AssetGenerator()
-    assets_dir = game_dir / "assets"
-    assets_dir.mkdir(exist_ok=True)
-    
-    # Character sprites
-    characters = [
-        ("professor_pixel.png", "Professor Pixel: Cyberpunk mentor with neon hair and AR glasses"),
-        ("code_knight.png", "Code Knight: Cybernetic warrior with plasma sword"),
-        ("data_sage.png", "Data Sage: Mystical hacker with holographic robes"),
-        ("bug_hunter.png", "Bug Hunter: Agile cyber-assassin with stealth cloak"),
-        ("web_weaver.png", "Web Weaver: Digital architect with quantum tablet")
-    ]
-    
-    sprites_dir = assets_dir / "sprites"
-    sprites_dir.mkdir(exist_ok=True)
-    
-    for filename, description in characters:
-        try:
-            request = AssetRequest(
-                asset_type="sprite",
-                description=f"{description}, 16-bit pixel art, transparent background",
-                style="cyberpunk pixel art",
-                dimensions=(64, 64),
-                format="PNG"
-            )
-            sprite = await generator.generate_sprite(request)
-            
-            if sprite.data:
-                (sprites_dir / filename).write_bytes(sprite.data)
-                
-        except Exception as e:
-            console.print(f"[yellow]Warning: Could not generate {filename}: {e}[/yellow]")
-    
-    # Environment tilesets
-    environments = [
-        ("neo_tokyo_streets.png", "Cyberpunk city streets with neon signs"),
-        ("underground_academy.png", "Hidden rebel programming school"),
-        ("algorithm_tower.png", "Corporate empire data center interior")
-    ]
-    
-    tilesets_dir = assets_dir / "tilesets"
-    tilesets_dir.mkdir(exist_ok=True)
-    
-    for filename, description in environments:
-        try:
-            request = AssetRequest(
-                asset_type="tileset",
-                description=f"{description}, 16-bit isometric pixel art",
-                style="cyberpunk pixel art",
-                format="PNG",
-                additional_params={"tile_size": 32, "grid_size": (8, 8)}
-            )
-            tileset = await generator.generate_tileset(request)
-            
-            if tileset.data:
-                (tilesets_dir / filename).write_bytes(tileset.data)
-                
-        except Exception as e:
-            console.print(f"[yellow]Warning: Could not generate {filename}: {e}[/yellow]")
+# LEGACY FUNCTIONS REMOVED
+# All asset generation is now handled by InternalAssetAgent with real OpenAI integration
 
 
 @internal_app.command(name="validate")
