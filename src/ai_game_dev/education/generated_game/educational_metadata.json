@@ -1,0 +1,25 @@
+{
+  "game_title": "NeoTokyo Code Academy: The Binary Rebellion",
+  "educational_version": "1.0.0",
+  "target_age": "13+",
+  "programming_concepts": [
+    "Variables and Data Types",
+    "Object-Oriented Programming",
+    "Functions and Methods",
+    "Conditional Logic",
+    "Loops and Iteration",
+    "Data Structures",
+    "Error Handling",
+    "File I/O",
+    "Game Development Patterns"
+  ],
+  "features": [
+    "Complete playable RPG",
+    "4 unique character classes",
+    "Educational dialogue system",
+    "Real-time character progression",
+    "Cyberpunk storyline",
+    "Production-quality code examples"
+  ],
+  "generated_by": "AI Game Development Tools v1.0.0"
+}

@@ -20,9 +20,8 @@ if os.getenv("AI_GAME_DEV_INTERNAL", "false").lower() != "true":
     warnings.warn("Internal CLI commands should only be used in development environment", UserWarning)
 
 from ai_game_dev.education.complete_rpg_generator import create_complete_educational_game
-from ai_game_dev.assets.generator import AssetGenerator
-from ai_game_dev.assets.models import AssetRequest
-from ai_game_dev.batch_processor import BatchProcessor
+from ai_game_dev.assets.generator import AssetGenerator, AssetRequest
+from ai_game_dev.cli import _batch_generate_assets
 
 internal_app = typer.Typer(help="Internal Development Commands - Not included in release builds")
 console = Console()
