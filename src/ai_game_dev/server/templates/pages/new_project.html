@@ -38,18 +38,14 @@
                         <label class="label">
                             <span class="label-text font-semibold">Choose Your Engine</span>
                         </label>
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-3 gap-2 h-20">
                             {% for engine in engines %}
                             <label class="cursor-pointer">
                                 <input type="radio" name="engine" value="{{ engine }}" class="hidden" onchange="updatePreview()" {% if selected_engine == engine or (not selected_engine and loop.first) %}checked{% endif %}>
-                                <div class="engine-card border-2 border-cyan-500/30 rounded-lg p-3 text-center hover:border-cyan-400 transition-colors">
+                                <div class="engine-card border-2 border-cyan-500/30 rounded-lg overflow-hidden hover:border-cyan-400 transition-colors">
                                     <img src="/static/assets/engine-panels/{{ engine }}.png" 
                                          alt="{{ engine|title }}" 
-                                         class="w-full h-12 object-cover rounded mb-2 opacity-60">
-                                    <div class="text-xs font-bold">{{ engine|title }}</div>
-                                    <div class="text-xs opacity-70">
-                                        {% if engine == 'pygame' %}Python{% elif engine == 'bevy' %}Rust{% elif engine == 'godot' %}GDScript{% endif %}
-                                    </div>
+                                         class="w-full h-full object-cover">
                                 </div>
                             </label>
                             {% endfor %}
@@ -359,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 .engine-card {
     transition: all 0.3s ease;
+    height: 100%;
 }
 
 .engine-card:hover {
@@ -369,6 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
 input[name="engine"]:checked + .engine-card {
     border-color: #64ffda !important;
     background-color: rgba(100, 255, 218, 0.1) !important;
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.3) !important;
 }
 
 .progress-bar {
