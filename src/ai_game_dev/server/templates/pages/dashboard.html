@@ -24,31 +24,42 @@
                 </div>
             </div>
             
-            <!-- Quick Start Wizard -->
+            <!-- Engine Selection Gallery -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {% for engine in engines %}
                 <a href="/web/new_project?engine={{ engine }}" 
-                   class="card glass-panel hover:scale-105 transition-all duration-300 group relative overflow-hidden">
-                    <div class="absolute inset-0 opacity-20">
+                   class="relative group cursor-pointer overflow-hidden rounded-xl hover:scale-105 transition-all duration-300">
+                    <!-- Engine Panel Image -->
+                    <div class="aspect-[4/3] relative">
                         <img src="/static/assets/engine-panels/{{ engine }}.png" 
-                             alt="{{ engine }} background" 
-                             class="w-full h-full object-cover">
-                    </div>
-                    <div class="card-body p-4 text-center relative z-10">
-                        <div class="mb-2">
-                            {% if engine == 'pygame' %}
-                            <div class="w-12 h-12 mx-auto rounded-lg bg-orange-500/80 backdrop-blur-sm flex items-center justify-center text-2xl">🐍</div>
-                            {% elif engine == 'bevy' %}
-                            <div class="w-12 h-12 mx-auto rounded-lg bg-orange-600/80 backdrop-blur-sm flex items-center justify-center text-2xl">🦀</div>
-                            {% elif engine == 'godot' %}
-                            <div class="w-12 h-12 mx-auto rounded-lg bg-blue-500/80 backdrop-blur-sm flex items-center justify-center text-2xl">🎮</div>
-                            {% endif %}
+                             alt="{{ engine|title }} Engine" 
+                             class="w-full h-full object-cover rounded-xl">
+                        
+                        <!-- Overlay gradient for text readability -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent rounded-xl"></div>
+                        
+                        <!-- Content overlay -->
+                        <div class="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                            <div class="flex items-center gap-3 mb-2">
+                                {% if engine == 'pygame' %}
+                                <div class="w-8 h-8 rounded-lg bg-orange-500/90 backdrop-blur-sm flex items-center justify-center text-lg">🐍</div>
+                                {% elif engine == 'bevy' %}
+                                <div class="w-8 h-8 rounded-lg bg-orange-600/90 backdrop-blur-sm flex items-center justify-center text-lg">🦀</div>
+                                {% elif engine == 'godot' %}
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/90 backdrop-blur-sm flex items-center justify-center text-lg">🎮</div>
+                                {% endif %}
+                                <h3 class="font-bold text-lg drop-shadow-lg">{{ engine|title }}</h3>
+                            </div>
+                            <p class="text-sm opacity-90 drop-shadow mb-2">
+                                {% if engine == 'pygame' %}Python 2D Game Development{% elif engine == 'bevy' %}Rust ECS Engine{% elif engine == 'godot' %}Visual Scripting Platform{% endif %}
+                            </p>
+                            <div class="group-hover:text-primary transition-colors text-sm font-medium drop-shadow">
+                                Start Creating →
+                            </div>
                         </div>
-                        <h3 class="font-bold drop-shadow-lg">{{ engine|title }}</h3>
-                        <p class="text-xs opacity-70 drop-shadow">
-                            {% if engine == 'pygame' %}Python 2D{% elif engine == 'bevy' %}Rust ECS{% elif engine == 'godot' %}Visual Script{% endif %}
-                        </p>
-                        <div class="group-hover:text-primary transition-colors text-sm mt-2 drop-shadow">Start Project →</div>
+                        
+                        <!-- Hover glow effect -->
+                        <div class="absolute inset-0 rounded-xl ring-2 ring-transparent group-hover:ring-primary/50 transition-all duration-300"></div>
                     </div>
                 </a>
                 {% endfor %}
