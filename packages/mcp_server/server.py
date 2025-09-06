@@ -18,7 +18,7 @@ def generate_game(
     description: str,
     game_type: str,
     complexity: str,
-    features: List[str] = None,
+    features: Optional[List[str]] = None,
     engine: str = "pygame"
 ) -> str:
     """
