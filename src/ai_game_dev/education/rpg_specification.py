@@ -5,8 +5,8 @@ This will be used to pre-generate a full playable RPG using our AI tools
 """
 
 RPG_GAME_SPEC = {
-    "name": "Legends of Code Valley",
-    "description": "An epic educational JRPG where students learn Python by following the adventures of young programmers in a magical realm",
+    "name": "NeoTokyo Code Academy: The Binary Rebellion",
+    "description": "A cyberpunk educational RPG where students join a secret academy of rebel hackers fighting against the oppressive Algorithm Empire in 2087 Neo-Tokyo",
     "engine": "pygame",
     "complexity": "advanced", 
     "art_style": "16-bit pixel art",
@@ -24,44 +24,48 @@ RPG_GAME_SPEC = {
         
         "character_classes": [
             {
-                "name": "Code Knight",
-                "description": "Defender of logical order, masters object-oriented programming",
+                "name": "Code Knight", 
+                "description": "Cybernetic warrior who defends the digital realm with object-oriented mastery",
                 "base_stats": {"health": 120, "mana": 60, "attack": 15, "defense": 18, "speed": 8, "luck": 10},
                 "primary_stat": "defense",
-                "abilities": ["Class Shield", "Method Strike", "Inheritance Barrier", "Polymorphic Slash"],
-                "starting_equipment": ["Syntax Sword", "Logic Shield", "Debugger Armor"],
-                "signature_move": "Encapsulation Fortress",
-                "learns_concepts": ["OOP", "Classes", "Inheritance", "Polymorphism"]
+                "abilities": ["Neural Shield", "Class Strike", "Inheritance Wall", "Polymorphic Slash"],
+                "starting_equipment": ["Plasma Syntax Blade", "Quantum Logic Shield", "Cyber Debugger Armor"],
+                "signature_move": "Digital Fortress Protocol",
+                "learns_concepts": ["OOP", "Classes", "Inheritance", "Polymorphism"],
+                "backstory": "Elite Academy Zero graduate who specializes in defensive programming and system architecture"
             },
             {
                 "name": "Data Sage",
-                "description": "Wise manipulator of information structures and algorithms",
+                "description": "Mystical hacker who manipulates the fundamental structures of digital reality",
                 "base_stats": {"health": 85, "mana": 180, "attack": 10, "defense": 8, "speed": 12, "luck": 15},
                 "primary_stat": "mana",
-                "abilities": ["List Lightning", "Dict Heal", "Sort Storm", "Algorithm Aura"],
-                "starting_equipment": ["Staff of Arrays", "Robes of Recursion", "Tome of Big-O"],
-                "signature_move": "Fractal Recursion",
-                "learns_concepts": ["Data Structures", "Algorithms", "Complexity", "Recursion"]
+                "abilities": ["Neon List Storm", "Dictionary Heal Matrix", "Quantum Sort", "Algorithm Singularity"],
+                "starting_equipment": ["Holographic Array Staff", "Neural Network Robes", "Codex of Infinite Loops"],
+                "signature_move": "Reality.exe Recursion",
+                "learns_concepts": ["Data Structures", "Algorithms", "Complexity", "Recursion"],
+                "backstory": "Former Empire data analyst who discovered the beauty in chaotic, creative algorithms"
             },
             {
                 "name": "Bug Hunter",
-                "description": "Swift tracker of errors with keen debugging instincts",
+                "description": "Agile cyber-assassin who hunts down code corruption and system vulnerabilities",
                 "base_stats": {"health": 100, "mana": 90, "attack": 16, "defense": 10, "speed": 18, "luck": 12},
                 "primary_stat": "speed", 
-                "abilities": ["Exception Strike", "Try-Catch Dodge", "Assert Trap", "Stack Trace"],
-                "starting_equipment": ["Debugging Dagger", "Exception Cloak", "Logging Lens"],
-                "signature_move": "Perfect Traceback",
-                "learns_concepts": ["Error Handling", "Debugging", "Testing", "Logging"]
+                "abilities": ["Exception Shuriken", "Try-Catch Phantom Step", "Assert Snare", "Stack Trace Vision"],
+                "starting_equipment": ["Viral Debug Blade", "Stealth Exception Cloak", "Error Scanner Visor"],
+                "signature_move": "Ghost in the Shell Traceback",
+                "learns_concepts": ["Error Handling", "Debugging", "Testing", "Logging"],
+                "backstory": "Former Empire quality assurance agent who turned rebel hunter of system corruption"
             },
             {
                 "name": "Web Weaver",
-                "description": "Creator of digital realms and interactive experiences",
+                "description": "Digital architect who crafts immersive virtual worlds and user experiences",
                 "base_stats": {"health": 95, "mana": 120, "attack": 12, "defense": 9, "speed": 14, "luck": 20},
                 "primary_stat": "luck",
-                "abilities": ["HTML Heal", "CSS Style", "JS Dynamic", "API Call"],
-                "starting_equipment": ["Framework Wand", "Responsive Robe", "Browser Badge"],
-                "signature_move": "Full Stack Fusion",
-                "learns_concepts": ["Web Dev", "APIs", "Frameworks", "UI/UX"]
+                "abilities": ["HTML Reality Shift", "CSS Hologram", "JavaScript Lightning", "API Portal"],
+                "starting_equipment": ["Quantum Framework Tablet", "Adaptive UI Suit", "Cross-Platform Lens"],
+                "signature_move": "Metaverse Constructor",
+                "learns_concepts": ["Web Dev", "APIs", "Frameworks", "UI/UX"],
+                "backstory": "Rebel interface designer who believes technology should empower human creativity"
             }
         ],
         
@@ -145,114 +149,118 @@ RPG_GAME_SPEC = {
     
     "world_design": {
         "overworld_map": {
-            "name": "The Realm of Code Valley", 
-            "size": "100x80 tiles",
+            "name": "Neo-Tokyo 2087: The Digital Underground", 
+            "size": "120x90 tiles",
             "biomes": [
-                "Binary Plains (grassland with 0/1 patterns)",
-                "Function Forest (tree-like call stacks)", 
-                "Variable Mountains (constantly changing peaks)",
-                "Loop Desert (endless recursive patterns)",
-                "Exception Swamp (error-prone marshland)",
-                "Cloud City (floating data structures)",
-                "Underwater Database (deep blue data lakes)"
+                "Neon Districts (cyberpunk city streets with holographic 0/1 rain)",
+                "Server Farms (massive data center towers reaching the sky)", 
+                "The Glitch Zone (corrupted digital wasteland with visual artifacts)",
+                "Underground Networks (subway tunnels filled with fiber optic cables)",
+                "Corporate Towers (sterile high-tech Algorithm Empire strongholds)",
+                "The Cloud Layer (floating platforms in digital sky)",
+                "Data Lakes (vast underground pools of flowing information)",
+                "The Firewall (massive energy barrier protecting the Empire)"
             ],
             "landmarks": [
-                "The Great Compiler (massive central tower)",
-                "Syntax Gardens (beautiful, perfectly formatted)",
-                "Memory Palace (shifting magical library)",
-                "Bug Graveyard (dark, glitchy wasteland)",
-                "The Infinite Recursion (mystical spiral)",
-                "Algorithm Academy (Professor Pixel's school)",
-                "The Final Boss Tower (malware stronghold)"
+                "The Central Mainframe (Algorithm Empire's control tower)",
+                "Academy Zero (hidden rebel programming school)",
+                "The Memory Banks (vast digital archive)",
+                "Crash Site Alpha (where the first AI rebellion failed)",
+                "The Infinite Loop (mysterious recursive portal)",
+                "Professor Pixel's Hideout (secret underground lab)",
+                "Neo-Shibuya Market (black market for illegal code)",
+                "The Exception Handler (fortified debugging center)"
             ],
             "travel_system": "tile-based movement with educational random encounters",
             "vehicles": [
-                "Walking (default)",
-                "Debug Horse (faster, reveals hidden paths)", 
-                "Flying Sprite (airship equivalent)",
-                "Submarine Object (underwater exploration)"
+                "Neural Walking (default enhanced movement)",
+                "Hack-Cycle (cyberpunk motorcycle, reveals hidden data paths)", 
+                "Data Drone (flying vehicle for Cloud Layer access)",
+                "Sub-Routine (submarine for Data Lake exploration)",
+                "Logic Train (fast travel between districts)"
             ]
         },
         
-        "villages_and_towns": [
+        "districts_and_zones": [
             {
-                "name": "Newbie Valley",
-                "size": "25x20 tiles",
-                "theme": "Beginner-friendly tutorial town",
+                "name": "Academy Zero Underground",
+                "size": "30x25 tiles",
+                "theme": "Hidden rebel programming school beneath Neo-Tokyo",
                 "npcs": [
-                    "Master Print (teaches output)",
-                    "Variable Vendor (explains data types)", 
-                    "Loop Librarian (teaches iteration)",
-                    "Condition Keeper (explains if/else)",
-                    "Function Forger (introduces functions)"
+                    "Professor Pixel (cyberpunk mentor and guide)",
+                    "Echo-7 (AI teaching assistant)", 
+                    "Scanner (security android who teaches input validation)",
+                    "Logic Gate (philosophical robot discussing boolean logic)",
+                    "Memory Bank (data storage specialist)"
                 ],
-                "buildings": ["Basic Syntax Shop", "Type Inn", "Logic Guild", "Error Clinic"],
-                "purpose": "Learn fundamental programming concepts"
+                "buildings": ["Neural Interface Lab", "Code Dojo Training Center", "Quantum Debugging Bay", "Syntax Simulation Chamber"],
+                "purpose": "Safe haven for learning fundamental programming in a cyberpunk underground setting"
             },
             {
-                "name": "Object Oriented Oasis",
-                "size": "40x30 tiles",
-                "theme": "Advanced OOP concepts",
+                "name": "Neo-Shibuya Black Market",
+                "size": "45x35 tiles",
+                "theme": "Illegal code trading hub with neon-soaked streets",
                 "npcs": [
-                    "Class Constructor", "Method Master", "Inheritance Oracle", 
-                    "Polymorphism Sage", "Encapsulation Guardian"
+                    "Chrome (class design specialist)", "Override (method modification expert)", "Abstract Alice (inheritance guru)", 
+                    "Poly (polymorphism black market dealer)", "Captain Encapsulation (data security enforcer)"
                 ],
-                "buildings": ["Class Factory", "Method Market", "Inheritance Inn", "Abstraction Academy"],
-                "purpose": "Master object-oriented programming"
+                "buildings": ["The Object Factory (hidden OOP training)", "Method Underground", "Inheritance Safehouse", "Abstraction Arcade"],
+                "purpose": "Learn advanced object-oriented programming through underground resistance activities"
             },
             {
-                "name": "Data Structure City",
-                "size": "50x35 tiles",
-                "theme": "Complex data manipulation hub",
+                "name": "The Algorithm Towers",
+                "size": "60x40 tiles",
+                "theme": "Imposing Empire skyscrapers filled with computational challenges",
                 "npcs": [
-                    "Array Architect", "List Lord", "Dictionary Duchess",
-                    "Set Sovereign", "Tuple Tycoon", "Stack Samurai", "Queue Queen"
+                    "General Array (military data commander)", "Duchess Linked-List (noble data aristocrat)", "Hash Emperor (dictionary overlord)",
+                    "Set Sovereign (unique data ruler)", "Tuple Twins (immutable data guardians)", "Stack Sensei (LIFO master)", "Queue Quantum (FIFO specialist)"
                 ],
-                "buildings": ["Big-O Observatory", "Algorithm Arena", "Sorting Stadium", "Search Sanctuary"],
-                "purpose": "Learn advanced data structures and algorithms"
+                "buildings": ["Complexity Observatory", "Algorithm Colosseum", "Sorting Citadel", "Search Spire"],
+                "purpose": "Infiltrate Empire data centers to master advanced programming concepts"
             },
             {
-                "name": "Web Framework Metropolis", 
-                "size": "60x45 tiles",
-                "theme": "Modern web development",
+                "name": "The Cloud Layer Platform", 
+                "size": "70x50 tiles",
+                "theme": "Floating digital realm above Neo-Tokyo",
                 "npcs": [
-                    "HTML Hero", "CSS Stylist", "JavaScript Jedi",
-                    "API Ambassador", "Database Duke", "Framework Pharaoh"
+                    "HTML Guardian (structure specialist)", "CSS Phantom (style manipulator)", "JavaScript Ghost (dynamic behavior expert)",
+                    "API Oracle (connection mystic)", "Database Dragon (information hoarder)", "Framework Phoenix (rebirth through better code)"
                 ],
-                "buildings": ["Server Skyscraper", "Client Castle", "Database Dome", "API Arcade"],
-                "purpose": "Build full-stack web applications"
+                "buildings": ["Floating Server Farms", "Client-Side Sanctuaries", "Database Dimension", "API Portal Network"],
+                "purpose": "Master web technologies in a surreal digital sky realm"
             }
         ],
         
-        "dungeon_system": {
+        "system_infiltration": {
             "procedural_generation": True,
-            "generation_algorithm": "room-and-corridor with BSP tree (teaches recursive algorithms)",
-            "dungeon_types": [
-                "Syntax Caves (basic programming challenges)",
-                "Logic Labyrinth (conditional puzzles)",
-                "Loop Towers (iteration challenges)", 
-                "Function Fortress (modular programming)",
-                "Class Crypts (OOP boss battles)",
-                "Algorithm Abyss (optimization challenges)",
-                "Bug Basement (debugging nightmare)",
-                "Memory Mines (data structure mazes)",
-                "Recursion Ruins (infinite self-reference)",
-                "Final Virus Vault (ultimate malware boss)"
+            "generation_algorithm": "neural network maze generation (teaches AI concepts)",
+            "infiltration_targets": [
+                "Corporate Code Vaults (syntax security systems)",
+                "Logic Gate Facilities (conditional access puzzles)",
+                "Infinite Loop Prisons (escape iteration traps)", 
+                "Function Factories (modular system infiltration)",
+                "Class Hierarchy Towers (OOP security boss battles)",
+                "Algorithm Optimization Centers (performance challenges)",
+                "Debug Prevention Bunkers (anti-debugging warfare)",
+                "Memory Palace Archives (data structure navigation)",
+                "Recursive Reality Chambers (mind-bending self-reference)",
+                "Central Mainframe Core (final AI emperor confrontation)"
             ],
-            "room_sizes": "variable 8x8 to 20x20",
-            "corridor_width": 3,
-            "treasure_room_chance": 0.20,
-            "boss_room_required": True,
-            "puzzle_rooms": True,
-            "trap_rooms": True,
-            "secret_passages": True,
-            "enemy_density": "1 enemy per 15 tiles average",
-            "loot_distribution": "progressive based on depth and programming concept difficulty",
-            "environmental_puzzles": [
-                "Code block pushing (Sokoban-style)",
-                "Switch sequences (logic gates)",
-                "Pattern matching floors",
-                "Timed coding challenges"
+            "room_sizes": "variable 10x10 to 25x25 (representing system modules)",
+            "corridor_width": 4,
+            "data_vault_chance": 0.25,
+            "security_boss_required": True,
+            "puzzle_terminals": True,
+            "security_traps": True,
+            "hidden_access_tunnels": True,
+            "guard_ai_density": "1 security AI per 12 tiles average",
+            "intel_distribution": "progressive based on system depth and hacking difficulty",
+            "cyberpunk_challenges": [
+                "Neural interface hacking (pattern recognition)",
+                "Security protocol bypassing (logic puzzles)",
+                "Data stream synchronization (timing challenges)",
+                "AI conversation trees (social engineering)",
+                "Holographic maze navigation (spatial reasoning)"
             ]
         }
     },
