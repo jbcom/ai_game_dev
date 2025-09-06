@@ -70,10 +70,13 @@ transparent_backgrounds = true
 batch_generation = true
 
 [asset_generation.images.ui_icons]
-dimensions = [[64, 64], [128, 128], [256, 256]]
-styles = ["cyberpunk", "sci_fi", "neon", "tech"]
-categories = ["buttons", "controls", "indicators", "navigation"]
-glow_effects = true
+# Real AssetRequest structure we use
+asset_type = "ui_icon"
+description = "string description of the icon"
+style = "string style (cyberpunk, modern, etc.)"
+dimensions = "tuple[int, int] or None for default (64, 64)"
+additional_params = "Dict[str, Any] for extra parameters"
+format = "PNG (default)"
 
 [asset_generation.images.textures]
 categories = ["circuit_patterns", "tech_frames", "glass_panels", "energy_fields"]
@@ -118,10 +121,35 @@ dimension_variations = true
 color_variations = true
 
 [generation_workflows.batch_processing]
-max_concurrent = 10
-queue_management = true
-priority_levels = ["high", "normal", "low"]
-caching_strategy = "intelligent"
+# Real implementation from BatchProcessor and specialized generators
+max_concurrent_images = 3
+batch_size_images = 5
+max_concurrent_models = 2
+batch_size_models = 3
+semaphore_control = true
+progress_tracking = true
+
+# Actual request formats
+[generation_workflows.batch_processing.image_batch_request]
+prompts = "list[str]"
+size = "string (e.g., '1024x1024')"
+quality = "string ('standard' or 'hd')"
+progress_callback = "optional function"
+
+[generation_workflows.batch_processing.model_batch_request]
+specifications = "list[dict] with description, model_name, optimization_target"
+progress_callback = "optional function"
+
+[generation_workflows.batch_processing.asset_batch_request]
+requests = "List[AssetRequest] with asset_type, description, style, dimensions"
+
+# Actual response format
+[generation_workflows.batch_processing.response_format]
+total_requested = "int"
+successful = "int"
+failed = "int"
+success_rate = "float (percentage)"
+results = "list[dict] with status, item, result/error"
 
 [ui_features]
 [ui_features.dashboard]
@@ -198,23 +226,20 @@ sqlite = true
 redis_cache = true
 
 [api_endpoints]
-[api_endpoints.generation]
-"/api/generate/project" = "POST"
-"/api/generate/assets" = "POST"
-"/api/generate/variants" = "POST"
-"/api/generate/batch" = "POST"
+[api_endpoints.projects]
+"/api/projects" = "GET"  # List projects with pagination (limit, offset)
+"/api/projects/{project_id}" = "GET"  # Get project details
+"/api/projects" = "POST"  # Create new project
 
 [api_endpoints.assets]
-"/api/assets/list" = "GET"
-"/api/assets/upload" = "POST"
-"/api/assets/download" = "GET"
-"/api/assets/variants" = "GET"
+"/api/assets/generate" = "POST"  # Single asset generation
+"/api/assets/types" = "GET"  # Get supported asset types and options
 
-[api_endpoints.projects]
-"/api/projects/list" = "GET"
-"/api/projects/create" = "POST"
-"/api/projects/load" = "GET"
-"/api/projects/save" = "POST"
+[api_endpoints.batch_generation]
+# Actual batch endpoints we implemented
+"ImageBatchGenerator.generate_images_batch" = "prompts: list[str], size: str, quality: str"
+"ModelBatchGenerator.generate_models_batch" = "specifications: list[dict], progress_callback"
+"AssetGenerator.batch_generate" = "requests: List[AssetRequest]"
 
 [websocket_endpoints]
 "/ws/generation" = "real_time_updates"
