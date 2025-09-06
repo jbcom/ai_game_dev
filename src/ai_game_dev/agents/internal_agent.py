@@ -393,3 +393,215 @@ class InternalAssetAgent(PygameAgent):
         else:
             size = int(size_str)
             return (size, size)
+            
+    async def _tool_execution_node(self, state: Any) -> Any:
+        """Execute asset generation tools based on the task context."""
+        
+        # Get task context
+        context = state.context or {}
+        asset_type = context.get("asset_type", "")
+        force_rebuild = context.get("force_rebuild", False)
+        
+        try:
+            if asset_type == "static_platform":
+                # Generate all static platform assets
+                results = await self.generate_all_static_assets(force_rebuild)
+                state.outputs.update({
+                    "assets_created": len(results.get("generated", [])),
+                    "assets_skipped": len(results.get("skipped", [])),
+                    "assets_failed": len(results.get("failed", [])),
+                    "details": results
+                })
+                
+            elif asset_type == "educational_game_assets":
+                # Generate educational RPG assets
+                results = await self.generate_educational_assets(force_rebuild)
+                state.outputs.update({
+                    "assets_created": len(results.get("characters", [])) + len(results.get("environments", [])) + len(results.get("ui_elements", [])),
+                    "details": results
+                })
+                
+            elif asset_type == "educational_game_code":
+                # Generate educational game code
+                results = await self.generate_educational_game_code(force_rebuild)
+                state.outputs.update({
+                    "code_files_created": len(results.get("files", [])),
+                    "details": results
+                })
+                
+            elif asset_type == "test_ui_icon":
+                # Generate single test asset
+                request = AssetRequest(
+                    asset_type="ui_icon",
+                    description="cyberpunk play button for testing",
+                    style="cyberpunk futuristic",
+                    dimensions=(256, 256),
+                    format="PNG"
+                )
+                
+                asset = await self.asset_generator.generate_ui_icon(request)
+                
+                # Save test asset
+                test_dir = Path("generated_assets/test")
+                test_dir.mkdir(parents=True, exist_ok=True)
+                test_path = test_dir / "test_play_button.png"
+                
+                if asset.data:
+                    with open(test_path, "wb") as f:
+                        f.write(asset.data)
+                    
+                    state.outputs.update({
+                        "test_asset_created": str(test_path),
+                        "asset_size": len(asset.data)
+                    })
+                
+            else:
+                state.errors.append(f"Unknown asset type: {asset_type}")
+                
+        except Exception as e:
+            state.errors.append(f"Tool execution error: {str(e)}")
+            
+        return state
+        
+    async def generate_educational_game_code(self, force_rebuild: bool = False) -> Dict[str, Any]:
+        """Generate the complete educational RPG game code."""
+        
+        results = {
+            "files": [],
+            "failed": []
+        }
+        
+        # Check if game code already exists
+        game_dir = Path("src/ai_game_dev/education/generated_game")
+        
+        if not force_rebuild and self._check_educational_rpg_complete(game_dir):
+            results["skipped"] = ["Educational game code already exists"]
+            return results
+            
+        # Ensure directories exist
+        game_dir.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            # Generate main.py
+            main_code = await self._generate_pygame_main_file()
+            main_path = game_dir / "main.py"
+            with open(main_path, "w") as f:
+                f.write(main_code)
+            results["files"].append(str(main_path))
+            
+            # Generate game.py
+            game_code = await self._generate_pygame_game_file()
+            game_path = game_dir / "game.py"
+            with open(game_path, "w") as f:
+                f.write(game_code)
+            results["files"].append(str(game_path))
+            
+            # Generate player.py
+            player_code = await self._generate_pygame_player_file()
+            player_path = game_dir / "player.py"
+            with open(player_path, "w") as f:
+                f.write(player_code)
+            results["files"].append(str(player_path))
+            
+            # Generate requirements.txt
+            requirements = "pygame>=2.1.0\n"
+            req_path = game_dir / "requirements.txt"
+            with open(req_path, "w") as f:
+                f.write(requirements)
+            results["files"].append(str(req_path))
+            
+        except Exception as e:
+            results["failed"].append({
+                "task": "educational_game_code",
+                "error": str(e)
+            })
+            
+        return results
+        
+    async def _generate_pygame_main_file(self) -> str:
+        """Generate the main.py file for the educational RPG."""
+        
+        prompt = """Create a complete main.py file for "NeoTokyo Code Academy: The Binary Rebellion" - a cyberpunk educational RPG.
+
+Requirements:
+- Pygame initialization and proper cleanup
+- 800x600 screen with cyberpunk color scheme
+- Professional game loop with 60 FPS
+- Import game and player modules
+- Error handling and graceful shutdown
+- Entry point that starts the educational RPG
+
+The game teaches programming concepts through cyberpunk RPG mechanics with Professor Pixel as guide.
+
+Generate production-ready Python code with proper structure and comments."""
+
+        messages = [{"role": "user", "content": prompt}]
+        response = await self.llm.ainvoke(messages)
+        
+        return response.content
+        
+    async def _generate_pygame_game_file(self) -> str:
+        """Generate the game.py file for the educational RPG."""
+        
+        prompt = """Create a complete game.py file for "NeoTokyo Code Academy: The Binary Rebellion" educational RPG.
+
+Requirements:
+- Game class with proper state management (menu, playing, game_over)
+- Educational progression system with coding challenges
+- Character classes: Code Knight, Data Sage, Bug Hunter, Web Weaver
+- Professor Pixel as cyberpunk mentor/guide
+- NeoTokyo environments (academy, labs, towers)
+- Asset loading and resource management
+- Collision detection and RPG mechanics
+- Educational content integration (Python concepts)
+
+Game Features:
+- Turn-based combat with programming puzzles
+- Skill trees for different programming concepts
+- Inventory system for code tools and data structures
+- Quest system teaching algorithms and data structures
+
+Generate production-ready pygame code with proper class structure."""
+
+        messages = [{"role": "user", "content": prompt}]
+        response = await self.llm.ainvoke(messages)
+        
+        return response.content
+        
+    async def _generate_pygame_player_file(self) -> str:
+        """Generate the player.py file for the educational RPG."""
+        
+        prompt = """Create a complete player.py file for "NeoTokyo Code Academy: The Binary Rebellion" educational RPG.
+
+Requirements:
+- Player class with movement and controls
+- Character progression and skill system
+- Inventory management for code tools
+- Experience and leveling system
+- Input processing (keyboard/mouse)
+- Animation and sprite handling
+- Health, mana, and coding skill attributes
+
+Educational Elements:
+- Skills represent programming concepts (loops, functions, OOP, etc.)
+- Experience gained through solving coding challenges
+- Equipment represents development tools (IDEs, debuggers, etc.)
+- Abilities map to programming paradigms
+
+Generate production-ready pygame player class with proper state management."""
+
+        messages = [{"role": "user", "content": prompt}]
+        response = await self.llm.ainvoke(messages)
+        
+        return response.content
+        
+    def _check_educational_rpg_complete(self, game_dir: Path) -> bool:
+        """Check if educational RPG code is complete."""
+        required_files = ["main.py", "game.py", "player.py", "requirements.txt"]
+        
+        for filename in required_files:
+            file_path = game_dir / filename
+            if not file_path.exists() or file_path.stat().st_size < 100:
+                return False
+                
+        return True
