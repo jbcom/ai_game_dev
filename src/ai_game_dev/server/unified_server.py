@@ -157,8 +157,13 @@ class UnifiedGameDevServer:
         
         # Setup Jinja2 web interface (production-ready templates)
         from .jinja_interface import setup_jinja_routes
+        from .api_routes import router as api_router
+        from .websocket_manager import websocket_endpoint
+        
         setup_jinja_routes(self.app)
-        print("✅ Jinja2 interface loaded successfully")
+        self.app.include_router(api_router)
+        self.app.websocket("/ws")(websocket_endpoint)
+        print("✅ Jinja2 interface, API routes, and WebSocket support loaded successfully")
         
         # Add redirect from root to web interface
         @self.app.get("/", response_class=HTMLResponse)

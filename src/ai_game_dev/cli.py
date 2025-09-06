@@ -8,7 +8,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from ai_game_dev.engines import get_supported_engines, generate_for_engine
-from ai_game_dev.server.unified_server import run_server
+from ai_game_dev.server.unified_server import UnifiedGameDevServer
 
 app = typer.Typer(help="AI Game Development CLI - Revolutionary AI-powered game creation")
 console = Console()
@@ -94,7 +94,9 @@ def server(
     console.print(Panel(f"[bold green]Starting server at http://{host}:{port}[/bold green]", title="AI Game Dev Server"))
     
     try:
-        asyncio.run(run_server(host=host, port=port))
+        server_instance = UnifiedGameDevServer(host=host, port=port)
+        import uvicorn
+        uvicorn.run(server_instance.app, host=host, port=port, log_level="info")
     except KeyboardInterrupt:
         console.print("\n[yellow]Server stopped by user[/yellow]")
 
@@ -116,9 +118,6 @@ def assets(
         task = progress.add_task("Generating asset...", total=None)
         
         try:
-            from ai_game_dev.assets.tools import AssetTools
-            asset_tools = AssetTools()
-            
             console.print("[yellow]Asset generation feature coming soon![/yellow]")
             progress.update(task, completed=True, description="✅ Asset generation ready!")
             

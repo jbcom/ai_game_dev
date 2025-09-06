@@ -12,7 +12,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from ai_game_dev.engines import get_supported_engines, generate_for_engine, engine_manager
+from ai_game_dev.engines import get_supported_engines, generate_for_engine
+from ai_game_dev.project_manager import ProjectManager
 
 
 # Template directory setup
@@ -75,18 +76,26 @@ def get_template_context(request: Request, current_page: str = "") -> Dict[str, 
     """Get common template context for all pages."""
     engines = get_supported_engines()
     
+    # Get project statistics
+    project_manager = ProjectManager()
+    stats = project_manager.get_stats()
+    recent_projects = project_manager.get_recent_projects(limit=5)
+    
     return {
         "request": request,
         "current_page": current_page,
         "current_year": datetime.now().year,
         "engines": engines,
         "engine_info": get_engine_info(),
-        "theme": "dark",  # Default theme
+        "theme": "dark",
         "stats": {
-            "projects_generated": 0,  # TODO: Implement project tracking
-            "assets_created": 0,      # TODO: Implement asset tracking
+            "projects_generated": stats.get("total_projects", 0),
+            "assets_created": 0,  # TODO: Implement asset tracking
         },
-        "recent_projects": [],  # TODO: Implement project history
+        "recent_projects": [
+            {"name": p.name, "engine": p.engine, "created_at": p.created_at}
+            for p in recent_projects
+        ],
     }
 
 
@@ -122,6 +131,34 @@ def setup_jinja_routes(app: FastAPI) -> None:
         context = get_template_context(request, "engines")
         return templates.TemplateResponse("pages/engines.html", context)
     
+    @app.get("/web/projects", response_class=HTMLResponse)
+    async def web_projects(request: Request, page: int = 1, limit: int = 12):
+        """Projects management page."""
+        project_manager = ProjectManager()
+        
+        offset = (page - 1) * limit
+        projects = project_manager.list_projects(limit=limit, offset=offset)
+        stats = project_manager.get_stats()
+        
+        total_projects = stats.get("total_projects", 0)
+        total_pages = (total_projects + limit - 1) // limit
+        
+        # Get most popular engine
+        engine_counts = stats.get("projects_by_engine", {})
+        most_popular_engine = max(engine_counts.keys(), key=engine_counts.get) if engine_counts else "None"
+        
+        context = get_template_context(request, "projects")
+        context.update({
+            "projects": projects,
+            "project_stats": stats,
+            "most_popular_engine": most_popular_engine,
+            "current_page": page,
+            "total_pages": total_pages,
+            "total_projects": total_projects
+        })
+        
+        return templates.TemplateResponse("pages/projects.html", context)
+    
     @app.post("/web/generate-project", response_class=HTMLResponse)
     async def web_generate_project(
         request: Request,
@@ -134,7 +171,19 @@ def setup_jinja_routes(app: FastAPI) -> None:
         include_assets: bool = Form(False)
     ):
         """Handle project generation via HTMX form submission."""
+        project_manager = ProjectManager()
+        
         try:
+            # Create project record
+            name = project_name or f"{engine.title()} Game - {datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            project = project_manager.create_project(
+                name=name,
+                description=description,
+                engine=engine,
+                complexity=complexity,
+                art_style=art_style
+            )
+            
             # Generate the project
             result = await generate_for_engine(
                 engine_name=engine,
@@ -144,11 +193,15 @@ def setup_jinja_routes(app: FastAPI) -> None:
                 art_style=art_style
             )
             
+            # Update project with results
+            updated_project = project_manager.update_project_with_result(project.id, result)
+            
             # Prepare success response data
             context = {
                 "request": request,
                 "success": True,
                 "result": {
+                    "project_id": updated_project.id,
                     "engine_type": result.engine_type,
                     "main_files": result.main_files,
                     "project_path": str(result.project_path) if result.project_path else "Generated in memory",
@@ -156,7 +209,7 @@ def setup_jinja_routes(app: FastAPI) -> None:
                     "build_instructions": result.build_instructions,
                     "generated_files_count": len(result.generated_files)
                 },
-                "project_name": project_name or f"{engine}_{int(datetime.now().timestamp())}",
+                "project_name": name,
                 "description": description
             }
             
