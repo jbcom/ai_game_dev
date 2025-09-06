@@ -178,29 +178,69 @@ size = "512x512"
 quality = "hd"
 category = "audio_tools"
 
-# Batch Generation Configuration
+# Unified Generation Configuration
 [batch_config]
-total_assets = 65
+total_visual_assets = 65
+total_audio_assets = 19
 concurrent_limit = 3
 batch_size = 5
-output_directory = "src/ai_game_dev/server/static/assets/generated/"
-naming_convention = "{category}_{index}_{hash}.png"
+visual_output_directory = "src/ai_game_dev/server/static/assets/generated/"
+audio_output_directory = "src/ai_game_dev/server/static/assets/audio/"
+visual_naming_convention = "{category}_{index}_{hash}.png"
+audio_naming_convention = "{effect_name}.{format}"
 fallback_quality = "standard"
 retry_failed = true
 max_retries = 2
 
-# Audio Generation Capabilities
+# UI Sound Effects
+[audio.ui_sounds]
+effects = [
+    "button_click_futuristic",
+    "hover_beep_cyberpunk", 
+    "notification_chime_tech",
+    "error_buzz_warning",
+    "success_ding_pleasant",
+    "menu_open_whoosh",
+    "menu_close_whoosh_reverse",
+    "typing_mechanical_keyboard"
+]
+duration_ms = [200, 300, 500, 400, 350, 600, 600, 100]
+format = "wav"
+category = "interface"
+
+# Game Sound Effects
+[audio.game_effects]
+effects = [
+    "laser_blaster_zap",
+    "explosion_medium_boom", 
+    "footstep_metal_clank",
+    "pickup_item_bling",
+    "powerup_energy_surge",
+    "engine_spaceship_hum",
+    "sword_slash_whoosh",
+    "magic_spell_cast_sparkle"
+]
+duration_ms = [800, 1500, 300, 400, 1000, 2000, 600, 1200]
+format = "wav"
+category = "gameplay"
+
+# Ambient Audio
+[audio.ambient]
+effects = [
+    "cyberpunk_city_atmosphere",
+    "space_station_hum", 
+    "tech_lab_computer_buzz"
+]
+duration_ms = [10000, 8000, 9000]
+format = "wav"
+category = "atmosphere"
+loop = true
+
+# Audio Generation Configuration
 [audio_generation]
+sample_rate = 44100
+bit_depth = 16
+output_directory = "src/ai_game_dev/server/static/assets/audio/"
 supported_formats = ["wav", "mp3", "ogg"]
 synthesis_methods = ["additive", "subtractive", "fm", "granular", "physical_modeling"]
 effect_types = ["reverb", "delay", "distortion", "filter", "chorus", "phaser"]
-procedural_categories = [
-    "ui_sounds",
-    "weapon_effects", 
-    "ambient_textures",
-    "music_loops",
-    "footsteps",
-    "explosions",
-    "mechanical_sounds",
-    "magical_effects"
-]
