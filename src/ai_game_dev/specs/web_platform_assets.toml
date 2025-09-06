@@ -3,8 +3,8 @@
 # using our internal batch generation tooling
 
 [platform_info]
-name = "AI Game Dev Web Platform"
-description = "Complete asset specification for our own web interface"
+name = "AI Game Dev Complete Platform"
+description = "Unified asset specification for web platform AND educational experience"
 generation_method = "internal_batch_tooling"
 
 # Navigation and Control Assets
@@ -244,3 +244,62 @@ output_directory = "src/ai_game_dev/server/static/assets/audio/"
 supported_formats = ["wav", "mp3", "ogg"]
 synthesis_methods = ["additive", "subtractive", "fm", "granular", "physical_modeling"]
 effect_types = ["reverb", "delay", "distortion", "filter", "chorus", "phaser"]
+
+# Educational Experience Assets
+[assets.professor_pixel]
+prompts = [
+    "Professor Pixel character portrait, cyberpunk mentor with neon hair and AR glasses, friendly smile, tech background",
+    "Professor Pixel full body sprite, cyberpunk professor with lab coat and holographic tablet, 64x64 pixel art style",
+    "Professor Pixel avatar icon, circular portrait with neon cyan hair and AR glasses, transparent background",
+    "Professor Pixel teaching pose, pointing gesture with holographic code display, cyberpunk classroom setting"
+]
+size = "512x512"
+quality = "hd"
+category = "educational_characters"
+
+# NeoTokyo RPG Character Classes
+[assets.rpg_characters]
+prompts = [
+    "Code Knight character sprite, cybernetic warrior with plasma sword, red and blue armor, 64x64 pixel art",
+    "Data Sage character sprite, mystical hacker with holographic robes, purple and cyan colors, 64x64 pixel art",
+    "Bug Hunter character sprite, agile cyber-assassin with stealth cloak, green and black colors, 64x64 pixel art",
+    "Web Weaver character sprite, digital architect with quantum tablet, orange and white colors, 64x64 pixel art",
+    "System Admin character sprite, tech support hero with diagnostic tools, yellow and gray colors, 64x64 pixel art"
+]
+size = "64x64"
+quality = "hd"
+category = "rpg_player_classes"
+
+# Educational Game Environments
+[assets.neotokyo_environments]
+prompts = [
+    "NeoTokyo Code Academy exterior, cyberpunk school building with neon signs, night scene, 16-bit pixel art",
+    "Underground programming lab interior, hidden rebel coding classroom, holographic displays, pixel art tileset",
+    "Algorithm Tower lobby, corporate empire data center, sleek tech architecture, cyberpunk pixel art",
+    "Digital marketplace, cyberpunk bazaar with code vendors, neon lights and tech stalls, pixel art scene",
+    "Virus-infected sector, corrupted digital environment with glitching effects, dangerous cyberpunk zone"
+]
+size = "512x512"
+quality = "hd"
+category = "educational_environments"
+
+# Educational UI Elements
+[assets.educational_ui]
+prompts = [
+    "Code learning progress bar, cyberpunk style with skill points, neon green fill, transparent background",
+    "XP gain notification popup, cyberpunk design with congratulations text, glowing effect",
+    "Skill tree interface background, tech circuit pattern with connection nodes, dark cyberpunk theme",
+    "Lesson complete badge, cyberpunk achievement icon with checkmark, neon cyan glow",
+    "Coding challenge icon, cyberpunk puzzle symbol with binary code, tech aesthetic",
+    "Tutorial arrow pointer, cyberpunk neon cyan arrow with glow effect, transparent background"
+]
+size = "256x256"
+quality = "hd"
+category = "educational_interface"
+
+# Batch Config Update
+[batch_config]
+total_assets = 89
+output_directory = "src/ai_game_dev/server/static/assets/generated/"
+concurrent_requests = 3
+retry_attempts = 2
