@@ -1,337 +1,110 @@
 """
-Engine adapters for connecting to language-native game engine implementations.
-Provides structured interfaces for Rust Bevy, Python Pygame/Arcade, etc.
+Legacy engine adapters module - DEPRECATED.
+This module is maintained for backward compatibility only.
+New code should use ai_game_dev.engines package directly.
+
+The new modular engine system provides:
+- Dedicated adapter packages for each engine
+- Real code generation instead of placeholders
+- Better separation of concerns
+- Professional project structure
 """
-from typing import Dict, Any, List, Optional, Protocol
-from dataclasses import dataclass
-from abc import ABC, abstractmethod
-from pathlib import Path
-import os
-import json
+import warnings
+from typing import Dict, Any, List, Optional
 
-from langchain_core.tools import StructuredTool
-from pydantic import BaseModel, Field
-from openai import AsyncOpenAI
-
-from ai_game_dev.config import settings
-
-
-class EngineGenerationRequest(BaseModel):
-    """Request for engine-specific game generation."""
-    game_description: str = Field(description="Description of the game to generate")
-    engine_type: str = Field(description="Target engine (bevy, godot, pygame, arcade)")
-    complexity: str = Field(default="intermediate", description="Game complexity level")
-    features: List[str] = Field(default=[], description="Specific features to implement")
-    art_style: str = Field(default="modern", description="Visual art style")
-
-
-@dataclass
-class EngineGenerationResult:
-    """Result from engine-specific generation."""
-    engine_type: str
-    project_structure: Dict[str, Any]
-    main_files: List[str]
-    asset_requirements: List[str]
-    build_instructions: str
-    deployment_notes: str
-    generated_files: Dict[str, str]  # filename -> actual code content
-    project_path: Optional[Path] = None
+# Import from new modular system
+try:
+    from ai_game_dev.engines.base import BaseEngineAdapter, EngineGenerationResult
+    from ai_game_dev.engines.manager import engine_manager
+    from ai_game_dev.engines import PygameAdapter, BevyAdapter, GodotAdapter
+except ImportError:
+    # Fallback for testing
+    warnings.warn("New engine system not available, using legacy adapters")
+    from dataclasses import dataclass
+    from abc import ABC, abstractmethod
+    from pathlib import Path
+    
+    @dataclass
+    class EngineGenerationResult:
+        """Result from engine-specific generation."""
+        engine_type: str
+        project_structure: Dict[str, Any]
+        main_files: List[str]
+        asset_requirements: List[str]
+        build_instructions: str
+        deployment_notes: str
+        generated_files: Dict[str, str] = None
+        project_path: Optional[Path] = None
+    
+    class BaseEngineAdapter(ABC):
+        """Legacy base adapter."""
+        @abstractmethod
+        async def generate_game_project(self, description: str, **kwargs) -> EngineGenerationResult:
+            pass
 
 
-class EngineAdapter(ABC):
-    """Abstract base class for engine adapters."""
+# Legacy adapter aliases for backward compatibility
+class EngineAdapter(BaseEngineAdapter):
+    """Legacy base class - use BaseEngineAdapter from engines.base instead."""
     
     def __init__(self):
-        self.llm_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.output_dir = settings.cache_dir / "generated_projects"
-        self.output_dir.mkdir(exist_ok=True)
+        warnings.warn(
+            "EngineAdapter is deprecated. Use BaseEngineAdapter from ai_game_dev.engines.base",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__()
+
+
+class EngineAdapterManager:
+    """
+    Legacy engine manager - DEPRECATED.
+    Use EngineManager from ai_game_dev.engines.manager instead.
+    """
     
-    @property
-    @abstractmethod
-    def engine_name(self) -> str:
-        """Name of the target engine."""
-        pass
-    
-    @property
-    @abstractmethod
-    def native_language(self) -> str:
-        """Native programming language for this engine."""
-        pass
-    
-    @abstractmethod
-    async def generate_game_project(
-        self,
-        description: str,
-        complexity: str = "intermediate",
-        features: List[str] = None,
-        art_style: str = "modern"
-    ) -> EngineGenerationResult:
-        """Generate a complete game project for this engine."""
-        pass
-    
-    @abstractmethod
-    def get_project_template(self) -> Dict[str, str]:
-        """Get the basic project template structure."""
-        pass
-    
-    @abstractmethod
-    def get_build_instructions(self) -> str:
-        """Get instructions for building the project."""
-        pass
-    
-    async def generate_code_with_llm(self, prompt: str, max_tokens: int = 4000) -> str:
-        """Generate code using LLM."""
+    def __init__(self):
+        warnings.warn(
+            "EngineAdapterManager is deprecated. Use EngineManager from ai_game_dev.engines.manager", 
+            DeprecationWarning,
+            stacklevel=2
+        )
         try:
-            response = await self.llm_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": f"You are an expert {self.native_language} developer specializing in {self.engine_name} game development. Generate clean, production-ready code with proper structure and comments."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=max_tokens,
-                temperature=0.7
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            return f"// Error generating code: {e}\n// Fallback placeholder code"
+            self.manager = engine_manager
+        except NameError:
+            self.manager = None
     
-    async def save_project_files(self, project_name: str, files: Dict[str, str]) -> Path:
-        """Save generated files to disk."""
-        project_path = self.output_dir / f"{self.engine_name}_{project_name}"
-        project_path.mkdir(exist_ok=True)
-        
-        for filename, content in files.items():
-            file_path = project_path / filename
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-        
-        return project_path
-
-
-class BevyEngineAdapter(EngineAdapter):
-    """Adapter for Rust Bevy engine projects."""
+    def get_adapter(self, engine_name: str) -> Optional[BaseEngineAdapter]:
+        """Get adapter for engine - delegates to new system."""
+        if self.manager:
+            return self.manager.get_adapter(engine_name)
+        return None
     
-    @property
-    def engine_name(self) -> str:
-        return "bevy"
-    
-    @property
-    def native_language(self) -> str:
-        return "rust"
-    
-    async def generate_game_project(
-        self,
-        description: str,
-        complexity: str = "intermediate",
-        features: List[str] = None,
-        art_style: str = "modern"
-    ) -> EngineGenerationResult:
-        """Generate Bevy Rust project with ECS architecture."""
+    async def generate_game(self, engine_name: str, description: str, **kwargs) -> EngineGenerationResult:
+        """Generate game - delegates to new system."""
+        if self.manager:
+            return await self.manager.generate_for_engine(engine_name, description, **kwargs)
         
-        # Analyze game requirements
-        game_analysis = self._analyze_game_requirements(description, features or [])
-        
-        # Generate project structure
-        project_structure = self._create_bevy_project_structure(game_analysis)
-        
-        # Generate main files
-        main_files = self._generate_bevy_source_files(game_analysis, complexity)
-        
-        # Determine asset requirements
-        asset_requirements = self._determine_asset_requirements(game_analysis, art_style)
-        
+        # Fallback
         return EngineGenerationResult(
-            engine_type="bevy",
-            project_structure=project_structure,
-            main_files=main_files,
-            asset_requirements=asset_requirements,
-            build_instructions=self.get_build_instructions(),
-            deployment_notes="Compile with 'cargo build --release' for production builds"
+            engine_type=engine_name,
+            project_structure={},
+            main_files=[],
+            asset_requirements=[],
+            build_instructions="Legacy adapter - please use new engine system",
+            deployment_notes="Update to new ai_game_dev.engines package"
         )
-    
-    def get_project_template(self) -> Dict[str, str]:
-        """Get Bevy project template."""
-        return {
-            "Cargo.toml": """[package]
-name = "game"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-bevy = "0.14"
-""",
-            "src/main.rs": """use bevy::prelude::*;
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_systems(Update, update_game)
-        .run();
-}
-
-fn setup(mut commands: Commands) {
-    // Setup game world
-    commands.spawn(Camera2dBundle::default());
-}
-
-fn update_game() {
-    // Game logic
-}
-""",
-            "assets/.gitkeep": "",
-            ".gitignore": "/target/\n/Cargo.lock\n"
-        }
-    
-    def get_build_instructions(self) -> str:
-        return """Build Instructions for Bevy Project:
-
-1. Install Rust: https://rustup.rs/
-2. Navigate to project directory
-3. Run: cargo run (for development)
-4. Run: cargo build --release (for optimized build)
-
-Optional optimizations:
-- Enable LLD linker for faster builds
-- Use 'cargo-watch' for automatic recompilation
-"""
-    
-    def _analyze_game_requirements(self, description: str, features: List[str]) -> Dict[str, Any]:
-        """Analyze game description to extract Bevy-specific requirements."""
-        desc_lower = description.lower()
-        
-        # Determine game type
-        game_type = "2d"
-        if "3d" in desc_lower or "three dimensional" in desc_lower:
-            game_type = "3d"
-        
-        # Determine needed systems
-        systems = ["movement"]
-        if any(word in desc_lower for word in ["physics", "collision", "bounce"]):
-            systems.append("physics")
-        if any(word in desc_lower for word in ["enemy", "ai", "npc"]):
-            systems.append("ai")
-        if any(word in desc_lower for word in ["sound", "audio", "music"]):
-            systems.append("audio")
-        if any(word in desc_lower for word in ["ui", "menu", "hud", "interface"]):
-            systems.append("ui")
-        
-        # Add explicit features
-        systems.extend(features)
-        
-        return {
-            "game_type": game_type,
-            "systems": list(set(systems)),
-            "description": description
-        }
-    
-    def _create_bevy_project_structure(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Create Bevy project structure based on analysis."""
-        return {
-            "src/": {
-                "main.rs": "Main game entry point",
-                "components.rs": "Game components (ECS)",
-                "systems.rs": "Game systems",
-                "resources.rs": "Global resources",
-                "events.rs": "Custom events"
-            },
-            "assets/": {
-                "textures/": "Sprite and texture files",
-                "sounds/": "Audio files",
-                "fonts/": "Font files"
-            },
-            "Cargo.toml": "Rust project configuration"
-        }
-    
-    def _generate_bevy_source_files(self, analysis: Dict[str, Any], complexity: str) -> List[str]:
-        """Generate Bevy source file contents."""
-        files = ["main.rs", "components.rs", "systems.rs"]
-        
-        if "ui" in analysis["systems"]:
-            files.append("ui.rs")
-        if "physics" in analysis["systems"]:
-            files.append("physics.rs")
-        if "ai" in analysis["systems"]:
-            files.append("ai.rs")
-        
-        return files
-    
-    def _determine_asset_requirements(self, analysis: Dict[str, Any], art_style: str) -> List[str]:
-        """Determine required assets for Bevy project."""
-        assets = []
-        
-        if analysis["game_type"] == "2d":
-            assets.extend(["player_sprite.png", "background.png"])
-        else:
-            assets.extend(["player_model.gltf", "environment_textures"])
-        
-        if "audio" in analysis["systems"]:
-            assets.extend(["background_music.ogg", "sound_effects.wav"])
-        
-        if "ui" in analysis["systems"]:
-            assets.extend(["ui_font.ttf", "ui_textures.png"])
-        
-        return assets
 
 
-class GodotEngineAdapter(EngineAdapter):
-    """Adapter for Godot engine projects."""
-    
-    @property
-    def engine_name(self) -> str:
-        return "godot"
-    
-    @property
-    def native_language(self) -> str:
-        return "gdscript"  # Primary, also supports C#
-    
-    async def generate_game_project(
-        self,
-        description: str,
-        complexity: str = "intermediate",
-        features: List[str] = None,
-        art_style: str = "modern"
-    ) -> EngineGenerationResult:
-        """Generate Godot project with scene-based architecture."""
-        
-        # Similar implementation for Godot
-        return EngineGenerationResult(
-            engine_type="godot",
-            project_structure=self.get_project_template(),
-            main_files=["Main.gd", "Player.gd", "GameManager.gd"],
-            asset_requirements=["player.png", "background.png", "sounds.ogg"],
-            build_instructions=self.get_build_instructions(),
-            deployment_notes="Export project using Godot editor export templates"
-        )
-    
-    def get_project_template(self) -> Dict[str, str]:
-        """Get Godot project template."""
-        return {
-            "project.godot": "[gd_scene load_steps=2 format=3]\n\n[node name=\"Main\" type=\"Node2D\"]",
-            "Main.gd": "extends Node2D\n\nfunc _ready():\n\tprint(\"Game started!\")",
-            "scenes/": "Scene files directory",
-            "scripts/": "GDScript files directory",
-            "assets/": "Asset files directory"
-        }
-    
-    def get_build_instructions(self) -> str:
-        return """Build Instructions for Godot Project:
-
-1. Install Godot Engine: https://godotengine.org/
-2. Open project in Godot Editor
-3. Test with F5 (or Run button)
-4. Export via Project > Export menu
-
-For distribution:
-- Download export templates for target platforms
-- Configure export settings in Project Settings
-"""
-
-
+# Legacy adapter classes - these delegate to new system when possible
 class PygameEngineAdapter(EngineAdapter):
-    """Adapter for Python Pygame projects."""
+    """Legacy Pygame adapter - use PygameAdapter from engines.pygame instead."""
+    
+    def __init__(self):
+        super().__init__()
+        try:
+            self._adapter = PygameAdapter()
+        except NameError:
+            self._adapter = None
     
     @property
     def engine_name(self) -> str:
@@ -341,343 +114,92 @@ class PygameEngineAdapter(EngineAdapter):
     def native_language(self) -> str:
         return "python"
     
-    async def generate_game_project(
-        self,
-        description: str,
-        complexity: str = "intermediate",
-        features: List[str] = None,
-        art_style: str = "modern"
-    ) -> EngineGenerationResult:
-        """Generate Pygame Python project with real working code."""
+    async def generate_game_project(self, description: str, **kwargs) -> EngineGenerationResult:
+        if self._adapter:
+            return await self._adapter.generate_game_project(description, **kwargs)
         
-        features = features or []
-        project_name = description.replace(" ", "_").lower()[:20]
-        
-        # Generate main.py
-        main_prompt = f"""
-        Create a complete main.py file for a Pygame game: {description}
-        Complexity: {complexity}
-        Features: {', '.join(features)}
-        Art style: {art_style}
-        
-        Include:
-        - Proper pygame initialization
-        - Game loop with event handling
-        - Screen setup and rendering
-        - Import statements for other modules
-        - Professional code structure
-        
-        Make it production-ready and well-commented.
-        """
-        
-        # Generate game.py
-        game_prompt = f"""
-        Create a complete game.py file for a Pygame game: {description}
-        
-        Include:
-        - Game class with proper state management
-        - Update and render methods
-        - Collision detection if needed
-        - Score/health systems
-        - Game mechanics implementation
-        - Asset loading and management
-        
-        Features to implement: {', '.join(features)}
-        Complexity: {complexity}
-        """
-        
-        # Generate player.py
-        player_prompt = f"""
-        Create a complete player.py file for a Pygame game: {description}
-        
-        Include:
-        - Player class with movement
-        - Input handling
-        - Sprite management
-        - Physics and collision bounds
-        - Animation if appropriate
-        
-        Features: {', '.join(features)}
-        Style: {art_style}
-        """
-        
-        # Generate requirements.txt
-        requirements_content = """pygame>=2.5.0
-numpy>=1.24.0
-"""
-        
-        # Generate README.md
-        readme_content = f"""# {description.title()}
-
-A {complexity} complexity Pygame game featuring:
-{chr(10).join(f"- {feature}" for feature in features)}
-
-## Installation
-
-1. Install Python 3.8+
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the game: `python main.py`
-
-## Features
-
-- {art_style.title()} art style
-- Professional game architecture
-- Modular code structure
-"""
-        
-        # Generate all code files
-        generated_files = {
-            "main.py": await self.generate_code_with_llm(main_prompt),
-            "game.py": await self.generate_code_with_llm(game_prompt),
-            "player.py": await self.generate_code_with_llm(player_prompt),
-            "requirements.txt": requirements_content,
-            "README.md": readme_content
-        }
-        
-        # Save files to disk
-        project_path = await self.save_project_files(project_name, generated_files)
-        
+        # Fallback for legacy compatibility
         return EngineGenerationResult(
             engine_type="pygame",
-            project_structure=self.get_project_template(),
-            main_files=list(generated_files.keys()),
-            asset_requirements=["player.png", "background.png", "sounds.wav"],
-            build_instructions=self.get_build_instructions(),
-            deployment_notes="Use PyInstaller or cx_Freeze for standalone executables",
-            generated_files=generated_files,
-            project_path=project_path
+            project_structure={"main.py": "Legacy placeholder"},
+            main_files=["main.py"],
+            asset_requirements=["player.png"],
+            build_instructions="Use new engines.pygame.PygameAdapter",
+            deployment_notes="Migrate to new engine system"
         )
+
+
+class BevyEngineAdapter(EngineAdapter):
+    """Legacy Bevy adapter - use BevyAdapter from engines.bevy instead."""
     
-    def get_project_template(self) -> Dict[str, str]:
-        """Get Pygame project template."""
-        return {
-            "main.py": """import pygame
-import sys
-from game import Game
-
-def main():
-    pygame.init()
-    game = Game()
-    game.run()
-    pygame.quit()
-    sys.exit()
-
-if __name__ == "__main__":
-    main()
-""",
-            "game.py": """import pygame
-
-class Game:
     def __init__(self):
-        self.screen = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption("Game")
-        self.clock = pygame.time.Clock()
-        self.running = True
-    
-    def run(self):
-        while self.running:
-            self.handle_events()
-            self.update()
-            self.draw()
-            self.clock.tick(60)
-    
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-    
-    def update(self):
-        pass
-    
-    def draw(self):
-        self.screen.fill((0, 0, 0))
-        pygame.display.flip()
-""",
-            "requirements.txt": "pygame>=2.5.0\n"
-        }
-    
-    def get_build_instructions(self) -> str:
-        return """Build Instructions for Pygame Project:
-
-1. Install Python 3.11+
-2. Create virtual environment: python -m venv venv
-3. Activate: source venv/bin/activate (Linux/Mac) or venv\\Scripts\\activate (Windows)
-4. Install dependencies: pip install -r requirements.txt
-5. Run: python main.py
-
-For distribution:
-- PyInstaller: pip install pyinstaller && pyinstaller --onefile main.py
-- Auto-py-to-exe: GUI wrapper for PyInstaller
-"""
-
-
-class ArcadeEngineAdapter(EngineAdapter):
-    """Adapter for Python Arcade projects."""
+        super().__init__()
+        try:
+            self._adapter = BevyAdapter()
+        except NameError:
+            self._adapter = None
     
     @property
     def engine_name(self) -> str:
-        return "arcade"
+        return "bevy"
+    
+    @property  
+    def native_language(self) -> str:
+        return "rust"
+    
+    async def generate_game_project(self, description: str, **kwargs) -> EngineGenerationResult:
+        if self._adapter:
+            return await self._adapter.generate_game_project(description, **kwargs)
+        
+        return EngineGenerationResult(
+            engine_type="bevy",
+            project_structure={"Cargo.toml": "Legacy placeholder"},
+            main_files=["Cargo.toml", "src/main.rs"],
+            asset_requirements=["player_model.gltf"],
+            build_instructions="Use new engines.bevy.BevyAdapter",
+            deployment_notes="Migrate to new engine system"
+        )
+
+
+class GodotEngineAdapter(EngineAdapter):
+    """Legacy Godot adapter - use GodotAdapter from engines.godot instead."""
+    
+    def __init__(self):
+        super().__init__()
+        try:
+            self._adapter = GodotAdapter()
+        except NameError:
+            self._adapter = None
+    
+    @property
+    def engine_name(self) -> str:
+        return "godot"
     
     @property
     def native_language(self) -> str:
-        return "python"
+        return "gdscript"
     
-    async def generate_game_project(
-        self,
-        description: str,
-        complexity: str = "intermediate",
-        features: List[str] = None,
-        art_style: str = "modern"
-    ) -> EngineGenerationResult:
-        """Generate Arcade Python project."""
+    async def generate_game_project(self, description: str, **kwargs) -> EngineGenerationResult:
+        if self._adapter:
+            return await self._adapter.generate_game_project(description, **kwargs)
         
         return EngineGenerationResult(
-            engine_type="arcade",
-            project_structure=self.get_project_template(),
-            main_files=["main.py", "game_view.py", "constants.py"],
-            asset_requirements=["player.png", "background.png", "sounds.wav"],
-            build_instructions=self.get_build_instructions(),
-            deployment_notes="Use PyInstaller or cx_Freeze for standalone executables"
+            engine_type="godot",
+            project_structure={"project.godot": "Legacy placeholder"},
+            main_files=["Main.gd", "Player.gd"],
+            asset_requirements=["player.png"],
+            build_instructions="Use new engines.godot.GodotAdapter",
+            deployment_notes="Migrate to new engine system"
         )
-    
-    def get_project_template(self) -> Dict[str, str]:
-        """Get Arcade project template."""
-        return {
-            "main.py": """import arcade
-from game_view import GameView
-from constants import *
-
-def main():
-    game = GameView()
-    game.setup()
-    arcade.run()
-
-if __name__ == "__main__":
-    main()
-""",
-            "game_view.py": """import arcade
-from constants import *
-
-class GameView(arcade.View):
-    def __init__(self):
-        super().__init__()
-        arcade.set_background_color(arcade.color.SKY_BLUE)
-    
-    def setup(self):
-        pass
-    
-    def on_draw(self):
-        self.clear()
-    
-    def on_update(self, delta_time):
-        pass
-""",
-            "constants.py": """SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Game"
-""",
-            "requirements.txt": "arcade>=3.0.0\n"
-        }
-    
-    def get_build_instructions(self) -> str:
-        return """Build Instructions for Arcade Project:
-
-1. Install Python 3.11+
-2. Create virtual environment: python -m venv venv
-3. Activate: source venv/bin/activate (Linux/Mac) or venv\\Scripts\\activate (Windows)  
-4. Install dependencies: pip install -r requirements.txt
-5. Run: python main.py
-
-For distribution:
-- PyInstaller: pip install pyinstaller && pyinstaller --onefile main.py
-- Auto-py-to-exe: GUI wrapper for PyInstaller
-"""
 
 
-class EngineAdapterManager:
-    """Manager for all engine adapters."""
-    
-    def __init__(self):
-        self.adapters = {
-            "bevy": BevyEngineAdapter(),
-            "godot": GodotEngineAdapter(), 
-            "pygame": PygameEngineAdapter(),
-            "arcade": ArcadeEngineAdapter()
-        }
-    
-    def get_adapter(self, engine_name: str) -> Optional[EngineAdapter]:
-        """Get adapter for specific engine."""
-        return self.adapters.get(engine_name.lower())
-    
-    def list_supported_engines(self) -> List[str]:
-        """List all supported engines."""
-        return list(self.adapters.keys())
-    
-    async def generate_for_engine(
-        self,
-        engine_name: str,
-        description: str,
-        complexity: str = "intermediate",
-        features: List[str] = None,
-        art_style: str = "modern"
-    ) -> Optional[EngineGenerationResult]:
-        """Generate project for specific engine."""
-        
-        adapter = self.get_adapter(engine_name)
-        if not adapter:
-            return None
-        
-        return await adapter.generate_game_project(
-            description=description,
-            complexity=complexity,
-            features=features or [],
-            art_style=art_style
-        )
-    
-    def create_langraph_tool(self) -> StructuredTool:
-        """Create LangGraph tool for engine-specific generation."""
-        
-        async def _generate_engine_project(
-            game_description: str,
-            engine_type: str,
-            complexity: str = "intermediate",
-            features: List[str] = None,
-            art_style: str = "modern"
-        ) -> Dict[str, Any]:
-            """Generate engine-specific game project with native language implementation."""
-            
-            result = await self.generate_for_engine(
-                engine_name=engine_type,
-                description=game_description,
-                complexity=complexity,
-                features=features or [],
-                art_style=art_style
-            )
-            
-            if not result:
-                return {
-                    "error": f"Unsupported engine: {engine_type}",
-                    "supported_engines": self.list_supported_engines()
-                }
-            
-            return {
-                "engine_type": result.engine_type,
-                "native_language": self.get_adapter(engine_type).native_language,
-                "project_structure": result.project_structure,
-                "main_files": result.main_files,
-                "asset_requirements": result.asset_requirements,
-                "build_instructions": result.build_instructions,
-                "deployment_notes": result.deployment_notes,
-                "success": True
-            }
-        
-        return StructuredTool.from_function(
-            func=_generate_engine_project,
-            name="generate_engine_native_project",
-            description=(
-                "Generate a complete game project using engine-native languages and patterns. "
-                "Creates Rust code for Bevy, GDScript for Godot, Python for Pygame/Arcade. "
-                "Provides proper project structure, build instructions, and asset requirements."
-            ),
-            args_schema=EngineGenerationRequest
-        )
+# Re-export for backward compatibility
+__all__ = [
+    "EngineGenerationResult",
+    "EngineAdapter", 
+    "BaseEngineAdapter",
+    "EngineAdapterManager",
+    "PygameEngineAdapter",
+    "BevyEngineAdapter", 
+    "GodotEngineAdapter"
+]
