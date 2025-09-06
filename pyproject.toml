@@ -117,6 +117,7 @@ Issues = "https://github.com/ai-game-dev/ai-game-dev/issues"
 ai-game-dev = "ai_game_dev.cli:app"
 ai-game-dev-server = "ai_game_dev.server.unified_server:run_server"
 ai-game-education = "ai_game_dev.education.run_education:main"
+ai-game-dev-internal = "ai_game_dev.internal_cli:internal_app"
 
 # Hatch testing environment with UV backend - includes E2E dependencies
 [tool.hatch.envs.hatch-test]
@@ -175,6 +176,10 @@ dev = [
 
 [tool.hatchling.build.targets.wheel]
 packages = ["src/ai_game_dev"]
+exclude = [
+    "src/ai_game_dev/internal_cli.py",
+    "src/ai_game_dev/education/generated_game/",
+]
 
 # Default Hatch environment with local .venv
 [tool.hatch.envs.default]
