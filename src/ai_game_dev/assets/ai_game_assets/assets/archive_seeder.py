@@ -65,7 +65,7 @@ class ArchiveSeeder:
             print(f"Error searching Internet Archive: {e}")
             return []
     
-    def generate_text_embedding(self, text: str) -> Optional[torch.Tensor]:
+    def generate_text_embedding(self, text: str) -> Optional[Any]:
         """Generate semantic embedding for text using simple word vectors."""
         
         if not TORCH_AVAILABLE:
