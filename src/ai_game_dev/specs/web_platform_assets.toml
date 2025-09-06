@@ -1,0 +1,160 @@
+# Web Platform Asset Generation Specification
+# This defines ALL the assets we need to generate for our own platform
+# using our internal batch generation tooling
+
+[platform_info]
+name = "AI Game Dev Web Platform"
+description = "Complete asset specification for our own web interface"
+generation_method = "internal_batch_tooling"
+
+# Navigation and Control Assets
+[assets.navigation_buttons]
+prompts = [
+    "Left arrow navigation button, cyberpunk neon cyan glow, rounded square, transparent background, futuristic tech design",
+    "Right arrow navigation button, cyberpunk neon cyan glow, rounded square, transparent background, futuristic tech design",
+    "Up arrow button, cyberpunk neon blue glow, rounded square, transparent background, tech interface style",
+    "Down arrow button, cyberpunk neon blue glow, rounded square, transparent background, tech interface style",
+    "Home button icon, cyberpunk neon green glow, house shape, transparent background, futuristic UI design",
+    "Menu hamburger button, cyberpunk neon purple glow, three lines, transparent background, tech aesthetic"
+]
+size = "512x512"
+quality = "hd"
+category = "ui_controls"
+
+# Audio Interface Components
+[assets.audio_controls]
+prompts = [
+    "Play button icon, cyberpunk neon pink triangle, rounded square background, transparent, high contrast tech design",
+    "Pause button icon, cyberpunk neon cyan double bars, rounded square background, transparent, futuristic style",
+    "Stop button icon, cyberpunk neon blue square, rounded background, transparent, tech interface design",
+    "Skip forward button, cyberpunk neon orange double triangles, transparent background, sci-fi aesthetic",
+    "Skip backward button, cyberpunk neon orange double triangles pointing left, transparent background, sci-fi style",
+    "Volume up icon, cyberpunk neon green speaker with plus, transparent background, tech design",
+    "Volume down icon, cyberpunk neon green speaker with minus, transparent background, tech design",
+    "Mute button icon, cyberpunk neon red speaker with X, transparent background, futuristic style"
+]
+size = "256x256"
+quality = "hd"
+category = "audio_interface"
+
+# Engine Selection Artwork
+[assets.engine_panels]
+prompts = [
+    "Pygame engine artwork, Python snake with game controller, vibrant orange and blue colors, cyberpunk tech background, 320x240 aspect",
+    "Bevy engine artwork, Rust crab with 3D geometric shapes, orange and metallic colors, futuristic tech background, 320x240 aspect",
+    "Godot engine artwork, blue robot mascot with game elements, blue and white colors, sci-fi tech background, 320x240 aspect",
+    "Unity engine artwork, cube logo with particle effects, black and white colors, tech grid background, 320x240 aspect",
+    "Unreal engine artwork, stylized U with epic visual effects, blue and orange colors, tech background, 320x240 aspect"
+]
+size = "1024x768"
+quality = "hd"
+category = "engine_showcase"
+
+# UI Framework Components
+[assets.frame_elements]
+prompts = [
+    "Tech frame border, cyberpunk circuit pattern, neon cyan lines, transparent center, corner lightning effects",
+    "Glass panel overlay, frosted glass effect, subtle cyan tint, transparent edges, soft glow border",
+    "Circuit pattern texture, intricate electronic pathways, neon blue lines, seamless tiling, dark background",
+    "Energy field texture, flowing electric particles, animated-style, cyan and blue colors, seamless pattern",
+    "Holographic grid texture, futuristic grid lines, neon green glow, transparent background, tech aesthetic",
+    "Metal plate texture, brushed steel surface, subtle blue lighting, industrial tech look, seamless tiling"
+]
+size = "512x512"
+quality = "hd"
+category = "ui_frames"
+
+# Status and Feedback Icons
+[assets.status_indicators]
+prompts = [
+    "Success checkmark icon, cyberpunk neon green check, rounded background, transparent, glowing effect",
+    "Error X icon, cyberpunk neon red X, rounded background, transparent, warning glow effect",
+    "Warning triangle icon, cyberpunk neon yellow triangle with exclamation, transparent, alert design",
+    "Info circle icon, cyberpunk neon blue circle with i, transparent background, information glow",
+    "Loading spinner icon, cyberpunk neon cyan rotating ring, transparent background, animated style",
+    "Progress bar empty, cyberpunk tech design, dark gray with cyan border, transparent background",
+    "Progress bar full, cyberpunk tech design, bright cyan fill with glow, transparent background"
+]
+size = "128x128"
+quality = "hd"
+category = "status_feedback"
+
+# Project and File Management Icons
+[assets.file_management]
+prompts = [
+    "Folder icon, cyberpunk neon blue folder, transparent background, tech design with glow",
+    "File icon, cyberpunk neon white document, transparent background, tech aesthetic with corner fold",
+    "Code file icon, cyberpunk neon green document with brackets, transparent background, programming theme",
+    "Image file icon, cyberpunk neon purple document with picture symbol, transparent background, media theme",
+    "Download icon, cyberpunk neon cyan arrow pointing down, transparent background, tech design",
+    "Upload icon, cyberpunk neon cyan arrow pointing up, transparent background, tech design",
+    "Save icon, cyberpunk neon green floppy disk, transparent background, retro-futuristic style",
+    "Delete icon, cyberpunk neon red trash can, transparent background, warning glow effect"
+]
+size = "128x128"
+quality = "hd"
+category = "file_operations"
+
+# Generation and AI Processing Icons
+[assets.ai_generation]
+prompts = [
+    "AI brain icon, cyberpunk neon pink brain with circuit patterns, transparent background, tech glow",
+    "Generate icon, cyberpunk neon cyan magic wand with sparkles, transparent background, creation theme",
+    "Processing icon, cyberpunk neon blue gear wheels interlocked, transparent background, working animation style",
+    "Robot head icon, cyberpunk neon white robot face, transparent background, AI assistant theme",
+    "Lightning bolt icon, cyberpunk neon yellow lightning, transparent background, power and speed theme",
+    "Refresh icon, cyberpunk neon green circular arrows, transparent background, renewal theme"
+]
+size = "128x128"
+quality = "hd"
+category = "ai_tools"
+
+# Social and Sharing Icons
+[assets.social_features]
+prompts = [
+    "Share icon, cyberpunk neon blue branching arrows, transparent background, distribution theme",
+    "Export icon, cyberpunk neon cyan box with arrow out, transparent background, output theme",
+    "Collaborate icon, cyberpunk neon purple multiple user silhouettes, transparent background, teamwork theme",
+    "Comment icon, cyberpunk neon white speech bubble, transparent background, communication theme",
+    "Like icon, cyberpunk neon pink heart, transparent background, appreciation theme",
+    "Star rating icon, cyberpunk neon yellow star, transparent background, quality theme"
+]
+size = "128x128"
+quality = "hd"
+category = "social_interaction"
+
+# Background and Environment Assets
+[assets.backgrounds]
+prompts = [
+    "Cyberpunk cityscape background, neon lights, dark atmosphere, futuristic skyscrapers, tech aesthetic",
+    "Digital matrix background, flowing code characters, green on black, transparent overlay version",
+    "Space nebula background, cosmic colors, purple and blue swirls, stars, mystical tech theme",
+    "Circuit board background, intricate electronic pathways, neon green traces, dark substrate",
+    "Holographic interface background, floating UI elements, cyan and blue colors, transparent layers"
+]
+size = "1920x1080"
+quality = "hd"
+category = "environment"
+
+# Logo and Branding Assets
+[assets.branding]
+prompts = [
+    "AI Game Dev logo, futuristic text with game controller elements, cyberpunk neon colors, transparent background",
+    "Platform mascot character, friendly AI robot, cyberpunk style, neon accents, game development tools",
+    "Loading screen logo, animated style AI Game Dev text, particle effects, tech glow",
+    "Favicon icon, simplified AI Game Dev symbol, 32x32 pixel art style, recognizable at small size"
+]
+size = "512x512"
+quality = "hd"
+category = "brand_identity"
+
+# Batch Generation Configuration
+[batch_config]
+total_assets = 51
+concurrent_limit = 3
+batch_size = 5
+output_directory = "src/ai_game_dev/server/static/assets/generated/"
+naming_convention = "{category}_{index}_{hash}.png"
+fallback_quality = "standard"
+retry_failed = true
+max_retries = 2
