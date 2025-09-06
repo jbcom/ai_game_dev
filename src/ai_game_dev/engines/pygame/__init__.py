@@ -1,5 +1,5 @@
-"""Pygame engine integration."""
+"""Pygame engine package for Python game development."""
 
-class PygameEngine:
-    def __init__(self, openai_client):
-        self.client = openai_client
+from .adapter import PygameAdapter
+
+__all__ = ["PygameAdapter"]

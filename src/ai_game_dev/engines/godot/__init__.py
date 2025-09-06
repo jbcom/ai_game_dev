@@ -1,5 +1,5 @@
-"""Godot engine integration."""
+"""Godot engine package for GDScript game development."""
 
-class GodotEngine:
-    def __init__(self, openai_client):
-        self.client = openai_client
+from .adapter import GodotAdapter
+
+__all__ = ["GodotAdapter"]
