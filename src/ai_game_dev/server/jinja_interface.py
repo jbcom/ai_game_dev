@@ -8,7 +8,7 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Form, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
@@ -106,13 +106,12 @@ def setup_jinja_routes(app: FastAPI) -> None:
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     
-    @app.get("/web", response_class=HTMLResponse)
-    @app.get("/web/", response_class=HTMLResponse) 
-    @app.get("/web/dashboard", response_class=HTMLResponse)
+    @app.get("/web")
+    @app.get("/web/") 
+    @app.get("/web/dashboard")
     async def web_dashboard(request: Request):
-        """Dashboard page with overview and statistics."""
-        context = get_template_context(request, "dashboard")
-        return templates.TemplateResponse("pages/dashboard.html", context)
+        """Redirect to new project page - Dashboard is redundant."""
+        return RedirectResponse(url="/web/new_project", status_code=307)
     
     @app.get("/web/new_project", response_class=HTMLResponse)
     async def web_new_project(request: Request, engine: Optional[str] = None):
