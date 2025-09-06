@@ -19,6 +19,7 @@ if os.getenv("AI_GAME_DEV_INTERNAL", "false").lower() != "true":
     raise RuntimeError("Internal CLI requires AI_GAME_DEV_INTERNAL=true environment variable")
 
 from ai_game_dev.agents.internal_agent import InternalAssetAgent
+from ai_game_dev.agents.master_orchestrator import MasterGameDevOrchestrator
 
 internal_app = typer.Typer(help="Internal Development Commands - Not included in release builds")
 console = Console()
@@ -204,6 +205,157 @@ def build_all_internal_assets(
     build_educational_game_assets(force_rebuild=force_rebuild, dry_run=dry_run)
     
     console.print("\n🎉 [bold green]All internal builds complete![/bold green]")
+
+
+@internal_app.command(name="generate-game")
+def generate_game_with_orchestrator(
+    description: str = typer.Argument(..., help="Natural language description of the game to generate"),
+    engine: Optional[str] = typer.Option(None, help="Preferred engine: pygame, godot, or bevy"),
+    use_seeding: bool = typer.Option(True, help="Use literary seeding for narrative enhancement"),
+    force_rebuild: bool = typer.Option(False, help="Force rebuild even if project exists")
+):
+    """
+    Generate a complete game using the Master Orchestrator with spec generation and routing.
+    """
+    
+    console.print(Panel(
+        f"[bold cyan]Generating Game with Master Orchestrator[/bold cyan]\n"
+        f"Description: {description}\n"
+        f"Engine preference: {engine or 'auto-detect'}\n"
+        f"Literary seeding: {'enabled' if use_seeding else 'disabled'}",
+        title="🎮 Master Game Generator"
+    ))
+    
+    async def run_orchestrator():
+        async with MasterGameDevOrchestrator() as orchestrator:
+            # Build user input with preferences
+            user_input = description
+            if engine:
+                user_input += f" using {engine} engine"
+                
+            results = await orchestrator.execute_task(user_input, {
+                "force_rebuild": force_rebuild,
+                "use_seeding": use_seeding,
+                "engine_preference": engine
+            })
+            
+            return results
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Initializing Master Orchestrator...", total=None)
+        
+        try:
+            results = asyncio.run(run_orchestrator())
+            progress.update(task, completed=True, description="✅ Game generation complete")
+            
+            # Display comprehensive results
+            if results.get("success"):
+                spec = results.get("generated_spec", {})
+                engine_used = results.get("chosen_engine", "unknown")
+                
+                console.print(f"\n✅ Successfully generated game: [bold]{spec.get('title', 'Generated Game')}[/bold]")
+                console.print(f"Engine: [cyan]{engine_used}[/cyan]")
+                console.print(f"Genre: [green]{spec.get('genre', 'adventure')}[/green]")
+                
+                if results.get("seeding_applied"):
+                    console.print("🌱 Literary seeding applied for narrative enhancement")
+                    
+                if results.get("human_reviewed"):
+                    console.print("👤 Specification reviewed and approved")
+                    
+                artifacts = results.get("artifacts_created", [])
+                if artifacts:
+                    console.print(f"\n📁 Created {len(artifacts)} project artifacts:")
+                    for artifact in artifacts[:5]:  # Show first 5
+                        console.print(f"  • {artifact}")
+                    if len(artifacts) > 5:
+                        console.print(f"  ... and {len(artifacts) - 5} more files")
+                        
+            else:
+                console.print(f"⚠️ Game generation completed with issues: {results.get('response', 'Unknown error')}")
+                
+        except Exception as e:
+            progress.update(task, completed=True, description="❌ Game generation failed")
+            console.print(f"[red]Error: {e}[/red]")
+
+
+@internal_app.command(name="test-seeding")
+def test_seeding_system(
+    theme: str = typer.Argument("fantasy adventure", help="Theme to test seeding with"),
+    max_sources: int = typer.Option(3, help="Maximum sources to gather")
+):
+    """
+    Test the seeding system with PyTorch embeddings and Internet Archive integration.
+    """
+    
+    console.print(Panel(
+        f"[bold cyan]Testing Seeding System[/bold cyan]\n"
+        f"Theme: {theme}\n"
+        f"Max sources: {max_sources}",
+        title="🌱 Seeding System Test"
+    ))
+    
+    async def test_seeding():
+        from ai_game_dev.seeding.literary_seeder import LiterarySeeder, SeedingRequest
+        
+        seeder = LiterarySeeder()
+        request = SeedingRequest(
+            themes=[theme],
+            genres=["fantasy", "adventure"],
+            character_types=["hero", "mentor"],
+            settings=["medieval", "magical"],
+            max_sources=max_sources
+        )
+        
+        results = await seeder.seed_from_request(request)
+        return results
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Testing seeding system...", total=None)
+        
+        try:
+            results = asyncio.run(test_seeding())
+            progress.update(task, completed=True, description="✅ Seeding test complete")
+            
+            # Display seeding results
+            console.print(f"\n🌱 Seeding Results:")
+            
+            themes_found = results.get("themes_found", [])
+            if themes_found:
+                console.print(f"Themes discovered: {', '.join(themes_found)}")
+                
+            character_inspirations = results.get("character_inspirations", [])
+            if character_inspirations:
+                console.print(f"\n👥 Character inspirations found: {len(character_inspirations)}")
+                for char in character_inspirations[:3]:
+                    console.print(f"  • {char.get('archetype', 'Unknown')}: {char.get('description', 'No description')}")
+                    
+            setting_inspirations = results.get("setting_inspirations", [])
+            if setting_inspirations:
+                console.print(f"\n🏰 Setting inspirations found: {len(setting_inspirations)}")
+                for setting in setting_inspirations[:3]:
+                    console.print(f"  • {setting.get('type', 'Unknown')}: {setting.get('description', 'No description')}")
+                    
+            embedding_summary = results.get("embedding_summary", {})
+            if embedding_summary and embedding_summary.get("pytorch_available"):
+                console.print(f"\n🧠 PyTorch Embeddings:")
+                console.print(f"  • Average relevance: {embedding_summary.get('average_relevance', 0):.3f}")
+                console.print(f"  • Highest relevance: {embedding_summary.get('highest_relevance', 0):.3f}")
+                console.print(f"  • Embedding dimensions: {embedding_summary.get('embedding_dimensions', 0)}")
+            else:
+                console.print("\n⚠️ PyTorch embeddings not available (install sentence-transformers for full functionality)")
+                
+        except Exception as e:
+            progress.update(task, completed=True, description="❌ Seeding test failed")
+            console.print(f"[red]Error: {e}[/red]")
 
 
 # All asset checking, generation, and management is now handled by InternalAssetAgent
