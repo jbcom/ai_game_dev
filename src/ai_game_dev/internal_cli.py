@@ -14,10 +14,9 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
 from rich.table import Table
 
-# Internal commands are available but warn if not in development
+# Internal commands - fail fast if environment isn't set up correctly
 if os.getenv("AI_GAME_DEV_INTERNAL", "false").lower() != "true":
-    import warnings
-    warnings.warn("Internal CLI commands should only be used in development environment", UserWarning)
+    raise RuntimeError("Internal CLI requires AI_GAME_DEV_INTERNAL=true environment variable")
 
 from ai_game_dev.education.complete_rpg_generator import create_complete_educational_game
 from ai_game_dev.assets.generator import AssetGenerator, AssetRequest
