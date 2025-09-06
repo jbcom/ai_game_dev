@@ -78,18 +78,26 @@ class MasterGameDevOrchestrator(BaseAgent):
         await super().initialize()
         
         # Initialize engine agents dynamically to avoid circular imports
-        from ai_game_dev.agents.base_agent import PygameAgent
-        from ai_game_dev.agents.godot_agent import GodotAgent  
-        from ai_game_dev.agents.bevy_agent import BevyAgent
-        
-        self.pygame_agent = PygameAgent()
-        await self.pygame_agent.initialize()
-        
-        self.godot_agent = GodotAgent()
-        await self.godot_agent.initialize()
-        
-        self.bevy_agent = BevyAgent()
-        await self.bevy_agent.initialize()
+        try:
+            from ai_game_dev.agents.pygame_agent import PygameAgent
+            self.pygame_agent = PygameAgent()
+            await self.pygame_agent.initialize()
+        except ImportError:
+            self.pygame_agent = None
+            
+        try:
+            from ai_game_dev.agents.godot_agent import GodotAgent
+            self.godot_agent = GodotAgent() 
+            await self.godot_agent.initialize()
+        except ImportError:
+            self.godot_agent = None
+            
+        try:
+            from ai_game_dev.agents.bevy_agent import BevyAgent
+            self.bevy_agent = BevyAgent()
+            await self.bevy_agent.initialize()
+        except ImportError:
+            self.bevy_agent = None
         
     async def _setup_instructions(self):
         """Set up orchestrator-specific instructions."""
@@ -198,7 +206,7 @@ Respond with a JSON object containing:
         response = await self.llm.ainvoke([HumanMessage(content=analysis_prompt)])
         
         try:
-            analysis = json.loads(response.content)
+            analysis = json.loads(response.content if isinstance(response.content, str) else str(response.content))
             
             state.input_type = analysis.get("input_type", "prompt")
             state.detected_engine = analysis.get("detected_engine")
@@ -265,12 +273,12 @@ Respond with a JSON object matching this structure:
         response = await self.llm.ainvoke([HumanMessage(content=spec_prompt)])
         
         try:
-            spec_data = json.loads(response.content)
+            spec_data = json.loads(response.content if isinstance(response.content, str) else str(response.content))
             
             state.generated_spec = GameSpec(
                 title=spec_data.get("title", "Generated Game"),
                 description=spec_data.get("description", ""),
-                engine=spec_data.get("engine", "pygame"),
+                engine=spec_data.get("engine", "pygame") if spec_data.get("engine") in ["pygame", "godot", "bevy"] else "pygame",
                 genre=spec_data.get("genre", "adventure"),
                 target_audience=spec_data.get("target_audience", "all"),
                 features=spec_data.get("features", []),
@@ -359,7 +367,7 @@ Respond with a JSON object for seeding coordination:
         response = await self.llm.ainvoke([HumanMessage(content=seeding_prompt)])
         
         try:
-            seeding_info = json.loads(response.content)
+            seeding_info = json.loads(response.content if isinstance(response.content, str) else str(response.content))
             
             # Use the real seeding system
             from ai_game_dev.seeding.literary_seeder import LiterarySeeder, SeedingRequest
@@ -424,9 +432,12 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute pygame agent
-        pygame_task = f"Generate a complete {spec.genre} game: {spec.description}"
-        pygame_results = await self.pygame_agent.execute_task(pygame_task, pygame_context)
+        # Execute pygame agent if available
+        if self.pygame_agent:
+            pygame_task = f"Generate a complete {spec.genre} game: {spec.description}"
+            pygame_results = await self.pygame_agent.execute_task(pygame_task, pygame_context)
+        else:
+            pygame_results = {"status": "pygame_agent_unavailable"}
         
         state.subgraph_results["pygame"] = pygame_results
         return state
@@ -447,8 +458,11 @@ Respond with a JSON object for seeding coordination:
             "analyzed_task": {"task_type": "godot_game_generation"}
         }
         
-        godot_task = f"Generate a complete {spec.genre} game: {spec.description}"
-        godot_results = await self.godot_agent.execute_task(godot_task, godot_context)
+        if self.godot_agent:
+            godot_task = f"Generate a complete {spec.genre} game: {spec.description}"
+            godot_results = await self.godot_agent.execute_task(godot_task, godot_context)
+        else:
+            godot_results = {"status": "godot_agent_unavailable"}
         
         state.subgraph_results["godot"] = godot_results
         return state
@@ -469,8 +483,11 @@ Respond with a JSON object for seeding coordination:
             "analyzed_task": {"task_type": "bevy_game_generation"}
         }
         
-        bevy_task = f"Generate a complete {spec.genre} game: {spec.description}"
-        bevy_results = await self.bevy_agent.execute_task(bevy_task, bevy_context)
+        if self.bevy_agent:
+            bevy_task = f"Generate a complete {spec.genre} game: {spec.description}"
+            bevy_results = await self.bevy_agent.execute_task(bevy_task, bevy_context)
+        else:
+            bevy_results = {"status": "bevy_agent_unavailable"}
         
         state.subgraph_results["bevy"] = bevy_results
         return state
