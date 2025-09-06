@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-game-assets"
+version = "1.0.0"
+description = "Comprehensive AI-powered multimedia asset generation for game development"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    {name = "AI Game Dev Team"},
+]
+keywords = ["ai", "assets", "gamedev", "tts", "music", "fonts", "multimedia"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "openai>=1.51.0",
+    "music21>=8.0.0",
+    "freesound-python>=0.7.0",
+    "torch>=2.0.0",
+    "transformers>=4.36.0",
+    "requests>=2.31.0",
+    "pillow>=10.0.0",
+    "pydantic>=2.8.0",
+    "aiofiles>=23.2.1",
+    "internetarchive>=3.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ai-game-dev/ai-game-assets"
+Repository = "https://github.com/ai-game-dev/ai-game-assets"
+Documentation = "https://ai-game-assets.readthedocs.io"
+"Bug Tracker" = "https://github.com/ai-game-dev/ai-game-assets/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ai_game_assets"]

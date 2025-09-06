@@ -111,6 +111,30 @@ packages/
 - **Format Conversion**: Export to multiple formats with optimization options
 - **Streaming Support**: Real-time progress updates for long-running operations
 
+## Official Registry Distribution
+
+### 📦 **Cargo (crates.io)**
+- **bevy-ai-game-dev**: Native Rust Bevy bindings with full ECS support
+- Keywords: bevy, gamedev, ai, procedural, ecs
+- Category: game-development, game-engines
+
+### 🎮 **Godot Asset Library**
+- **AI Game Development Generator**: Complete Godot plugin for in-editor AI generation
+- Category: Tools | Support: Community | Version: Godot 4.3+
+- Direct integration with Godot's native GDScript and scene system
+
+### 🐍 **PyPI (Python Package Index)**
+- **ai-game-dev**: Core LangGraph orchestration library
+- **ai-game-assets**: Standalone multimedia generation toolkit
+- **pygame-ai-game-dev**: Native Pygame integration bindings
+- **arcade-ai-game-dev**: Native Arcade integration bindings
+
+### 🔧 **Distribution Strategy**
+- **Independent Versioning**: Each package evolves at its own pace
+- **Cross-Language Compatibility**: Rust, Python, and GDScript interoperability
+- **Production Ready**: Full documentation, testing, and CI/CD pipeline
+- **Community Focus**: Open source with comprehensive examples and tutorials
+
 ## External Dependencies
 
 ### AI Services
@@ -118,16 +142,15 @@ packages/
 - **API Key Management**: Secure environment variable-based authentication
 
 ### Python Libraries
-- **FastMCP**: Core MCP server framework
+- **LangChain/LangGraph**: Core AI orchestration framework
 - **OpenAI Python Client**: Official OpenAI API client library
 - **aiofiles**: Async file operations
 - **Pillow (PIL)**: Image processing and manipulation
-- **tiktoken**: Token counting for OpenAI models
-- **Rich**: Enhanced terminal output and logging
-- **Pydantic Settings**: Configuration management
-- **XDG Base Dirs**: System directory standards
+- **music21**: Procedural music generation
+- **PyTorch**: Semantic analysis and embeddings
 
 ### System Requirements
 - **Python 3.11+**: Modern Python runtime with latest async features
-- **File System**: Local storage for asset caching and management
-- **Package Management**: Uses modern UV/Hatch packaging system
+- **Rust 1.70+**: For Bevy engine bindings compilation
+- **Godot 4.3+**: For GDScript plugin integration
+- **Package Management**: Uses modern UV workspace + Cargo + PyPI ecosystem
