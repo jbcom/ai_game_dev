@@ -114,48 +114,48 @@ ai-game-dev = "ai_game_dev.ui.cli.main:launch_cli"
 ai-game-dev-web = "ai_game_dev.ui.web.portal:launch_web_portal"
 ai-game-dev-server = "ai_game_dev.mcp_server.server:run_server"
 
-[tool.uv]
-dev-dependencies = [
-    # Testing
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.11.0",
-    "pytest-xdist>=3.3.0",
+# Hatch testing environment with UV backend
+[tool.hatch.envs.hatch-test]
+installer = "uv"
+dependencies = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0", 
+    "pytest-mock>=3.12.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
     "pytest-benchmark>=4.0.0",
+    "pytest-vcr>=1.0.2",
+]
+
+# Matrix testing for multiple Python versions  
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.11", "3.12"]
+
+# Development environment with UV
+[tool.hatch.envs.dev]
+installer = "uv"  
+dependencies = [
+    # Static Analysis & Formatting
+    "mypy>=1.8.0",
+    "ruff>=0.1.11", 
+    "bandit[toml]>=1.7.5",
     
-    # Static Analysis - Python
-    "mypy>=1.0.0",
-    "pylint>=2.17.0",
-    "bandit>=1.7.5",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
-    "ruff>=0.1.0",
-    
-    # Code Coverage & Quality
-    "coverage[toml]>=7.3.0",
-    "codecov>=2.1.13",
-    "coverage-badge>=1.1.0",
-    
-    # Performance Analysis
-    "py-spy>=0.3.14",
-    "memory-profiler>=0.61.0",
-    
-    # GDScript Analysis
-    "gdtoolkit>=4.2.0",
-    
-    # Documentation
-    "sphinx>=7.0.0",
-    "sphinx-rtd-theme>=2.0.0",
-    "sphinx-autodoc2>=0.5.0",
+    # Documentation & Build
+    "sphinx>=7.2.0",
+    "sphinx-autodoc2>=0.5.0", 
+    "furo>=2023.9.10",
     "myst-parser>=2.0.0",
     
-    # Build tools
-    "pre-commit>=3.0.0",
-    "twine>=4.0.0",
-    "build>=0.10.0",
+    # Development Tools
+    "pre-commit>=3.6.0",
+    "coverage[toml]>=7.4.0",
 ]
+
+[tool.hatch.envs.dev.scripts]
+lint = ["ruff check src tests", "mypy src"]
+format = ["ruff format src tests"]  
+security = ["bandit -r src"]
+all = ["lint", "format", "security"]
 
 [build-system]
 requires = ["hatchling"]
@@ -164,14 +164,9 @@ build-backend = "hatchling.build"
 [tool.hatchling.build.targets.wheel]
 packages = ["src/ai_game_dev"]
 
-# Hatch environment configurations
+# Default Hatch environment 
 [tool.hatch.envs.default]
-dependencies = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0", 
-    "pytest-mock>=3.10",
-    "pytest-benchmark>=4.0",
-]
+installer = "uv"
 
 [tool.hatch.envs.test]
 dependencies = [
