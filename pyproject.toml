@@ -4,6 +4,7 @@ members = [
     "packages/ai_game_assets", 
     "packages/pygame_game_dev",
     "packages/arcade_game_dev",
+    "packages/mcp_server",
     "web_portal"
 ]
 

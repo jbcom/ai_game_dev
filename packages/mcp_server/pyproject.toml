@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-game-dev-mcp-server"
+version = "1.0.0"
+description = "Model Context Protocol server for AI-powered game development"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    {name = "AI Game Dev Team"},
+]
+dependencies = [
+    "ai-game-dev",
+    "mcp>=1.0.0",
+    "asyncio-mqtt>=0.13.0",
+    "pydantic>=2.0.0",
+]
+
+[tool.uv.sources]
+ai-game-dev = { workspace = true }
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://ai-game-dev.org"
+Repository = "https://github.com/ai-game-dev/ecosystem"
+
+[project.scripts]
+ai-game-dev-mcp = "mcp_server.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_server"]
