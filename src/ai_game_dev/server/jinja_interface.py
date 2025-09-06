@@ -108,6 +108,7 @@ def setup_jinja_routes(app: FastAPI) -> None:
     
     @app.get("/web")
     @app.get("/web/") 
+    @app.get("/web/dashboard")
     async def web_root(request: Request):
         """Root web route redirects to new project page."""
         return RedirectResponse(url="/web/new_project", status_code=307)
