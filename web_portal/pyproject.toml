@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "ai-game-dev-web-portal"
 version = "1.0.0"
 description = "Interactive web interface for AI-powered game development"
-readme = "README.md"
+readme = "../README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [

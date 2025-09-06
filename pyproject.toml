@@ -19,43 +19,9 @@ dev-dependencies = [
     "twine>=4.0.0",
 ]
 
-[project]
-name = "ai-game-dev-ecosystem"
-version = "1.0.0"
-description = "Revolutionary AI-powered game development ecosystem"
-readme = "README.md"
-license = "MIT"
-requires-python = ">=3.11"
-authors = [
-    {name = "AI Game Dev Team", email = "team@ai-game-dev.org"},
-]
-keywords = ["ai", "gamedev", "artificial-intelligence", "automation", "procedural"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Games/Entertainment",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-]
-
-[project.urls]
-Homepage = "https://ai-game-dev.org"
-Repository = "https://github.com/ai-game-dev/ecosystem"
-Documentation = "https://docs.ai-game-dev.org"
-"Bug Tracker" = "https://github.com/ai-game-dev/ecosystem/issues"
-Discord = "https://discord.gg/ai-game-dev"
-"Contribution Guide" = "https://github.com/ai-game-dev/ecosystem/blob/main/CONTRIBUTING.md"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = []  # Workspace only, no packages to include
 
 [tool.black]
 target-version = ['py311']
