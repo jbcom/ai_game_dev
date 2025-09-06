@@ -3,194 +3,368 @@
 {% block title %}Create New Project - AI Game Development Portal{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            🚀 Create New Game Project
-        </h1>
-        <p class="text-lg opacity-80">Describe your game idea and let AI generate a complete project for you</p>
-    </div>
-    
-    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl glow">
-        <div class="card-body">
-            <form hx-post="/web/generate-project" 
-                  hx-target="#result" 
-                  hx-indicator="#loading" 
-                  class="space-y-6">
-                
-                <!-- Project Description -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text text-lg font-semibold">Project Description</span>
-                        <span class="label-text-alt">Required</span>
-                    </label>
-                    <textarea 
-                        name="description" 
-                        class="textarea textarea-bordered textarea-lg bg-base-100/50 min-h-24" 
-                        placeholder="Describe your game idea in detail... (e.g., A 2D platformer where the player is a ninja cat collecting magical fish while avoiding robot dogs. The game should have pixel art graphics and a retro chiptune soundtrack.)"
-                        rows="4" 
-                        required
-                        maxlength="1000">
-                    </textarea>
-                    <label class="label">
-                        <span class="label-text-alt">Be specific about gameplay, art style, and unique features</span>
-                        <span class="label-text-alt">0/1000 characters</span>
-                    </label>
+<!-- Enhanced Project Creation with Real-time Preview -->
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Creation Form -->
+        <div class="tech-frame rounded-box aspect-[4/5]">
+            <div class="safe-box">
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                        🚀 Create New Game
+                    </h1>
+                    <p class="text-lg opacity-90">Describe your vision and watch it come to life</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Engine Selection -->
+                <form id="projectForm" class="space-y-4 flex-1">
+                    <!-- Game Concept -->
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text font-semibold">Game Engine</span>
+                            <span class="label-text font-semibold">Game Concept</span>
                         </label>
-                        <select name="engine" class="select select-bordered bg-base-100/50" required>
-                            <option disabled selected>Choose an engine...</option>
+                        <textarea 
+                            id="description"
+                            name="description" 
+                            class="textarea textarea-bordered bg-black/30 backdrop-blur-sm border-cyan-500/30 focus:border-cyan-400" 
+                            placeholder="A space adventure where you pilot a ship through asteroid fields..."
+                            rows="3" 
+                            required
+                            oninput="updatePreview()">
+                        </textarea>
+                    </div>
+                    
+                    <!-- Engine Selection with Visual Cards -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Choose Your Engine</span>
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
                             {% for engine in engines %}
-                            <option value="{{ engine }}">
-                                {{ engine|title }} ({{ engine_info[engine].language }})
-                            </option>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="engine" value="{{ engine }}" class="hidden" onchange="updatePreview()" {% if selected_engine == engine or (not selected_engine and loop.first) %}checked{% endif %}>
+                                <div class="engine-card border-2 border-cyan-500/30 rounded-lg p-3 text-center hover:border-cyan-400 transition-colors">
+                                    <img src="/static/assets/engine-panels/{{ engine }}.png" 
+                                         alt="{{ engine|title }}" 
+                                         class="w-full h-12 object-cover rounded mb-2 opacity-60">
+                                    <div class="text-xs font-bold">{{ engine|title }}</div>
+                                    <div class="text-xs opacity-70">
+                                        {% if engine == 'pygame' %}Python{% elif engine == 'bevy' %}Rust{% elif engine == 'godot' %}GDScript{% endif %}
+                                    </div>
+                                </div>
+                            </label>
                             {% endfor %}
-                        </select>
-                        <label class="label">
-                            <span class="label-text-alt">Each engine has different strengths</span>
-                        </label>
+                        </div>
                     </div>
                     
-                    <!-- Complexity Level -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Complexity Level</span>
-                        </label>
-                        <select name="complexity" class="select select-bordered bg-base-100/50">
-                            <option value="beginner">Beginner - Simple mechanics</option>
-                            <option value="intermediate" selected>Intermediate - Balanced features</option>
-                            <option value="advanced">Advanced - Complex systems</option>
-                        </select>
-                        <label class="label">
-                            <span class="label-text-alt">Affects code structure and features</span>
-                        </label>
-                    </div>
-                    
-                    <!-- Art Style -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Art Style</span>
-                        </label>
-                        <select name="art_style" class="select select-bordered bg-base-100/50">
-                            <option value="modern" selected>Modern - Clean and contemporary</option>
-                            <option value="pixel">Pixel Art - Retro 8-bit style</option>
-                            <option value="minimalist">Minimalist - Simple shapes</option>
-                            <option value="cartoon">Cartoonish - Fun and colorful</option>
-                            <option value="realistic">Realistic - Detailed graphics</option>
-                        </select>
-                        <label class="label">
-                            <span class="label-text-alt">Influences asset generation</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Advanced Options (Collapsible) -->
-                <div class="collapse collapse-arrow bg-base-200/20">
-                    <input type="checkbox" />
-                    <div class="collapse-title text-lg font-medium">
-                        🔧 Advanced Options
-                    </div>
-                    <div class="collapse-content">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Target Platform</span>
-                                </label>
-                                <select name="platform" class="select select-bordered select-sm bg-base-100/50">
-                                    <option value="desktop" selected>Desktop (Windows/Mac/Linux)</option>
-                                    <option value="web">Web Browser</option>
-                                    <option value="mobile">Mobile (Android/iOS)</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Project Name</span>
-                                </label>
-                                <input type="text" 
-                                       name="project_name" 
-                                       placeholder="Auto-generated if empty" 
-                                       class="input input-bordered input-sm bg-base-100/50" />
-                            </div>
+                    <!-- Quick Settings -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text text-sm">Complexity</span>
+                            </label>
+                            <select name="complexity" class="select select-sm bg-black/30 border-cyan-500/30" onchange="updatePreview()">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate" selected>Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
                         </div>
                         
-                        <div class="form-control mt-4">
-                            <label class="label cursor-pointer">
-                                <span class="label-text">Include sample assets</span>
-                                <input type="checkbox" name="include_assets" checked class="checkbox checkbox-primary" />
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text text-sm">Art Style</span>
                             </label>
+                            <select name="art_style" class="select select-sm bg-black/30 border-cyan-500/30" onchange="updatePreview()">
+                                <option value="pixel">Pixel Art</option>
+                                <option value="modern" selected>Modern</option>
+                                <option value="minimalist">Minimal</option>
+                                <option value="cartoon">Cartoon</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Generate Button -->
+                    <button type="button" onclick="generateProject()" 
+                            class="btn custom-button w-full btn-lg mt-6" id="generateBtn">
+                        🚀 Generate Project
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Real-time Preview Panel -->
+        <div class="tech-frame rounded-box aspect-[4/5]">
+            <div class="safe-box">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-bold text-primary">Live Preview</h2>
+                    <p class="text-sm opacity-70">See your game concept visualized</p>
+                </div>
+                
+                <!-- Preview Content -->
+                <div id="previewContent" class="flex-1 flex flex-col">
+                    <!-- Game Preview Image -->
+                    <div class="bg-black/30 rounded-lg p-4 mb-4 min-h-48 flex items-center justify-center">
+                        <div id="gamePreview" class="text-center">
+                            <div class="text-6xl mb-4">🎮</div>
+                            <p class="text-lg opacity-80">Start typing to preview your game...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Engine Specs -->
+                    <div id="engineSpecs" class="bg-cyan-900/20 rounded-lg p-4 text-sm">
+                        <h3 class="font-bold mb-2 text-cyan-400">Engine Information</h3>
+                        <div class="space-y-1">
+                            <div>Language: <span class="text-cyan-300" id="engineLang">Python</span></div>
+                            <div>Type: <span class="text-cyan-300" id="engineType">2D Framework</span></div>
+                            <div>Best For: <span class="text-cyan-300" id="engineBest">Prototypes & 2D Games</span></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Project Structure Preview -->
+                    <div class="mt-4 bg-orange-900/20 rounded-lg p-4 text-sm">
+                        <h3 class="font-bold mb-2 text-orange-400">Project Structure</h3>
+                        <div id="projectStructure" class="font-mono text-xs opacity-80">
+                            <div>📁 my_game/</div>
+                            <div class="ml-4">📄 main.py</div>
+                            <div class="ml-4">📁 assets/</div>
+                            <div class="ml-4">📁 src/</div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Generate Button -->
-                <div class="form-control mt-8">
-                    <button type="submit" class="btn btn-primary btn-lg glow hover:scale-105 transition-transform">
-                        🚀 Generate Project
-                    </button>
-                </div>
-            </form>
-            
-            <!-- Enhanced Loading Indicator -->
-            {% include 'components/loading_indicator.html' %}
-            
-            <!-- Real-time Generation Progress -->
-            {% include 'components/real_time_generation.html' %}
-            
-            <!-- Result Area -->
-            <div id="result" class="mt-6"></div>
+            </div>
         </div>
     </div>
     
-    <!-- Engine Recommendations -->
-    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl mt-8">
-        <div class="card-body">
-            <h2 class="card-title text-2xl mb-4">💡 Engine Recommendations</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {% for engine in engines %}
-                <div class="card bg-base-200/30 hover:bg-base-200/50 transition-colors">
-                    <div class="card-body">
-                        <h3 class="card-title text-lg">
-                            {{ engine_info[engine].icon }} {{ engine|title }}
-                        </h3>
-                        <p class="text-sm opacity-80">{{ engine_info[engine].description }}</p>
-                        <div class="card-actions justify-between items-center mt-2">
-                            <div class="badge badge-outline">{{ engine_info[engine].complexity }}</div>
-                            <div class="badge badge-primary">{{ engine_info[engine].language }}</div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
+    <!-- Generation Results -->
+    <div id="generationResults" class="mt-8 hidden">
+        <div class="tech-frame rounded-box">
+            <div class="safe-box">
+                <div id="resultContent"></div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-// Character counter for description
-document.querySelector('textarea[name="description"]').addEventListener('input', function() {
-    const counter = this.parentElement.querySelector('.label-text-alt:last-child');
-    counter.textContent = `${this.value.length}/1000 characters`;
-});
+<!-- Real-time Generation WebSocket -->
+<div id="websocketStatus" class="fixed bottom-4 right-4 hidden">
+    <div class="alert alert-info">
+        <span>🔗 Connected to generation server</span>
+    </div>
+</div>
 
-// Engine selection hints
-document.querySelector('select[name="engine"]').addEventListener('change', function() {
-    const hints = {
-        'pygame': 'Great for 2D games and prototypes. Easy to learn Python syntax.',
-        'bevy': 'Modern Rust engine with ECS architecture. Best performance.',
-        'godot': 'Visual scripting and scene-based development. Very versatile.'
-    };
-    
-    const hint = this.parentElement.querySelector('.label-text-alt');
-    if (hints[this.value]) {
-        hint.textContent = hints[this.value];
+<script>
+// Engine information database
+const engineInfo = {
+    pygame: {
+        language: 'Python',
+        type: '2D Framework',
+        bestFor: 'Prototypes & 2D Games',
+        structure: [
+            '📁 my_game/',
+            '  📄 main.py',
+            '  📄 game.py',
+            '  📁 sprites/',
+            '  📁 sounds/',
+            '  📄 requirements.txt'
+        ]
+    },
+    bevy: {
+        language: 'Rust',
+        type: 'ECS Engine',
+        bestFor: 'Performance & 3D',
+        structure: [
+            '📁 my_game/',
+            '  📄 Cargo.toml',
+            '  📁 src/',
+            '    📄 main.rs',
+            '    📄 systems.rs',
+            '  📁 assets/',
+            '  📁 resources/'
+        ]
+    },
+    godot: {
+        language: 'GDScript',
+        type: 'Scene Engine',
+        bestFor: 'Rapid Development',
+        structure: [
+            '📁 my_game/',
+            '  📄 project.godot',
+            '  📁 scenes/',
+            '  📁 scripts/',
+            '  📁 assets/',
+            '  📄 Main.tscn'
+        ]
     }
+};
+
+// Update preview in real-time
+function updatePreview() {
+    const description = document.getElementById('description').value;
+    const selectedEngine = document.querySelector('input[name="engine"]:checked')?.value || 'pygame';
+    const complexity = document.querySelector('select[name="complexity"]').value;
+    const artStyle = document.querySelector('select[name="art_style"]').value;
+    
+    // Update engine selection styling
+    document.querySelectorAll('.engine-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-primary/10');
+    });
+    document.querySelector(`input[value="${selectedEngine}"]`).closest('.engine-card').classList.add('border-primary', 'bg-primary/10');
+    
+    // Update engine specs
+    const info = engineInfo[selectedEngine];
+    document.getElementById('engineLang').textContent = info.language;
+    document.getElementById('engineType').textContent = info.type;
+    document.getElementById('engineBest').textContent = info.bestFor;
+    
+    // Update project structure
+    document.getElementById('projectStructure').innerHTML = info.structure.map(line => 
+        `<div style="margin-left: ${(line.match(/\s*/)[0].length * 8)}px">${line.trim()}</div>`
+    ).join('');
+    
+    // Update game preview
+    if (description.length > 10) {
+        document.getElementById('gamePreview').innerHTML = `
+            <div class="text-4xl mb-3">🎮</div>
+            <h3 class="font-bold text-lg mb-2">${description.substring(0, 50)}...</h3>
+            <div class="text-sm opacity-70">
+                ${selectedEngine.toUpperCase()} • ${complexity.toUpperCase()} • ${artStyle.toUpperCase()}
+            </div>
+            <div class="mt-3 text-primary text-sm">Ready to generate!</div>
+        `;
+    }
+}
+
+// WebSocket connection for real-time updates
+let ws = null;
+
+function connectWebSocket() {
+    try {
+        ws = new WebSocket(`ws://${window.location.host}/ws/generation`);
+        
+        ws.onopen = function() {
+            document.getElementById('websocketStatus').classList.remove('hidden');
+        };
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'progress') {
+                updateGenerationProgress(data.message, data.progress);
+            } else if (data.type === 'complete') {
+                showGenerationResults(data.result);
+            } else if (data.type === 'error') {
+                showGenerationError(data.error);
+            }
+        };
+        
+        ws.onclose = function() {
+            document.getElementById('websocketStatus').classList.add('hidden');
+        };
+    } catch (error) {
+        console.log('WebSocket not available, using HTTP fallback');
+    }
+}
+
+// Generate project with real-time feedback
+async function generateProject() {
+    const form = document.getElementById('projectForm');
+    const formData = new FormData(form);
+    const description = formData.get('description');
+    
+    if (!description || description.length < 10) {
+        alert('Please provide a more detailed game description');
+        return;
+    }
+    
+    const generateBtn = document.getElementById('generateBtn');
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '⚡ Generating...';
+    
+    // Show results section
+    document.getElementById('generationResults').classList.remove('hidden');
+    document.getElementById('resultContent').innerHTML = `
+        <div class="text-center py-8">
+            <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
+            <h3 class="text-xl font-bold mb-2">AI is crafting your game...</h3>
+            <p class="opacity-70" id="progressText">Initializing generation process...</p>
+            <div class="progress progress-primary w-full mt-4">
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/web/generate-project', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.text();
+        document.getElementById('resultContent').innerHTML = result;
+        
+    } catch (error) {
+        document.getElementById('resultContent').innerHTML = `
+            <div class="alert alert-error">
+                <span>❌ Generation failed: ${error.message}</span>
+            </div>
+        `;
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '🚀 Generate Project';
+    }
+}
+
+function updateGenerationProgress(message, progress) {
+    document.getElementById('progressText').textContent = message;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+}
+
+function showGenerationResults(result) {
+    document.getElementById('resultContent').innerHTML = `
+        <div class="text-center py-8">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="text-2xl font-bold text-primary mb-4">Project Generated Successfully!</h3>
+            <div class="stats shadow bg-base-200/30">
+                <div class="stat">
+                    <div class="stat-title">Files Created</div>
+                    <div class="stat-value text-primary">${result.fileCount}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Engine</div>
+                    <div class="stat-value text-secondary">${result.engine}</div>
+                </div>
+            </div>
+            <div class="mt-6">
+                <a href="/web/projects/${result.projectId}" class="btn btn-primary btn-lg">
+                    View Project →
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updatePreview();
+    connectWebSocket();
 });
 </script>
+
+<style>
+.engine-card {
+    transition: all 0.3s ease;
+}
+
+.engine-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(100, 255, 218, 0.2);
+}
+
+input[name="engine"]:checked + .engine-card {
+    border-color: #64ffda !important;
+    background-color: rgba(100, 255, 218, 0.1) !important;
+}
+
+.progress-bar {
+    transition: width 0.5s ease;
+}
+</style>
 {% endblock %}
