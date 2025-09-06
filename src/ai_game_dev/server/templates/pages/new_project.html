@@ -78,37 +78,63 @@
                         </div>
                     </div>
                     
-                    <!-- Generate Button -->
-                    <button type="button" onclick="generateProject()" 
-                            class="btn custom-button w-full btn-lg mt-8" id="generateBtn">
-                        🚀 Generate Project
-                    </button>
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 mt-8">
+                        <button type="button" onclick="togglePreviewModal()" 
+                                class="btn btn-outline btn-sm flex-1">
+                            👁️ Live Preview
+                        </button>
+                        <button type="button" onclick="generateProject()" 
+                                class="btn custom-button flex-[2] btn-lg" id="generateBtn">
+                            🚀 Generate Project
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
         
-        <!-- Real-time Preview Panel -->
-        <div class="tech-frame rounded-box aspect-[4/5]">
+    </div>
+    
+    <!-- Generation Results -->
+    <div id="generationResults" class="mt-8 hidden">
+        <div class="tech-frame rounded-box">
             <div class="safe-box">
-                <div class="text-center mb-4">
-                    <h2 class="text-2xl font-bold text-primary">Live Preview</h2>
-                    <p class="text-sm opacity-70">See your game concept visualized</p>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live Preview Modal -->
+<div id="previewModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50" onclick="closePreviewModal(event)">
+    <div id="previewModalContent" class="absolute bg-base-200 rounded-lg shadow-2xl border border-cyan-500/30" 
+         style="top: 10%; left: 10%; width: 80%; height: 80%; resize: both; overflow: auto;">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-cyan-500/30 cursor-move" id="previewModalHeader">
+            <h2 class="text-xl font-bold text-primary flex items-center gap-2">
+                👁️ Live Preview
+            </h2>
+            <button onclick="closePreviewModal()" class="btn btn-ghost btn-sm btn-circle">
+                ✕
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6 h-full overflow-auto">
+            <div id="previewContent" class="flex flex-col h-full">
+                <!-- Game Preview Image -->
+                <div class="bg-black/30 rounded-lg p-6 mb-6 min-h-64 flex items-center justify-center flex-1">
+                    <div id="gamePreview" class="text-center">
+                        <div class="text-6xl mb-4">🎮</div>
+                        <p class="text-lg opacity-80">Start typing to preview your game...</p>
+                    </div>
                 </div>
                 
-                <!-- Preview Content -->
-                <div id="previewContent" class="flex-1 flex flex-col">
-                    <!-- Game Preview Image -->
-                    <div class="bg-black/30 rounded-lg p-4 mb-4 min-h-48 flex items-center justify-center">
-                        <div id="gamePreview" class="text-center">
-                            <div class="text-6xl mb-4">🎮</div>
-                            <p class="text-lg opacity-80">Start typing to preview your game...</p>
-                        </div>
-                    </div>
-                    
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Engine Specs -->
                     <div id="engineSpecs" class="bg-cyan-900/20 rounded-lg p-4 text-sm">
-                        <h3 class="font-bold mb-2 text-cyan-400">Engine Information</h3>
-                        <div class="space-y-1">
+                        <h3 class="font-bold mb-3 text-cyan-400">Engine Information</h3>
+                        <div class="space-y-2">
                             <div>Language: <span class="text-cyan-300" id="engineLang">Python</span></div>
                             <div>Type: <span class="text-cyan-300" id="engineType">2D Framework</span></div>
                             <div>Best For: <span class="text-cyan-300" id="engineBest">Prototypes & 2D Games</span></div>
@@ -116,8 +142,8 @@
                     </div>
                     
                     <!-- Project Structure Preview -->
-                    <div class="mt-4 bg-orange-900/20 rounded-lg p-4 text-sm">
-                        <h3 class="font-bold mb-2 text-orange-400">Project Structure</h3>
+                    <div class="bg-orange-900/20 rounded-lg p-4 text-sm">
+                        <h3 class="font-bold mb-3 text-orange-400">Project Structure</h3>
                         <div id="projectStructure" class="font-mono text-xs opacity-80">
                             <div>📁 my_game/</div>
                             <div class="ml-4">📄 main.py</div>
@@ -126,15 +152,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Generation Results -->
-    <div id="generationResults" class="mt-8 hidden">
-        <div class="tech-frame rounded-box">
-            <div class="safe-box">
-                <div id="resultContent"></div>
             </div>
         </div>
     </div>
@@ -366,10 +383,77 @@ function showGenerationResults(result) {
     `;
 }
 
+// Preview Modal Functions
+function togglePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        updatePreview(); // Refresh preview when opening
+        audioManager.play('notification');
+    } else {
+        closePreviewModal();
+    }
+}
+
+function closePreviewModal(event) {
+    // Only close if clicking the backdrop, not the modal content
+    if (!event || event.target.id === 'previewModal') {
+        const modal = document.getElementById('previewModal');
+        modal.classList.add('hidden');
+        audioManager.play('button_click');
+    }
+}
+
+// Make modal draggable
+function makeDraggable() {
+    const modal = document.getElementById('previewModalContent');
+    const header = document.getElementById('previewModalHeader');
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    header.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+
+    function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+
+        if (e.target === header || header.contains(e.target)) {
+            isDragging = true;
+        }
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+
+            xOffset = currentX;
+            yOffset = currentY;
+
+            modal.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        }
+    }
+
+    function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     updatePreview();
     connectWebSocket();
+    makeDraggable();
 });
 </script>
 
