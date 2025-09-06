@@ -148,9 +148,39 @@ size = "512x512"
 quality = "hd"
 category = "brand_identity"
 
+# Procedural Audio Effect Specifications
+[assets.procedural_audio]
+prompts = [
+    "Waveform visualization for synthesized laser blaster sound effect, sharp attack, neon green frequency display",
+    "Audio spectrum analyzer for procedural explosion sound, wide frequency spread, orange and red visualization",
+    "Sound wave pattern for cyberpunk ambient drone, low frequency, blue and cyan waveform display",
+    "Frequency graph for procedural footstep generator, percussive spikes, white and gray visualization",
+    "Audio synthesis interface for spaceship engine sound, continuous wave, purple and pink frequency bands",
+    "Procedural music generator visualization, harmonic overtones, rainbow spectrum frequency display",
+    "Sound effect mixer interface, multiple channel visualization, neon blue and cyan waveforms",
+    "Audio filter visualization for sci-fi interface sounds, filtered frequencies, green and yellow display"
+]
+size = "512x256"
+quality = "hd"
+category = "audio_generation"
+
+# Audio Effect Library Specifications  
+[assets.sound_library]
+prompts = [
+    "Sound effect library icon collection, various game audio symbols, neon cyan outlines, transparent background",
+    "Procedural audio generator interface, synthesis controls and parameters, cyberpunk tech design",
+    "Audio waveform editor visualization, multi-track display, futuristic interface with neon accents",
+    "Sound mixing console interface, professional audio controls, dark theme with glowing elements",
+    "Frequency analyzer display for game audio, real-time spectrum, cyberpunk visualization style",
+    "Audio effect chain visualization, connected processing nodes, tech circuit pattern design"
+]
+size = "512x512"
+quality = "hd"
+category = "audio_tools"
+
 # Batch Generation Configuration
 [batch_config]
-total_assets = 51
+total_assets = 65
 concurrent_limit = 3
 batch_size = 5
 output_directory = "src/ai_game_dev/server/static/assets/generated/"
@@ -158,3 +188,19 @@ naming_convention = "{category}_{index}_{hash}.png"
 fallback_quality = "standard"
 retry_failed = true
 max_retries = 2
+
+# Audio Generation Capabilities
+[audio_generation]
+supported_formats = ["wav", "mp3", "ogg"]
+synthesis_methods = ["additive", "subtractive", "fm", "granular", "physical_modeling"]
+effect_types = ["reverb", "delay", "distortion", "filter", "chorus", "phaser"]
+procedural_categories = [
+    "ui_sounds",
+    "weapon_effects", 
+    "ambient_textures",
+    "music_loops",
+    "footsteps",
+    "explosions",
+    "mechanical_sounds",
+    "magical_effects"
+]
