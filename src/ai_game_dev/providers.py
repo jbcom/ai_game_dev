@@ -69,7 +69,7 @@ class ModelConfig:
     max_tokens: Optional[int] = None
     api_key: Optional[str] = None
     base_url: Optional[str] = None
-    additional_params: Dict[str, Any] = None
+    additional_params: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
         if self.additional_params is None:

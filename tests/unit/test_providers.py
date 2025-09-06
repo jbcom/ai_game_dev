@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import os
 
 from ai_game_dev.providers import (
+    LLMProviderManager,
     LLMProvider,
     ModelConfig,
     setup_openai,
@@ -14,34 +15,31 @@ from ai_game_dev.providers import (
 )
 
 
-class TestLLMManager:
+class TestLLMProviderManager:
     """Test LLM provider management."""
 
     def test_init_empty_manager(self):
         """Test creating empty manager."""
-        manager = LLMManager()
-        assert len(manager.providers) == 0
-        assert manager.default_provider is None
+        manager = LLMProviderManager()
+        assert len(manager._providers) == 0
+        assert manager._default_provider is None
 
     def test_add_provider(self):
         """Test adding a provider."""
-        manager = LLMManager()
-        mock_provider = MagicMock()
+        manager = LLMProviderManager()
         
-        manager.add_provider("test", mock_provider, is_default=True)
+        provider = manager.add_provider("test", LLMProvider.OPENAI, "gpt-4", api_key="test-key")
         
-        assert "test" in manager.providers
-        assert manager.providers["test"] == mock_provider
-        assert manager.default_provider == "test"
+        assert "test" in manager._providers
+        assert provider is not None
 
     def test_get_provider_existing(self):
         """Test getting existing provider."""
-        manager = LLMManager()
-        mock_provider = MagicMock()
-        manager.add_provider("test", mock_provider)
+        manager = LLMProviderManager()
+        provider = manager.add_provider("test", LLMProvider.OPENAI, "gpt-4", api_key="test-key")
         
         result = manager.get_provider("test")
-        assert result == mock_provider
+        assert result == provider
 
     def test_get_provider_nonexistent(self):
         """Test getting non-existent provider."""

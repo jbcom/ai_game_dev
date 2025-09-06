@@ -5,27 +5,38 @@ featuring multi-LLM support, comprehensive asset generation, and
 engine-specific TOML specifications.
 """
 
+# Core imports without dependency chains
+try:
+    from ai_game_dev.models import (
+        GameSpec,
+        GameEngine,
+        GameType,
+        ComplexityLevel
+    )
+    MODELS_AVAILABLE = True
+except ImportError:
+    MODELS_AVAILABLE = False
+
+try:
+    from ai_game_dev.providers import (
+        LLMProvider,
+        ModelConfig,
+        setup_openai,
+        setup_anthropic,
+        setup_google,
+        setup_ollama,
+        create_default_manager
+    )
+    PROVIDERS_AVAILABLE = True
+except ImportError:
+    PROVIDERS_AVAILABLE = False
+
 try:
     from ai_game_dev.library import AIGameDev
+    LIBRARY_AVAILABLE = True
 except ImportError:
-    # Allow graceful degradation for testing
     AIGameDev = None
-from ai_game_dev.models import (
-    GameSpec,
-    GameEngine,
-    GameType,
-    ComplexityLevel
-)
-from ai_game_dev.providers import (
-    LLMProviderManager,
-    LLMProvider,
-    ModelConfig,
-    setup_openai,
-    setup_anthropic,
-    setup_google,
-    setup_ollama,
-    create_default_manager
-)
+    LIBRARY_AVAILABLE = False
 
 # Audio tools
 from ai_game_dev.audio import AudioTools
@@ -44,9 +55,6 @@ __email__ = "team@ai-game-dev.com"
 
 # Public API
 __all__ = [
-    # Core classes
-] + (["AIGameDev"] if AIGameDev is not None else [])
-    
     # Data models
     "GameSpec",
     "GameEngine",
@@ -76,6 +84,7 @@ __all__ = [
     
     # Version
     "__version__",
+] + (["AIGameDev"] if AIGameDev is not None else [])
 
 
 def get_version() -> str:

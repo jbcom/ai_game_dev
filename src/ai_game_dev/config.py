@@ -25,7 +25,7 @@ class ServerSettings(BaseSettings):
     
     # OpenAI API configuration
     openai_api_key: str = Field(
-        ..., 
+        default="", 
         alias="OPENAI_API_KEY",
         description="OpenAI API key for accessing AI services"
     )
