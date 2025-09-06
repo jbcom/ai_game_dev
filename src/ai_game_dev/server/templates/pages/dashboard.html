@@ -3,17 +3,23 @@
 {% block title %}Dashboard - AI Game Development Portal{% endblock %}
 
 {% block content %}
-<div class="hero min-h-96 bg-base-200/20 rounded-box mb-8 glow">
-    <div class="hero-content text-center">
+<div class="hero min-h-96 bg-base-200/20 rounded-box mb-8 glow relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <img src="/static/assets/backgrounds/tech-pattern.png" alt="" class="w-full h-full object-cover">
+    </div>
+    <div class="hero-content text-center relative z-10">
         <div class="max-w-md">
+            <div class="flex justify-center mb-6">
+                <img src="/static/assets/logos/main-logo.png" alt="AI Game Dev" class="w-24 h-24 object-contain glow">
+            </div>
             <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Welcome to AI Game Development
             </h1>
             <p class="py-6 text-lg">
                 Create games with AI assistance across multiple engines using cutting-edge language models.
             </p>
-            <a href="/web/new_project" class="btn btn-primary btn-lg glow hover:scale-105 transition-transform">
-                Start Creating 🚀
+            <a href="/web/new_project" class="btn btn-primary btn-lg glow hover:scale-105 transition-transform relative">
+                <span class="relative z-10">Start Creating 🚀</span>
             </a>
         </div>
     </div>

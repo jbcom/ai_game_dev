@@ -1,4 +1,5 @@
 {% extends "base/layout.html" %}
+{% from 'components/engine_card.html' import engine_card %}
 
 {% block title %}Game Engines - AI Game Development Portal{% endblock %}
 
@@ -12,49 +13,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     {% for engine in engines %}
-    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 glow">
-        <div class="card-body">
-            <h2 class="card-title text-2xl">
-                {{ engine_info[engine].icon }} {{ engine|title }}
-                <div class="badge badge-primary">{{ engine_info[engine].language }}</div>
-            </h2>
-            
-            <p class="text-base opacity-90 min-h-12">{{ engine_info[engine].description }}</p>
-            
-            <div class="divider"></div>
-            
-            <!-- Engine Details -->
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span class="text-sm font-medium">Complexity:</span>
-                    <div class="badge badge-outline">{{ engine_info[engine].complexity|title }}</div>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-sm font-medium">Best For:</span>
-                    <span class="text-sm opacity-80">{{ engine_info[engine].best_for }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-sm font-medium">Platform:</span>
-                    <span class="text-sm opacity-80">{{ engine_info[engine].platforms }}</span>
-                </div>
-            </div>
-            
-            <div class="card-actions justify-between items-center mt-4">
-                <div class="flex gap-2">
-                    {% for feature in engine_info[engine].features %}
-                    <div class="badge badge-ghost badge-sm">{{ feature }}</div>
-                    {% endfor %}
-                </div>
-                <div class="badge badge-success font-bold">Ready</div>
-            </div>
-            
-            <div class="card-actions justify-end mt-4">
-                <a href="/web/new_project?engine={{ engine }}" class="btn btn-primary btn-sm">
-                    Create {{ engine|title }} Project
-                </a>
-            </div>
-        </div>
-    </div>
+        {{ engine_card(engine, engine_info[engine]) }}
     {% endfor %}
 </div>
 

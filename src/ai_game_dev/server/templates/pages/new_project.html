@@ -137,16 +137,8 @@
                 </div>
             </form>
             
-            <!-- Loading Indicator -->
-            <div id="loading" class="htmx-indicator mt-6">
-                <div class="alert alert-info">
-                    <span class="loading loading-spinner loading-lg"></span>
-                    <div>
-                        <h3 class="font-bold">Generating your game project...</h3>
-                        <div class="text-sm">This may take 30-60 seconds depending on complexity</div>
-                    </div>
-                </div>
-            </div>
+            <!-- Enhanced Loading Indicator -->
+            {% include 'components/loading_indicator.html' %}
             
             <!-- Result Area -->
             <div id="result" class="mt-6"></div>
