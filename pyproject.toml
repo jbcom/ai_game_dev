@@ -10,14 +10,41 @@ members = [
 
 [tool.uv]
 dev-dependencies = [
+    # Testing
     "pytest>=7.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
+    "pytest-mock>=3.11.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-benchmark>=4.0.0",
+    
+    # Static Analysis - Python
     "mypy>=1.0.0",
+    "pylint>=2.17.0",
+    "bandit>=1.7.5",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "ruff>=0.1.0",
+    
+    # Code Coverage & Quality
+    "coverage[toml]>=7.3.0",
+    "codecov>=2.1.13",
+    "coverage-badge>=1.1.0",
+    
+    # Performance Analysis
+    "py-spy>=0.3.14",
+    "memory-profiler>=0.61.0",
+    
+    # GDScript Analysis
+    "gdtoolkit>=4.2.0",
+    
+    # Build tools
     "pre-commit>=3.0.0",
     "twine>=4.0.0",
+    "build>=0.10.0",
+    
+    # FastMCP for server
     "fastmcp>=2.12.2",
 ]
 

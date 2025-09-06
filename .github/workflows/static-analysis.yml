@@ -1,0 +1,337 @@
+name: Cross-Language Static Analysis & Code Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  RUST_VERSION: '1.70'
+
+jobs:
+  python-analysis:
+    name: Python Static Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tool: [mypy, pylint, bandit, ruff]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
+          uv add gdtoolkit
+
+      - name: Run MyPy
+        if: matrix.tool == 'mypy'
+        run: |
+          uv run mypy packages/ --config-file pyproject.toml
+          uv run mypy packages/ --config-file pyproject.toml --html-report mypy-report
+
+      - name: Run Pylint
+        if: matrix.tool == 'pylint'
+        run: |
+          uv run pylint packages/ --output-format=json > pylint-report.json || true
+          uv run pylint packages/ --output-format=text
+
+      - name: Run Bandit Security Analysis
+        if: matrix.tool == 'bandit'
+        run: |
+          uv run bandit -r packages/ -f json -o bandit-report.json || true
+          uv run bandit -r packages/ -f txt
+
+      - name: Run Ruff Linting
+        if: matrix.tool == 'ruff'
+        run: |
+          uv run ruff check packages/ --output-format=json > ruff-report.json || true
+          uv run ruff check packages/
+
+      - name: Upload analysis artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: python-${{ matrix.tool }}-analysis
+          path: |
+            mypy-report/
+            pylint-report.json
+            bandit-report.json
+            ruff-report.json
+
+  rust-analysis:
+    name: Rust Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          override: true
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/bevy_game_dev/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run Rustfmt
+        run: |
+          cd packages/bevy_game_dev
+          cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: |
+          cd packages/bevy_game_dev
+          cargo clippy --all-targets --all-features -- -D warnings -W clippy::all
+
+      - name: Generate Clippy JSON report
+        run: |
+          cd packages/bevy_game_dev
+          cargo clippy --all-targets --all-features --message-format=json > clippy-report.json 2>&1 || true
+
+      - name: Upload Rust analysis artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-analysis
+          path: packages/bevy_game_dev/clippy-report.json
+
+  gdscript-analysis:
+    name: GDScript Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install GDScript tools
+        run: |
+          pip install gdtoolkit==4.2.2
+
+      - name: Run GDScript format check
+        run: |
+          gdformat --check packages/godot_game_dev/ || true
+
+      - name: Run GDScript linting
+        run: |
+          gdlint packages/godot_game_dev/ > gdlint-report.txt 2>&1 || true
+          cat gdlint-report.txt
+
+      - name: Upload GDScript analysis artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: gdscript-analysis
+          path: gdlint-report.txt
+
+  code-coverage:
+    name: Code Coverage Analysis
+    runs-on: ubuntu-latest
+    needs: [python-analysis]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
+
+      - name: Run Python test coverage
+        run: |
+          uv run pytest tests/ --cov=packages --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing
+
+      - name: Generate coverage badge
+        run: |
+          uv run coverage-badge -o coverage-badge.svg
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: |
+            htmlcov/
+            coverage.xml
+            coverage-badge.svg
+
+  rust-coverage:
+    name: Rust Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Run Rust coverage
+        run: |
+          cd packages/bevy_game_dev
+          cargo tarpaulin --out xml --output-dir ../../ --skip-clean
+
+      - name: Upload Rust coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./cobertura.xml
+          flags: rust
+          fail_ci_if_error: false
+
+      - name: Upload Rust coverage artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-coverage
+          path: cobertura.xml
+
+  quality-gates:
+    name: Quality Gates & Reporting
+    runs-on: ubuntu-latest
+    needs: [python-analysis, rust-analysis, gdscript-analysis, code-coverage, rust-coverage]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all analysis artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: analysis-reports
+
+      - name: Setup Python for reporting
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Generate unified quality report
+        run: |
+          python .github/scripts/generate_quality_report.py
+
+      - name: Comment PR with quality report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('quality-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+      - name: Upload unified quality report
+        uses: actions/upload-artifact@v3
+        with:
+          name: quality-dashboard
+          path: |
+            quality-report.md
+            quality-report.html
+
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  performance-analysis:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV and dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv sync --all-extras --dev
+          uv add py-spy memory-profiler
+
+      - name: Run performance profiling
+        run: |
+          uv run python -m pytest tests/ -v --benchmark-only --benchmark-json=benchmark-results.json || true
+
+      - name: Memory profiling
+        run: |
+          uv run mprof run python -c "
+          from packages.ai_game_dev import AIGameDev
+          from packages.ai_game_assets import AssetTools
+          # Basic memory usage test
+          " || true
+          uv run mprof plot -o memory-profile.png || true
+
+      - name: Upload performance artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-analysis
+          path: |
+            benchmark-results.json
+            memory-profile.png
+            mprofile_*.dat
