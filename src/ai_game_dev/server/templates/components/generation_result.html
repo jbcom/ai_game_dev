@@ -39,6 +39,11 @@
         {% endif %}
         
         <div class="flex gap-2 mt-4">
+            {% if result.project_id %}
+            <button class="btn btn-sm btn-success" onclick="openCodePreview('{{ result.project_id }}')">
+                💻 View Code
+            </button>
+            {% endif %}
             <button class="btn btn-sm btn-primary" onclick="location.reload()">
                 Create Another Project
             </button>
