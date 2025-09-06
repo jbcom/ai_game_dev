@@ -1,15 +1,22 @@
-"""Engine-specific sub-packages for optimized game development workflows."""
+"""Game engine integrations module.
 
-from ai_game_dev.bevy import BevyEngine
-from ai_game_dev.arcade import ArcadeEngine  
-from ai_game_dev.pygame import PygameEngine
-from ai_game_dev.godot import GodotEngine
-from ai_game_dev.unity import UnityEngine
+Modern modular engine architecture with dedicated adapters.
+"""
+
+from .base import BaseEngineAdapter, EngineGenerationResult
+from .manager import EngineManager, engine_manager, generate_for_engine, get_supported_engines
+from .pygame import PygameAdapter
+from .bevy import BevyAdapter
+from .godot import GodotAdapter
 
 __all__ = [
-    "BevyEngine",
-    "ArcadeEngine", 
-    "PygameEngine",
-    "GodotEngine",
-    "UnityEngine"
+    "BaseEngineAdapter",
+    "EngineGenerationResult", 
+    "EngineManager",
+    "engine_manager",
+    "generate_for_engine",
+    "get_supported_engines",
+    "PygameAdapter",
+    "BevyAdapter", 
+    "GodotAdapter"
 ]
