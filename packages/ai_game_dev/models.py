@@ -1,7 +1,112 @@
-"""Pydantic models for structured data and type definitions."""
+"""
+Core data models for AI Game Development library.
+Includes both Pydantic models for structured data and dataclasses for game specifications.
+"""
 
-from typing import Literal, Optional, Any, Union
+from enum import Enum
+from typing import List, Dict, Any, Optional, Literal, Union
+from dataclasses import dataclass, field
 from pydantic import BaseModel, Field
+
+
+class GameEngine(str, Enum):
+    """Supported game engines."""
+    PYGAME = "pygame"
+    ARCADE = "arcade"
+    BEVY = "bevy"
+    GODOT = "godot"
+    UNITY = "unity"
+    UNREAL = "unreal"
+
+
+class GameType(str, Enum):
+    """Types of games that can be generated."""
+    TWO_DIMENSIONAL = "2d"
+    THREE_DIMENSIONAL = "3d"
+    VR = "vr"
+    AR = "ar"
+
+
+class ComplexityLevel(str, Enum):
+    """Complexity levels for game generation."""
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+    EXPERT = "expert"
+
+
+@dataclass
+class GameSpec:
+    """Specification for game generation."""
+    name: str
+    description: str
+    game_type: GameType
+    complexity: ComplexityLevel
+    target_engine: GameEngine
+    features: List[str] = field(default_factory=list)
+    theme: Optional[str] = None
+    target_audience: Optional[str] = None
+    estimated_playtime: Optional[int] = None  # in minutes
+    monetization: Optional[str] = None
+    platform_targets: List[str] = field(default_factory=list)
+    technical_requirements: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ProjectFile:
+    """Represents a generated project file."""
+    path: str
+    content: str
+    file_type: str
+    language: Optional[str] = None
+    is_executable: bool = False
+    dependencies: List[str] = field(default_factory=list)
+
+
+@dataclass
+class GameProject:
+    """Complete generated game project."""
+    spec: GameSpec
+    files: List[ProjectFile]
+    assets: List[Any] = field(default_factory=list)  # Will be GeneratedAsset
+    dependencies: Dict[str, str] = field(default_factory=dict)
+    build_instructions: List[str] = field(default_factory=list)
+    deployment_config: Dict[str, Any] = field(default_factory=dict)
+    
+    @property
+    def main_file(self) -> Optional[ProjectFile]:
+        """Get the main executable file."""
+        for file in self.files:
+            if file.is_executable and "main" in file.path.lower():
+                return file
+        return None
+
+
+class GameResult(BaseModel):
+    """Result of game generation process."""
+    success: bool
+    project: Optional[GameProject] = None
+    error_message: Optional[str] = None
+    warnings: List[str] = field(default_factory=list)
+    generation_time: float = 0.0
+    stats: Dict[str, Any] = field(default_factory=dict)
+    
+    class Config:
+        arbitrary_types_allowed = True
+
+
+@dataclass
+class GameConfig:
+    """Configuration for game generation system."""
+    openai_api_key: Optional[str] = None
+    default_engine: GameEngine = GameEngine.PYGAME
+    default_complexity: ComplexityLevel = ComplexityLevel.INTERMEDIATE
+    asset_cache_dir: str = "./cache/assets"
+    project_output_dir: str = "./generated_games"
+    enable_caching: bool = True
+    max_generation_time: int = 300  # seconds
+    quality_threshold: float = 0.8
+    debug_mode: bool = False
 
 # Type definitions for OpenAI API
 ImageSize = Literal["1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]

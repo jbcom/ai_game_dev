@@ -2,21 +2,21 @@
 Unified audio tools integrating TTS, music generation, and sound effects.
 Provides LangGraph structured tools for complete audio workflow.
 """
-from typing import Dict, Any, List, Optional
+from typing import Any
 from dataclasses import dataclass
 
 from langchain_core.tools import StructuredTool
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from .tts_generator import TTSGenerator, VoiceType, AudioFormat
-from .music_generator import MusicGenerator, MoodType, GameContext
-from .freesound_client import FreesoundClient, LicenseType
+from ai_game_assets.audio.tts_generator import TTSGenerator
+from ai_game_assets.audio.music_generator import MusicGenerator
+from ai_game_assets.audio.freesound_client import FreesoundClient
 
 
 class AudioWorkflowRequest(BaseModel):
     """Request for complete audio workflow."""
     game_description: str = Field(description="Description of the game")
-    audio_needs: List[str] = Field(description="List of audio needs (dialogue, music, sfx)")
+    audio_needs: list[str] = Field(description="List of audio needs (dialogue, music, sfx)")
     style_preferences: str = Field(default="", description="Audio style preferences")
     target_duration: int = Field(default=120, description="Target duration for music in seconds")
 
@@ -24,16 +24,16 @@ class AudioWorkflowRequest(BaseModel):
 @dataclass
 class AudioWorkflowResult:
     """Result of complete audio workflow."""
-    dialogue_audio: Dict[str, Any]
-    background_music: Dict[str, Any]
-    sound_effects: List[Dict[str, Any]]
+    dialogue_audio: dict[str, Any]
+    background_music: dict[str, Any]
+    sound_effects: list[dict[str, Any]]
     audio_pack_summary: str
 
 
 class AudioTools:
     """Unified audio tools for complete game audio generation."""
     
-    def __init__(self, openai_api_key: Optional[str] = None, freesound_api_key: Optional[str] = None):
+    def __init__(self, openai_api_key: str | None = None, freesound_api_key: str | None = None):
         self.tts_generator = TTSGenerator(api_key=openai_api_key)
         self.music_generator = MusicGenerator()
         self.freesound_client = FreesoundClient(api_key=freesound_api_key) if freesound_api_key else None
@@ -41,7 +41,7 @@ class AudioTools:
     async def generate_complete_audio_pack(
         self,
         game_description: str,
-        audio_needs: List[str],
+        audio_needs: list[str],
         style_preferences: str = "",
         target_duration: int = 120
     ) -> AudioWorkflowResult:
@@ -77,7 +77,7 @@ class AudioTools:
             audio_pack_summary=summary
         )
     
-    def _analyze_audio_context(self, game_description: str, style_preferences: str) -> Dict[str, Any]:
+    def _analyze_audio_context(self, game_description: str, style_preferences: str) -> dict[str, Any]:
         """Analyze game description to determine audio context."""
         
         desc_lower = game_description.lower()
@@ -95,24 +95,24 @@ class AudioTools:
             genre = "retro"
         
         # Determine mood
-        mood = MoodType.PEACEFUL
+        mood = "peaceful"
         if any(word in desc_lower for word in ["action", "battle", "fight", "combat"]):
-            mood = MoodType.INTENSE
+            mood = "intense"
         elif any(word in desc_lower for word in ["adventure", "hero", "quest"]):
-            mood = MoodType.HEROIC
+            mood = "heroic"
         elif any(word in desc_lower for word in ["mystery", "puzzle", "hidden"]):
-            mood = MoodType.MYSTERIOUS
+            mood = "mysterious"
         elif any(word in desc_lower for word in ["victory", "win", "success"]):
-            mood = MoodType.VICTORIOUS
+            mood = "victorious"
         
         # Determine game context
-        context = GameContext.GAMEPLAY
+        context = "gameplay"
         if any(word in desc_lower for word in ["menu", "ui", "interface"]):
-            context = GameContext.MENU
+            context = "menu"
         elif any(word in desc_lower for word in ["battle", "combat", "fight"]):
-            context = GameContext.BATTLE
+            context = "battle"
         elif any(word in desc_lower for word in ["explore", "world", "environment"]):
-            context = GameContext.EXPLORATION
+            context = "exploration"
         
         return {
             "genre": genre,
@@ -124,8 +124,8 @@ class AudioTools:
     async def _generate_dialogue_pack(
         self,
         game_description: str,
-        audio_context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        audio_context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate dialogue and narration audio."""
         
         # Generate sample dialogue based on game type
@@ -157,8 +157,8 @@ class AudioTools:
     def _create_sample_dialogue(
         self,
         game_description: str,
-        audio_context: Dict[str, Any]
-    ) -> List[Dict[str, str]]:
+        audio_context: dict[str, Any]
+    ) -> list[dict[str, str]]:
         """Create sample dialogue based on game context."""
         
         genre = audio_context["genre"]
@@ -192,9 +192,9 @@ class AudioTools:
     async def _generate_music_pack(
         self,
         game_description: str,
-        audio_context: Dict[str, Any],
+        audio_context: dict[str, Any],
         target_duration: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate background music pack."""
         
         mood = audio_context["mood"]
@@ -210,8 +210,8 @@ class AudioTools:
         
         # Generate additional tracks for different contexts
         menu_music = await self.music_generator.generate_music(
-            mood=MoodType.PEACEFUL,
-            context=GameContext.MENU,
+            mood="peaceful",
+            context="menu",
             duration_seconds=60,
             loop_compatible=True
         )
@@ -236,8 +236,8 @@ class AudioTools:
     async def _generate_sfx_pack(
         self,
         game_description: str,
-        audio_context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        audio_context: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate sound effects pack."""
         
         genre = audio_context["genre"]
@@ -285,7 +285,7 @@ class AudioTools:
         
         return sound_effects
     
-    def _analyze_sfx_needs(self, game_description: str, genre: str) -> List[str]:
+    def _analyze_sfx_needs(self, game_description: str, genre: str) -> list[str]:
         """Analyze game description to determine needed sound effects."""
         
         desc_lower = game_description.lower()
@@ -313,9 +313,9 @@ class AudioTools:
     
     def _create_audio_summary(
         self,
-        dialogue_audio: Dict[str, Any],
-        background_music: Dict[str, Any],
-        sound_effects: List[Dict[str, Any]]
+        dialogue_audio: dict[str, Any],
+        background_music: dict[str, Any],
+        sound_effects: list[dict[str, Any]]
     ) -> str:
         """Create a summary of the generated audio pack."""
         
@@ -341,10 +341,10 @@ class AudioTools:
         
         async def _generate_audio_workflow(
             game_description: str,
-            audio_needs: List[str],
+            audio_needs: list[str],
             style_preferences: str = "",
             target_duration: int = 120
-        ) -> Dict[str, Any]:
+        ) -> dict[str, Any]:
             """Generate complete audio pack for game development."""
             
             result = await self.generate_complete_audio_pack(

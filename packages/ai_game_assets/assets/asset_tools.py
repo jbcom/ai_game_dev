@@ -1,82 +1,137 @@
 """
-Unified asset tools integrating CC0 libraries, fonts, and archive seeding.
-Provides LangGraph structured tools for complete asset workflow.
+Unified asset tools for visual content generation and management.
 """
-from typing import Dict, Any, List, Optional
+
+import asyncio
+from pathlib import Path
+from typing import Any, Literal
+import json
 from dataclasses import dataclass
 
-from langchain_core.tools import StructuredTool
-from langchain_core.pydantic_v1 import BaseModel, Field
-
-from .cc0_libraries import CC0AssetLibrary, AssetType
-from .google_fonts import GoogleFontsManager, GameContext as FontGameContext
-from .archive_seeder import InternetArchiveSeeder
-
-
-class AssetWorkflowRequest(BaseModel):
-    """Request for complete asset workflow."""
-    game_description: str = Field(description="Description of the game")
-    asset_needs: List[str] = Field(description="List of asset needs (sprites, fonts, sounds)")
-    art_style: str = Field(default="modern", description="Art style preference")
-    color_palette: str = Field(default="", description="Color palette description")
-    theme_keywords: str = Field(default="", description="Theme keywords for seeding")
+from ai_game_assets.assets.cc0_libraries import CC0Libraries
+from ai_game_assets.assets.google_fonts import GoogleFonts
+from ai_game_assets.assets.archive_seeder import ArchiveSeeder
 
 
 @dataclass
-class AssetWorkflowResult:
-    """Result of complete asset workflow."""
-    visual_assets: List[Dict[str, Any]]
-    fonts: List[Dict[str, Any]]
-    semantic_seeds: List[Dict[str, Any]]
-    asset_pack_summary: str
+class AssetRequest:
+    """Request for asset generation/curation."""
+    game_description: str
+    asset_types: list[str]
+    style_preferences: str = ""
+    max_assets_per_type: int = 5
+    include_cc0: bool = True
+    include_fonts: bool = True
+    include_archived: bool = False
+
+
+@dataclass
+class AssetPackage:
+    """Complete asset package result."""
+    graphics_assets: dict[str, list[dict[str, Any]]]
+    font_assets: dict[str, Any]
+    archived_assets: dict[str, Any]
+    metadata: dict[str, Any]
+    summary: str
 
 
 class AssetTools:
-    """Unified asset tools for complete game asset generation."""
+    """Unified tools for comprehensive asset management."""
     
-    def __init__(self):
-        self.cc0_library = CC0AssetLibrary()
-        self.fonts_manager = GoogleFontsManager()
-        self.archive_seeder = InternetArchiveSeeder()
+    def __init__(self, google_fonts_api_key: str | None = None):
+        self.google_fonts_api_key = google_fonts_api_key
+        self._cc0_client = None
+        self._fonts_client = None
+        self._archive_client = None
     
-    async def generate_complete_asset_pack(
+    async def __aenter__(self):
+        self._cc0_client = CC0Libraries()
+        await self._cc0_client.__aenter__()
+        
+        self._fonts_client = GoogleFonts(self.google_fonts_api_key)
+        await self._fonts_client.__aenter__()
+        
+        self._archive_client = ArchiveSeeder()
+        await self._archive_client.__aenter__()
+        
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._cc0_client:
+            await self._cc0_client.__aexit__(exc_type, exc_val, exc_tb)
+        if self._fonts_client:
+            await self._fonts_client.__aexit__(exc_type, exc_val, exc_tb)
+        if self._archive_client:
+            await self._archive_client.__aexit__(exc_type, exc_val, exc_tb)
+    
+    async def create_complete_asset_package(
         self,
         game_description: str,
-        asset_needs: List[str],
-        art_style: str = "modern",
-        color_palette: str = "",
-        theme_keywords: str = ""
-    ) -> AssetWorkflowResult:
-        """Generate a complete asset pack for a game."""
+        asset_types: list[str],
+        style_preferences: str = "",
+        max_assets_per_type: int = 5,
+        output_dir: Path | None = None
+    ) -> AssetPackage:
+        """Create a complete asset package for game development."""
         
-        # Analyze asset context
-        asset_context = self._analyze_asset_context(game_description, art_style, color_palette)
+        if output_dir is None:
+            output_dir = Path("complete_asset_package")
+        output_dir.mkdir(exist_ok=True)
         
-        # Generate visual assets
-        visual_assets = []
-        if any(need in asset_needs for need in ["sprites", "textures", "icons", "visuals"]):
-            visual_assets = await self._generate_visual_assets(game_description, asset_context)
+        # Initialize result structure
+        graphics_assets = {}
+        font_assets = {}
+        archived_assets = {}
         
-        # Generate fonts
-        fonts = []
-        if "fonts" in asset_needs or "typography" in asset_needs:
-            fonts = await self._generate_font_pack(game_description, asset_context)
-        
-        # Generate semantic seeds
-        semantic_seeds = []
-        if theme_keywords or "seeds" in asset_needs:
-            semantic_seeds = await self._generate_semantic_seeds(
-                game_description, theme_keywords, asset_context
+        # Process graphics assets from CC0 libraries
+        if any(asset_type in ["sprites", "textures", "ui", "graphics"] for asset_type in asset_types):
+            graphics_assets = await self._gather_graphics_assets(
+                game_description, asset_types, style_preferences, max_assets_per_type, output_dir
             )
         
-        # Create summary
-        summary = self._create_asset_summary(visual_assets, fonts, semantic_seeds)
+        # Process font assets
+        if "fonts" in asset_types or "typography" in asset_types:
+            font_assets = await self._gather_font_assets(
+                game_description, style_preferences, output_dir
+            )
         
-        return AssetWorkflowResult(
-            visual_assets=visual_assets,
-            fonts=fonts,
-            semantic_seeds=semantic_seeds,
-            asset_pack_summary=summary
+        # Process archived assets if requested
+        if "archived" in asset_types or "seeded" in asset_types:
+            archived_assets = await self._gather_archived_assets(
+                game_description, max_assets_per_type, output_dir
+            )
+        
+        # Create comprehensive metadata
+        metadata = self._create_package_metadata(
+            game_description, asset_types, style_preferences,
+            graphics_assets, font_assets, archived_assets
+        )
+        
+        # Generate summary
+        summary = self._create_package_summary(graphics_assets, font_assets, archived_assets)
+        
+        # Save package manifest
+        manifest = {
+            "game_description": game_description,
+            "asset_types": asset_types,
+            "style_preferences": style_preferences,
+            "graphics_assets": graphics_assets,
+            "font_assets": font_assets,
+            "archived_assets": archived_assets,
+            "metadata": metadata,
+            "summary": summary
+        }
+        
+        manifest_path = output_dir / "asset_package_manifest.json"
+        with open(manifest_path, 'w') as f:
+            json.dump(manifest, f, indent=2, default=str)
+        
+        return AssetPackage(
+            graphics_assets=graphics_assets,
+            font_assets=font_assets,
+            archived_assets=archived_assets,
+            metadata=metadata,
+            summary=summary
         )
     
     def _analyze_asset_context(
