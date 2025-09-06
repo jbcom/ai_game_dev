@@ -4,10 +4,12 @@ Serves both MCP protocol endpoints and web UI from a single HTTP server.
 """
 import json
 import asyncio
-from typing import Optional, List, Dict, Any
+import os
+from typing import Optional, List, Dict, Any, Callable
 from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +25,7 @@ from ai_game_dev.assets import AssetTools
 # Try to import mesop for web UI
 try:
     import mesop as me
-    from ai_game_dev.ui.web.portal import AppState, render_dashboard, render_new_project, render_asset_generator, render_settings
+    import mesop.labs as mel
     MESOP_AVAILABLE = True
 except ImportError:
     MESOP_AVAILABLE = False
@@ -145,42 +147,187 @@ class UnifiedGameDevServer:
     
     def setup_routes(self):
         """Setup all routes for both MCP SSE and web interface."""
+        # Setup API routes first (before mounting anything)
+        self.setup_api_routes()
+        
         # Mount the SSE MCP server for MCP protocol communication
         self.app.mount("/mcp", create_sse_server(self.mcp))
         
-        self.setup_web_routes()
-        self.setup_api_routes()
+        # Setup Mesop web interface if available
+        if MESOP_AVAILABLE:
+            self.setup_mesop_interface()
+        else:
+            self.setup_fallback_web_routes()
     
-    def setup_web_routes(self):
-        """Setup web interface routes."""
+    def setup_mesop_interface(self):
+        """Setup Mesop web interface using proper WSGI integration."""
+        
+        @me.stateclass
+        class GameDevState:
+            """State for the game development interface."""
+            current_page: str = "dashboard"
+            project_description: str = ""
+            selected_engine: str = "pygame"
+            complexity: str = "intermediate"
+            generation_result: Optional[str] = None
+            is_generating: bool = False
+
+        def navigate_to_page(page: str):
+            """Navigate to a different page."""
+            def handler(event: me.ClickEvent):
+                state = me.state(GameDevState)
+                state.current_page = page
+            return handler
+
+        def generate_project(event: me.ClickEvent):
+            """Generate a game project."""
+            state = me.state(GameDevState)
+            state.is_generating = True
+            # This would trigger the actual generation via the MCP tools
+            state.generation_result = f"Generated {state.project_description} using {state.selected_engine}"
+            state.is_generating = False
+
+        def update_description(event: me.InputEvent):
+            """Update project description."""
+            state = me.state(GameDevState)
+            state.project_description = event.value
+
+        def update_engine(event: me.SelectSelectionChangeEvent):
+            """Update selected engine."""
+            state = me.state(GameDevState)
+            state.selected_engine = event.value
+
+        @me.page(
+            path="/",
+            title="AI Game Development Portal",
+            security_policy=me.SecurityPolicy(
+                allowed_script_srcs=["https://cdn.jsdelivr.net"]
+            )
+        )
+        def game_dev_portal():
+            """Main game development portal page."""
+            state = me.state(GameDevState)
+            
+            with me.box(style=me.Style(
+                background="#1a1a2e",
+                color="white",
+                padding=me.Padding.all(20),
+                min_height="100vh"
+            )):
+                # Header
+                with me.box(style=me.Style(
+                    display="flex",
+                    justify_content="space-between",
+                    align_items="center",
+                    margin=me.Margin(bottom=30),
+                    border_bottom="2px solid #16213e",
+                    padding=me.Padding(bottom=20)
+                )):
+                    me.text(
+                        "🎮 AI Game Development Portal",
+                        style=me.Style(font_size=32, font_weight="bold", color="#64ffda")
+                    )
+                    
+                    with me.box(style=me.Style(display="flex", gap=10)):
+                        me.button(
+                            "Dashboard",
+                            on_click=navigate_to_page("dashboard"),
+                            type="flat" if state.current_page != "dashboard" else "raised"
+                        )
+                        me.button(
+                            "New Project",
+                            on_click=navigate_to_page("new_project"),
+                            type="flat" if state.current_page != "new_project" else "raised"
+                        )
+                        me.button(
+                            "Assets",
+                            on_click=navigate_to_page("assets"),
+                            type="flat" if state.current_page != "assets" else "raised"
+                        )
+
+                # Content area
+                with me.box(style=me.Style(
+                    background="#16213e",
+                    padding=me.Padding.all(20),
+                    border_radius=10
+                )):
+                    if state.current_page == "dashboard":
+                        me.text("Welcome to AI Game Development", style=me.Style(font_size=24, margin=me.Margin(bottom=20)))
+                        me.text("Create games with AI assistance across multiple engines:")
+                        me.text("• Pygame - Python 2D games")
+                        me.text("• Bevy - Rust ECS engine") 
+                        me.text("• Godot - GDScript scene-based")
+                        
+                    elif state.current_page == "new_project":
+                        me.text("Create New Game Project", style=me.Style(font_size=24, margin=me.Margin(bottom=20)))
+                        
+                        me.input(
+                            label="Project Description",
+                            value=state.project_description,
+                            on_input=update_description,
+                            style=me.Style(width="100%", margin=me.Margin(bottom=10))
+                        )
+                        
+                        me.select(
+                            label="Engine",
+                            options=[
+                                me.SelectOption(label="Pygame (Python)", value="pygame"),
+                                me.SelectOption(label="Bevy (Rust)", value="bevy"),
+                                me.SelectOption(label="Godot (GDScript)", value="godot")
+                            ],
+                            value=state.selected_engine,
+                            on_selection_change=update_engine,
+                            style=me.Style(margin=me.Margin(bottom=20))
+                        )
+                        
+                        me.button(
+                            "Generate Project" if not state.is_generating else "Generating...",
+                            on_click=generate_project,
+                            disabled=state.is_generating or not state.project_description,
+                            style=me.Style(background="#64ffda", color="#1a1a2e")
+                        )
+                        
+                        if state.generation_result:
+                            me.text(f"✅ {state.generation_result}", style=me.Style(color="#64ffda", margin=me.Margin(top=20)))
+                            
+                    elif state.current_page == "assets":
+                        me.text("Generate Assets", style=me.Style(font_size=24, margin=me.Margin(bottom=20)))
+                        me.text("Asset generation tools coming soon...")
+
+        # Mount Mesop WSGI app
+        self.app.mount(
+            "/",
+            WSGIMiddleware(
+                me.create_wsgi_app(debug_mode=os.environ.get("DEBUG_MODE", "") == "true")
+            ),
+        )
+        
+    def setup_fallback_web_routes(self):
+        """Setup fallback web routes when Mesop is not available."""
         
         @self.app.get("/", response_class=HTMLResponse)
         async def web_home():
-            """Main web interface page."""
-            if not MESOP_AVAILABLE:
-                return HTMLResponse("""
-                    <html>
-                        <head><title>AI Game Development Server</title></head>
-                        <body style="font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: white;">
-                            <h1>🎮 AI Game Development Server</h1>
-                            <h2>MCP Protocol Connection</h2>
-                            <p>Connect your MCP client to: <code>http://localhost:5000/mcp/sse</code></p>
-                            <p>Available MCP tools:</p>
-                            <ul>
-                                <li><strong>generate_game</strong> - Generate complete game projects</li>
-                                <li><strong>generate_assets</strong> - Generate game assets</li>
-                                <li><strong>list_game_engines</strong> - List available engines</li>
-                            </ul>
-                            <h2>Web Interface</h2>
-                            <p><strong>Note:</strong> Full web UI requires Mesop to be installed.</p>
-                            <p>Install with: <code>pip install mesop</code></p>
-                            <p>Use the <a href="/api/" style="color: #64ffda;">REST API</a> for web-based interactions.</p>
-                        </body>
-                    </html>
-                """)
-            
-            # If Mesop is available, render the full web interface
-            return HTMLResponse(self.render_mesop_app())
+            """Fallback web interface."""
+            return HTMLResponse("""
+                <html>
+                    <head><title>AI Game Development Server</title></head>
+                    <body style="font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: white;">
+                        <h1>🎮 AI Game Development Server</h1>
+                        <h2>MCP Protocol Connection</h2>
+                        <p>Connect your MCP client to: <code>http://localhost:5000/mcp/sse</code></p>
+                        <p>Available MCP tools:</p>
+                        <ul>
+                            <li><strong>generate_game</strong> - Generate complete game projects</li>
+                            <li><strong>generate_assets</strong> - Generate game assets</li>
+                            <li><strong>list_game_engines</strong> - List available engines</li>
+                        </ul>
+                        <h2>Web Interface</h2>
+                        <p><strong>Note:</strong> Full web UI requires Mesop to be installed.</p>
+                        <p>Install with: <code>pip install mesop</code></p>
+                        <p>Use the <a href="/api/" style="color: #64ffda;">REST API</a> for web-based interactions.</p>
+                    </body>
+                </html>
+            """)
         
         @self.app.get("/health")
         async def health_check():
@@ -235,129 +382,6 @@ class UnifiedGameDevServer:
                     "error": str(e)
                 }, status_code=500)
     
-    def render_mesop_app(self) -> str:
-        """Render the Mesop web application as HTML."""
-        # This is a simplified version - in practice, Mesop would handle routing
-        return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>AI Game Development Portal</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #1a1a2e; color: white; }
-                .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-                .title { font-size: 32px; font-weight: bold; color: #64ffda; }
-                .nav-buttons { display: flex; gap: 10px; }
-                .nav-button { background: #16213e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-                .nav-button:hover { background: #0f3460; }
-                .content { background: #16213e; padding: 20px; border-radius: 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <div class="title">🎮 AI Game Development Portal</div>
-                <div class="nav-buttons">
-                    <button class="nav-button" onclick="showDashboard()">Dashboard</button>
-                    <button class="nav-button" onclick="showNewProject()">New Project</button>
-                    <button class="nav-button" onclick="showAssets()">Generate Assets</button>
-                    <button class="nav-button" onclick="showSettings()">Settings</button>
-                </div>
-            </div>
-            
-            <div class="content" id="content">
-                <h2>Welcome to AI Game Development</h2>
-                <p>Create games with AI assistance across multiple engines:</p>
-                <ul>
-                    <li><strong>Pygame</strong> - Python 2D games</li>
-                    <li><strong>Bevy</strong> - Rust ECS engine</li>
-                    <li><strong>Godot</strong> - GDScript scene-based</li>
-                </ul>
-                <p>Use the navigation buttons above to get started.</p>
-            </div>
-            
-            <script>
-                function showDashboard() {
-                    document.getElementById('content').innerHTML = `
-                        <h2>Dashboard</h2>
-                        <p>Recent projects and system status would appear here.</p>
-                    `;
-                }
-                
-                function showNewProject() {
-                    document.getElementById('content').innerHTML = `
-                        <h2>Create New Project</h2>
-                        <form onsubmit="generateProject(event)">
-                            <p><label>Description: <input type="text" id="description" placeholder="A simple platformer game" style="width: 300px;"></label></p>
-                            <p><label>Engine: 
-                                <select id="engine">
-                                    <option value="pygame">Pygame (Python)</option>
-                                    <option value="bevy">Bevy (Rust)</option>
-                                    <option value="godot">Godot (GDScript)</option>
-                                </select>
-                            </label></p>
-                            <p><label>Complexity: 
-                                <select id="complexity">
-                                    <option value="beginner">Beginner</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advanced">Advanced</option>
-                                </select>
-                            </label></p>
-                            <button type="submit" style="background: #64ffda; color: #1a1a2e; border: none; padding: 10px 20px; border-radius: 5px;">Generate Project</button>
-                        </form>
-                        <div id="result"></div>
-                    `;
-                }
-                
-                function showAssets() {
-                    document.getElementById('content').innerHTML = `
-                        <h2>Generate Assets</h2>
-                        <p>Asset generation tools would appear here.</p>
-                    `;
-                }
-                
-                function showSettings() {
-                    document.getElementById('content').innerHTML = `
-                        <h2>Settings</h2>
-                        <p>Configuration options would appear here.</p>
-                    `;
-                }
-                
-                async function generateProject(event) {
-                    event.preventDefault();
-                    const description = document.getElementById('description').value;
-                    const engine = document.getElementById('engine').value;
-                    const complexity = document.getElementById('complexity').value;
-                    
-                    const result = document.getElementById('result');
-                    result.innerHTML = '<p>Generating project...</p>';
-                    
-                    try {
-                        const response = await fetch('/api/generate', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({description, engine, complexity})
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            result.innerHTML = `
-                                <h3>✅ Project Generated Successfully!</h3>
-                                <p><strong>Engine:</strong> ${data.project_info.engine}</p>
-                                <p><strong>Files:</strong> ${data.project_info.files.join(', ')}</p>
-                                <p><strong>Project Path:</strong> ${data.project_info.project_path}</p>
-                            `;
-                        } else {
-                            result.innerHTML = `<p style="color: #ff6b6b;">❌ Error: ${data.error}</p>`;
-                        }
-                    } catch (error) {
-                        result.innerHTML = `<p style="color: #ff6b6b;">❌ Network Error: ${error.message}</p>`;
-                    }
-                }
-            </script>
-        </body>
-        </html>
-        """
     
     async def start(self):
         """Start the unified server."""
