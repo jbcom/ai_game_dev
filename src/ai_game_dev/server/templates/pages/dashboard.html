@@ -6,14 +6,14 @@
 <!-- Compact Hero Section with Engine Selection -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Hero Content -->
-    <div class="lg:col-span-2 glass-panel rounded-box p-8 relative overflow-hidden">
+    <div class="lg:col-span-2 glass-panel tech-frame rounded-box p-8 relative overflow-hidden">
         <div class="absolute inset-0 opacity-30">
             <img src="/static/assets/banners/masthead.png" 
                  alt="AI Game Development Banner" 
                  class="w-full h-full object-cover rounded-box">
         </div>
         <div class="absolute inset-0 particle-glow opacity-20"></div>
-        <div class="relative z-10">
+        <div class="relative z-20">
             <div class="flex items-center gap-4 mb-4">
                 <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-16 h-16 object-contain glow drop-shadow-lg">
                 <div>
@@ -28,7 +28,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {% for engine in engines %}
                 <a href="/web/new_project?engine={{ engine }}" 
-                   class="relative group cursor-pointer overflow-hidden rounded-xl hover:scale-105 transition-all duration-300">
+                   class="relative group cursor-pointer overflow-hidden rounded-xl hover:scale-105 transition-all duration-300 tech-frame">
                     <!-- Engine Panel Image -->
                     <div class="aspect-[4/3] relative">
                         <img src="/static/assets/engine-panels/{{ engine }}.png" 
@@ -77,7 +77,7 @@
     <!-- Stats & Activity Sidebar -->
     <div class="space-y-4">
         <!-- Compact Stats -->
-        <div class="glass-panel p-4 rounded-box">
+        <div class="glass-panel tech-frame p-4 rounded-box">
             <h3 class="font-bold mb-3 text-center">📊 Platform Stats</h3>
             <div class="grid grid-cols-1 gap-3">
                 <div class="text-center">
@@ -96,7 +96,7 @@
         </div>
         
         <!-- Recent Activity -->
-        <div class="glass-panel p-4 rounded-box">
+        <div class="glass-panel tech-frame p-4 rounded-box">
             <h3 class="font-bold mb-3">📈 Recent Activity</h3>
             {% if recent_projects %}
                 <div class="space-y-2">
@@ -124,22 +124,22 @@
 
 <!-- Compact Feature Overview -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="glass-panel p-4 text-center">
+    <div class="glass-panel tech-frame p-4 text-center">
         <div class="text-2xl mb-2">🤖</div>
         <h3 class="font-bold text-sm">AI-Powered</h3>
         <p class="text-xs opacity-70">Multi-LLM generation</p>
     </div>
-    <div class="glass-panel p-4 text-center">
+    <div class="glass-panel tech-frame p-4 text-center">
         <div class="text-2xl mb-2">⚡</div>
         <h3 class="font-bold text-sm">Real-time</h3>
         <p class="text-xs opacity-70">Live generation feedback</p>
     </div>
-    <div class="glass-panel p-4 text-center">
+    <div class="glass-panel tech-frame p-4 text-center">
         <div class="text-2xl mb-2">🎨</div>
         <h3 class="font-bold text-sm">Asset Generation</h3>
         <p class="text-xs opacity-70">Images, sounds, music</p>
     </div>
-    <div class="glass-panel p-4 text-center">
+    <div class="glass-panel tech-frame p-4 text-center">
         <div class="text-2xl mb-2">📱</div>
         <h3 class="font-bold text-sm">Multi-Platform</h3>
         <p class="text-xs opacity-70">Web, desktop, mobile</p>

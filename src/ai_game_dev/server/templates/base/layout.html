@@ -149,6 +149,19 @@
             background-position: center;
             opacity: 0.6;
         }
+        .tech-frame {
+            position: relative;
+        }
+        .tech-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('/static/assets/frames/tech-frame.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 10;
+        }
     </style>
     
     {% block extra_head %}{% endblock %}
