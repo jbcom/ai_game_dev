@@ -7,15 +7,20 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Hero Content -->
     <div class="lg:col-span-2 glass-panel rounded-box p-8 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-30">
+            <img src="/static/assets/banners/masthead.png" 
+                 alt="AI Game Development Banner" 
+                 class="w-full h-full object-cover rounded-box">
+        </div>
         <div class="absolute inset-0 particle-glow opacity-20"></div>
         <div class="relative z-10">
             <div class="flex items-center gap-4 mb-4">
-                <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-16 h-16 object-contain glow">
+                <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-16 h-16 object-contain glow drop-shadow-lg">
                 <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
                         AI Game Development
                     </h1>
-                    <p class="text-lg opacity-80">Create games with AI assistance</p>
+                    <p class="text-lg opacity-90 drop-shadow">Create games with AI assistance</p>
                 </div>
             </div>
             
@@ -23,22 +28,27 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {% for engine in engines %}
                 <a href="/web/new_project?engine={{ engine }}" 
-                   class="card glass-panel hover:scale-105 transition-all duration-300 group">
-                    <div class="card-body p-4 text-center">
+                   class="card glass-panel hover:scale-105 transition-all duration-300 group relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-20">
+                        <img src="/static/assets/engine-panels/{{ engine }}.png" 
+                             alt="{{ engine }} background" 
+                             class="w-full h-full object-cover">
+                    </div>
+                    <div class="card-body p-4 text-center relative z-10">
                         <div class="mb-2">
                             {% if engine == 'pygame' %}
-                            <div class="w-12 h-12 mx-auto rounded-lg bg-orange-500 flex items-center justify-center text-2xl">🐍</div>
+                            <div class="w-12 h-12 mx-auto rounded-lg bg-orange-500/80 backdrop-blur-sm flex items-center justify-center text-2xl">🐍</div>
                             {% elif engine == 'bevy' %}
-                            <div class="w-12 h-12 mx-auto rounded-lg bg-orange-600 flex items-center justify-center text-2xl">🦀</div>
+                            <div class="w-12 h-12 mx-auto rounded-lg bg-orange-600/80 backdrop-blur-sm flex items-center justify-center text-2xl">🦀</div>
                             {% elif engine == 'godot' %}
-                            <div class="w-12 h-12 mx-auto rounded-lg bg-blue-500 flex items-center justify-center text-2xl">🎮</div>
+                            <div class="w-12 h-12 mx-auto rounded-lg bg-blue-500/80 backdrop-blur-sm flex items-center justify-center text-2xl">🎮</div>
                             {% endif %}
                         </div>
-                        <h3 class="font-bold">{{ engine|title }}</h3>
-                        <p class="text-xs opacity-70">
+                        <h3 class="font-bold drop-shadow-lg">{{ engine|title }}</h3>
+                        <p class="text-xs opacity-70 drop-shadow">
                             {% if engine == 'pygame' %}Python 2D{% elif engine == 'bevy' %}Rust ECS{% elif engine == 'godot' %}Visual Script{% endif %}
                         </p>
-                        <div class="group-hover:text-primary transition-colors text-sm mt-2">Start Project →</div>
+                        <div class="group-hover:text-primary transition-colors text-sm mt-2 drop-shadow">Start Project →</div>
                     </div>
                 </a>
                 {% endfor %}
