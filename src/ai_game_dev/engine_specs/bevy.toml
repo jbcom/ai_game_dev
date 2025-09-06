@@ -1,0 +1,141 @@
+# Bevy Game Development Specification
+# AI-driven template for generating complete Bevy games in Rust
+
+[engine]
+name = "Bevy"
+version = "0.14+"
+language = "Rust"
+paradigm = "ECS (Entity Component System)"
+performance_tier = "High"
+platform_support = ["Windows", "macOS", "Linux", "Web (WASM)", "Mobile"]
+
+[project_structure]
+entry_point = "src/main.rs"
+assets_dir = "assets"
+source_dir = "src"
+required_files = [
+    "Cargo.toml",
+    "src/main.rs",
+    "src/lib.rs",
+    "src/systems/mod.rs",
+    "src/components/mod.rs",
+    "src/resources/mod.rs"
+]
+
+[metaprompts]
+initialization = """
+Create a Bevy project with the following ECS architecture:
+1. App setup with proper plugin configuration
+2. Component definitions for game entities
+3. System definitions for game logic
+4. Resource management for global state
+5. Asset loading and management systems
+"""
+
+ecs_systems = """
+Implement core ECS systems:
+1. Movement systems for entities with Transform and Velocity
+2. Collision detection systems using spatial queries
+3. Rendering systems with sprite and mesh components
+4. Input handling systems for player interaction
+5. Game state systems for scene management
+"""
+
+asset_integration = """
+Integrate assets using Bevy's asset system:
+1. Load textures and sprites through AssetServer
+2. Configure fonts for UI text rendering
+3. Load audio assets for sound effects and music
+4. Implement texture atlases for sprite sheets
+5. Handle asset hot-reloading for development
+"""
+
+optimization = """
+Apply Bevy-specific optimizations:
+1. Use parallel systems with proper scheduling
+2. Implement efficient queries with filters
+3. Leverage Bevy's built-in batching for rendering
+4. Use change detection to minimize unnecessary work
+5. Implement LOD systems for complex scenes
+"""
+
+[code_templates]
+main_structure = """
+use bevy::prelude::*;
+mod systems;
+mod components;
+mod resources;
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, setup_game)
+        .add_systems(Update, (
+            movement_system,
+            collision_system,
+            input_system,
+        ))
+        .run();
+}
+"""
+
+component_definitions = """
+#[derive(Component)]
+pub struct Player;
+
+#[derive(Component)]
+pub struct Velocity(pub Vec3);
+
+#[derive(Component)]
+pub struct Health(pub f32);
+
+#[derive(Component)]
+pub struct Collider {
+    pub size: Vec2,
+}
+"""
+
+[asset_requirements]
+graphics = ["textures", "sprites", "materials", "meshes"]
+audio = ["sounds", "music", "ambient"]
+fonts = ["ui", "debug", "dialogue"]
+data = ["scenes", "levels", "config"]
+
+[dependencies]
+required = [
+    'bevy = "0.14"',
+    'bevy_asset_loader = "0.21"'
+]
+optional = [
+    'bevy_rapier2d = "0.27"',    # 2D Physics
+    'bevy_rapier3d = "0.27"',    # 3D Physics
+    'bevy_egui = "0.28"',        # Immediate mode GUI
+    'bevy_kira_audio = "0.20"'   # Advanced audio
+]
+
+[deployment]
+build_command = "cargo build --release"
+web_build = "cargo build --release --target wasm32-unknown-unknown"
+distribution = ["Crates.io", "itch.io", "Steam", "Mobile stores"]
+
+[ai_generation_hints]
+complexity_levels = {
+    simple = "Basic ECS with few systems, 2D sprites only",
+    intermediate = "Multiple systems, animations, physics integration",
+    complex = "Advanced ECS architecture, 3D rendering, networking"
+}
+
+common_patterns = [
+    "2D platformer with physics and animations",
+    "3D first-person game with advanced rendering",
+    "Top-down roguelike with procedural generation",
+    "Multiplayer game with networking"
+]
+
+performance_considerations = [
+    "Use parallel systems whenever possible",
+    "Minimize entity creation/deletion during gameplay",
+    "Leverage Bevy's built-in change detection",
+    "Use spatial data structures for collision queries",
+    "Profile with bevy_diagnostic plugin"
+]

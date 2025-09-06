@@ -1,0 +1,135 @@
+# Pygame Game Development Specification
+# AI-driven template for generating complete Pygame games
+
+[engine]
+name = "Pygame"
+version = "2.5+"
+language = "Python"
+paradigm = "2D Sprite-based"
+performance_tier = "Moderate"
+platform_support = ["Windows", "macOS", "Linux", "Web (via Pyodide)"]
+
+[project_structure]
+entry_point = "main.py"
+assets_dir = "assets"
+source_dir = "src"
+required_files = [
+    "main.py",
+    "src/game.py", 
+    "src/entities.py",
+    "src/scenes.py",
+    "requirements.txt"
+]
+
+[metaprompts]
+initialization = """
+Create a Pygame project with the following structure:
+1. Main game loop with proper event handling and FPS control
+2. Scene management system for different game states
+3. Entity system for game objects with sprite handling
+4. Asset loading and management utilities
+5. Collision detection and physics integration
+"""
+
+gameplay_systems = """
+Implement core gameplay systems:
+1. Player input handling (keyboard, mouse, gamepad)
+2. Game state management (menu, playing, paused, game over)
+3. Sprite groups for efficient rendering and collision
+4. Sound and music integration with pygame.mixer
+5. UI elements (HUD, menus, buttons) with event handling
+"""
+
+asset_integration = """
+Integrate assets from the asset package:
+1. Load sprites from assets/graphics/ directory
+2. Apply fonts from assets/fonts/ for UI text rendering
+3. Load audio files from assets/audio/ for sound effects and music
+4. Implement texture atlasing for performance optimization
+5. Handle different screen resolutions and scaling
+"""
+
+optimization = """
+Apply Pygame-specific optimizations:
+1. Use pygame.sprite.Group for efficient collision detection
+2. Implement dirty rectangle updates for better performance
+3. Optimize blitting operations and surface conversions
+4. Use pygame.transform.scale2x for pixel art scaling
+5. Implement basic culling for off-screen objects
+"""
+
+[code_templates]
+main_structure = """
+import pygame
+import sys
+from src.game import Game
+
+def main():
+    pygame.init()
+    game = Game()
+    game.run()
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
+"""
+
+game_class = """
+class Game:
+    def __init__(self):
+        self.screen = pygame.display.set_mode((800, 600))
+        pygame.display.set_caption("Game Title")
+        self.clock = pygame.time.Clock()
+        self.running = True
+        
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.render()
+            self.clock.tick(60)
+"""
+
+[asset_requirements]
+graphics = ["sprites", "ui", "backgrounds", "effects"]
+audio = ["sfx", "music", "ambient"]
+fonts = ["ui", "title", "dialogue"]
+data = ["levels", "dialogue", "config"]
+
+[dependencies]
+required = [
+    "pygame>=2.5.0",
+    "pygame-ce>=2.4.0"  # Alternative: pygame community edition
+]
+optional = [
+    "pymunk>=6.5.0",    # Physics
+    "pytmx>=3.32",      # Tiled map support
+    "pyscroll>=2.30"    # Scrolling support
+]
+
+[deployment]
+build_command = "python -m PyInstaller main.py --onefile"
+web_build = "pyodide build"
+distribution = ["PyPI", "itch.io", "Steam (via PyInstaller)"]
+
+[ai_generation_hints]
+complexity_levels = {
+    simple = "Single scene, basic sprites, simple controls",
+    intermediate = "Multiple scenes, animation, sound effects", 
+    complex = "Advanced physics, particle effects, complex AI"
+}
+
+common_patterns = [
+    "2D platformer with tile-based levels",
+    "Top-down shooter with enemy AI",
+    "Puzzle game with grid-based mechanics",
+    "RPG with turn-based combat system"
+]
+
+performance_considerations = [
+    "Limit sprite groups to necessary objects only",
+    "Use convert() and convert_alpha() on loaded surfaces",
+    "Implement object pooling for frequently created/destroyed objects",
+    "Consider using pygame-ce for better performance"
+]

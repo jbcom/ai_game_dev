@@ -1,0 +1,348 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Game World Specification",
+  "description": "Complete specification for AI-generated game worlds including assets, mechanics, and narrative elements",
+  "type": "object",
+  "required": ["metadata", "world", "gameplay", "assets"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["title", "genre", "target_platform", "complexity"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Game title"
+        },
+        "genre": {
+          "type": "string",
+          "enum": ["platformer", "rpg", "puzzle", "shooter", "adventure", "strategy", "simulation", "racing", "fighting", "other"]
+        },
+        "target_platform": {
+          "type": "string", 
+          "enum": ["desktop", "mobile", "web", "console", "cross-platform"]
+        },
+        "complexity": {
+          "type": "string",
+          "enum": ["simple", "intermediate", "complex"]
+        },
+        "art_style": {
+          "type": "string",
+          "enum": ["pixel_art", "hand_drawn", "realistic", "stylized", "minimalist", "abstract"]
+        },
+        "target_engine": {
+          "type": "string",
+          "enum": ["pygame", "bevy", "godot", "arcade", "custom"]
+        }
+      }
+    },
+    "world": {
+      "type": "object",
+      "required": ["setting", "atmosphere"],
+      "properties": {
+        "setting": {
+          "type": "object",
+          "properties": {
+            "time_period": {
+              "type": "string",
+              "description": "Historical or fictional time period"
+            },
+            "location": {
+              "type": "string", 
+              "description": "Primary game world location"
+            },
+            "scale": {
+              "type": "string",
+              "enum": ["room", "building", "neighborhood", "city", "region", "world", "universe"]
+            }
+          }
+        },
+        "atmosphere": {
+          "type": "object",
+          "properties": {
+            "mood": {
+              "type": "string",
+              "enum": ["lighthearted", "serious", "dark", "mysterious", "epic", "cozy", "intense"]
+            },
+            "color_palette": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Primary colors for the game world"
+            },
+            "audio_style": {
+              "type": "string",
+              "enum": ["orchestral", "electronic", "ambient", "chiptune", "rock", "folk", "jazz"]
+            }
+          }
+        },
+        "environments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {"type": "string"},
+              "type": {
+                "type": "string",
+                "enum": ["indoor", "outdoor", "underground", "aerial", "underwater", "space"]
+              },
+              "description": {"type": "string"},
+              "special_mechanics": {
+                "type": "array", 
+                "items": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "gameplay": {
+      "type": "object",
+      "required": ["core_mechanics", "progression"],
+      "properties": {
+        "core_mechanics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": {"type": "string"},
+              "description": {"type": "string"},
+              "complexity": {
+                "type": "string",
+                "enum": ["simple", "moderate", "complex"]
+              },
+              "required_assets": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            }
+          }
+        },
+        "progression": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["linear", "non_linear", "branching", "open_world"]
+            },
+            "length": {
+              "type": "string", 
+              "enum": ["short", "medium", "long", "endless"]
+            },
+            "difficulty_curve": {
+              "type": "string",
+              "enum": ["gentle", "moderate", "steep", "adaptive"]
+            }
+          }
+        },
+        "player_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["action", "input_type"],
+            "properties": {
+              "action": {"type": "string"},
+              "input_type": {
+                "type": "string",
+                "enum": ["keyboard", "mouse", "touch", "gamepad", "voice", "gesture"]
+              },
+              "description": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "required": ["graphics", "audio", "fonts"],
+      "properties": {
+        "graphics": {
+          "type": "object",
+          "properties": {
+            "required_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["sprites", "backgrounds", "ui", "effects", "textures", "models", "animations"]
+              }
+            },
+            "style_requirements": {
+              "type": "object",
+              "properties": {
+                "resolution": {"type": "string"},
+                "color_depth": {"type": "string"},
+                "animation_frames": {"type": "integer"},
+                "consistency_notes": {"type": "string"}
+              }
+            },
+            "specific_assets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "type", "description"],
+                "properties": {
+                  "name": {"type": "string"},
+                  "type": {"type": "string"},
+                  "description": {"type": "string"},
+                  "size": {"type": "string"},
+                  "variations": {"type": "integer"},
+                  "animation_required": {"type": "boolean"}
+                }
+              }
+            }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "properties": {
+            "music": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "context", "mood"],
+                "properties": {
+                  "name": {"type": "string"},
+                  "context": {"type": "string"},
+                  "mood": {"type": "string"},
+                  "duration": {"type": "string"},
+                  "loop": {"type": "boolean"}
+                }
+              }
+            },
+            "sound_effects": {
+              "type": "array", 
+              "items": {
+                "type": "object",
+                "required": ["name", "trigger", "description"],
+                "properties": {
+                  "name": {"type": "string"},
+                  "trigger": {"type": "string"},
+                  "description": {"type": "string"},
+                  "volume": {"type": "string"},
+                  "variations": {"type": "integer"}
+                }
+              }
+            },
+            "voice": {
+              "type": "object",
+              "properties": {
+                "dialogue_required": {"type": "boolean"},
+                "narration_required": {"type": "boolean"},
+                "voice_style": {"type": "string"},
+                "languages": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "properties": {
+            "ui_font": {
+              "type": "object",
+              "properties": {
+                "style": {"type": "string"},
+                "weight": {"type": "string"},
+                "size_range": {"type": "string"}
+              }
+            },
+            "title_font": {
+              "type": "object", 
+              "properties": {
+                "style": {"type": "string"},
+                "decorative": {"type": "boolean"},
+                "theme_alignment": {"type": "string"}
+              }
+            },
+            "dialogue_font": {
+              "type": "object",
+              "properties": {
+                "readability": {"type": "string"},
+                "character_support": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "narrative": {
+      "type": "object",
+      "properties": {
+        "story": {
+          "type": "object",
+          "properties": {
+            "premise": {"type": "string"},
+            "themes": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "tone": {"type": "string"}
+          }
+        },
+        "characters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "role"],
+            "properties": {
+              "name": {"type": "string"},
+              "role": {"type": "string"},
+              "description": {"type": "string"},
+              "dialogue_style": {"type": "string"},
+              "visual_description": {"type": "string"}
+            }
+          }
+        },
+        "dialogue_system": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["linear", "branching", "choice_based", "none"]
+            },
+            "integration": {
+              "type": "string",
+              "enum": ["yarn_spinner", "ink", "custom", "engine_native"]
+            },
+            "voice_acting": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "technical": {
+      "type": "object",
+      "properties": {
+        "performance_targets": {
+          "type": "object",
+          "properties": {
+            "target_fps": {"type": "integer"},
+            "memory_budget": {"type": "string"},
+            "load_time_target": {"type": "string"}
+          }
+        },
+        "accessibility": {
+          "type": "object",
+          "properties": {
+            "colorblind_support": {"type": "boolean"},
+            "hearing_impaired_support": {"type": "boolean"},
+            "motor_impaired_support": {"type": "boolean"},
+            "localization_ready": {"type": "boolean"}
+          }
+        },
+        "monetization": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string",
+              "enum": ["free", "premium", "freemium", "subscription", "ads"]
+            },
+            "dlc_planned": {"type": "boolean"},
+            "microtransactions": {"type": "boolean"}
+          }
+        }
+      }
+    }
+  }
+}

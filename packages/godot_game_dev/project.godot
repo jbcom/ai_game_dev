@@ -1,8 +1,0 @@
-[application]
-
-config/name="Godot Game Dev Bindings"
-config/features=PackedStringArray("4.3")
-
-[rendering]
-
-renderer/rendering_method="mobile"

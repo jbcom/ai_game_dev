@@ -22,12 +22,12 @@ args = "AI Game Dev System"
 name = "AI Game Dev System"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd packages/mcp_server && python main.py"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd src/ai_game_dev/mcp_server && python main.py"
 
 [[ports]]
 localPort = 5000

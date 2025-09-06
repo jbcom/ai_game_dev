@@ -1,0 +1,160 @@
+# Godot Game Development Specification  
+# AI-driven template for generating complete Godot games
+
+[engine]
+name = "Godot"
+version = "4.3+"
+language = "GDScript"
+paradigm = "Scene-Node Tree"
+performance_tier = "High"
+platform_support = ["Windows", "macOS", "Linux", "Web", "Mobile", "Console"]
+
+[project_structure]
+entry_point = "main.tscn"
+assets_dir = "assets"
+scripts_dir = "scripts"
+scenes_dir = "scenes"
+required_files = [
+    "project.godot",
+    "main.tscn",
+    "scripts/GameManager.gd",
+    "scripts/Player.gd",
+    "export_presets.cfg"
+]
+
+[metaprompts]
+initialization = """
+Create a Godot project with the following structure:
+1. Main scene with proper node hierarchy
+2. Autoload singletons for global game state
+3. Scene system for different game areas
+4. Input action mapping in project settings
+5. Resource management for assets and data
+"""
+
+scene_architecture = """
+Implement scene-based architecture:
+1. Player scene with CharacterBody2D/3D and collision
+2. Enemy scenes with AI behavior scripts
+3. UI scenes with Control nodes and theming
+4. Level scenes with TileMap or 3D environments
+5. Manager scenes for game state and progression
+"""
+
+asset_integration = """
+Integrate assets using Godot's resource system:
+1. Import textures and configure import settings
+2. Create SpriteFrames resources for animations
+3. Set up AudioStreamPlayer nodes for sound
+4. Configure fonts and themes for UI elements
+5. Use PackedScenes for reusable components
+"""
+
+optimization = """
+Apply Godot-specific optimizations:
+1. Use object pooling for frequently spawned objects
+2. Optimize physics with collision layers and masks
+3. Implement LOD systems using VisibilityEnabler
+4. Use Groups for efficient node management
+5. Profile with Godot's built-in performance monitor
+"""
+
+[code_templates]
+game_manager = '''
+extends Node
+
+signal game_started
+signal game_over
+signal score_changed(new_score)
+
+var score := 0
+var game_state := GameState.MENU
+
+enum GameState {
+    MENU,
+    PLAYING,
+    PAUSED,
+    GAME_OVER
+}
+
+func _ready():
+    process_mode = Node.PROCESS_MODE_ALWAYS
+
+func start_game():
+    game_state = GameState.PLAYING
+    score = 0
+    game_started.emit()
+'''
+
+player_controller = '''
+extends CharacterBody2D
+
+@export var speed := 300.0
+@export var jump_velocity := -400.0
+
+var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
+
+func _physics_process(delta):
+    if not is_on_floor():
+        velocity.y += gravity * delta
+    
+    if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+        velocity.y = jump_velocity
+    
+    var direction = Input.get_axis("ui_left", "ui_right")
+    velocity.x = direction * speed
+    
+    move_and_slide()
+'''
+
+[asset_requirements]
+graphics = ["sprites", "textures", "animations", "ui_themes"]
+audio = ["sfx", "music", "ambient", "voice"]
+fonts = ["ui", "dialogue", "debug"]
+data = ["scenes", "resources", "saves"]
+
+[dependencies]
+required = []  # Godot is self-contained
+optional = [
+    "godot-dialogue-system",  # For complex dialogue
+    "godot-state-charts",     # For state machines
+    "phantom-camera",         # Advanced camera system
+    "input-helper"            # Enhanced input handling
+]
+
+[deployment]
+build_command = "godot --headless --export-release"
+web_build = "godot --headless --export-release Web"
+distribution = ["Steam", "itch.io", "Google Play", "App Store", "Web"]
+
+[ai_generation_hints]
+complexity_levels = {
+    simple = "Single scene, basic nodes, simple scripts",
+    intermediate = "Multiple scenes, animations, audio integration",
+    complex = "Advanced node systems, networking, custom resources"
+}
+
+common_patterns = [
+    "2D platformer with animated sprites and tilemap",
+    "3D first-person game with advanced lighting",
+    "Point-and-click adventure with dialogue system", 
+    "Multiplayer game with dedicated server"
+]
+
+performance_considerations = [
+    "Use get_tree().create_timer() instead of Timer nodes when appropriate",
+    "Minimize calls to get_node() by caching references",
+    "Use object pooling for bullets, particles, and effects",
+    "Optimize collision detection with appropriate collision layers",
+    "Profile using Godot's Network Profiler and Debugger"
+]
+
+[project_settings]
+input_map = [
+    "move_left", "move_right", "jump", "attack", "interact"
+]
+rendering = {
+    renderer = "Forward+",
+    anti_aliasing = "MSAA 2x",
+    scaling_mode = "Viewport"
+}
