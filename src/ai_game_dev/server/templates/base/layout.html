@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AI Game Development Portal{% endblock %}</title>
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <!-- Tailwind CSS + DaisyUI -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.11/dist/full.min.css" rel="stylesheet">
@@ -35,15 +40,23 @@
     
     <!-- Custom styles with generated assets -->
     <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        body {
+            background: #0a0a0f;
+        }
         .game-dev-gradient { 
             background: 
                 url('/static/assets/textures/circuit-pattern.png'),
-                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%),
-                radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.1) 0%, transparent 50%);
-            background-size: 200px 200px, cover, cover, cover;
-            background-repeat: repeat, no-repeat, no-repeat, no-repeat;
-            background-blend-mode: overlay, normal, overlay, overlay;
+                linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 30%, #16213e 70%, #0f3460 100%);
+            background-size: 300px 300px, cover;
+            background-repeat: repeat, no-repeat;
+            background-blend-mode: soft-light, normal;
+            min-height: 100vh;
         }
         .glow { 
             box-shadow: 0 0 20px rgba(100, 255, 218, 0.3); 
@@ -83,38 +96,41 @@
         .custom-button {
             background: linear-gradient(135deg, #64ffda 0%, #1976d2 100%);
             border: none;
-            color: white;
+            color: #0a0a0f;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
         .custom-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.3);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.4);
+            background: linear-gradient(135deg, #4dd0e1 0%, #1565c0 100%);
         }
         .glass-panel {
             background: 
                 url('/static/assets/textures/glass-panel.png'),
-                rgba(255, 255, 255, 0.05);
+                rgba(15, 23, 42, 0.8);
             background-size: cover, auto;
             background-blend-mode: overlay, normal;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(100, 255, 218, 0.2);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(100, 255, 218, 0.3);
             border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         .hex-pattern {
             background: 
                 url('/static/assets/textures/hexagon-overlay.png'),
-                rgba(255, 255, 255, 0.02);
-            background-size: 100px 100px, auto;
+                rgba(30, 41, 59, 0.4);
+            background-size: 120px 120px, auto;
             background-repeat: repeat, no-repeat;
-            background-blend-mode: overlay, normal;
+            background-blend-mode: multiply, normal;
         }
         .particle-glow {
             background: url('/static/assets/textures/particle-glow.png');
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
-            opacity: 0.3;
+            opacity: 0.6;
         }
     </style>
     
