@@ -178,7 +178,6 @@ dev = [
 packages = ["src/ai_game_dev"]
 exclude = [
     "src/ai_game_dev/internal_cli.py",
-    "src/ai_game_dev/education/generated_game/",
 ]
 
 # Default Hatch environment with local .venv
