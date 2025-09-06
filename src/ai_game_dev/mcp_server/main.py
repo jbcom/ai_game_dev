@@ -24,3 +24,16 @@ if __name__ == "__main__":
     
     # Run the server
     mcp.run()
+
+def main():
+    """Main entry point for the MCP server."""
+    print("🚀 AI Game Development FastMCP Server")
+    print("🤖 Available tools:")
+    print("  - generate_game: Create complete game projects")
+    print("  - generate_assets: Create images, sounds, and music")
+    print("  - list_game_engines: Show supported engines")
+    print("=" * 50)
+    
+    # Import and run the server
+    from server import mcp
+    mcp.run()

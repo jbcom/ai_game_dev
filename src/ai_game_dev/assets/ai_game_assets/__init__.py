@@ -5,8 +5,6 @@ Standalone multimedia asset generation with OpenAI, Google Fonts, CC0 resources,
 
 from ai_game_dev.assets.ai_game_assets.audio.audio_tools import AudioTools, TTSGenerator, MusicGenerator, FreesoundClient
 from ai_game_dev.assets.ai_game_assets.assets.asset_tools import AssetTools
-from ai_game_dev.assets.ai_game_assets.graphics.cc0_graphics import CC0GraphicsLibrary
-from ai_game_dev.assets.ai_game_assets.fonts.google_fonts_tools import GoogleFontsTools
 
 __version__ = "1.0.0"
 
@@ -16,6 +14,4 @@ __all__ = [
     "MusicGenerator", 
     "FreesoundClient",
     "AssetTools",
-    "CC0GraphicsLibrary",
-    "GoogleFontsTools",
 ]
