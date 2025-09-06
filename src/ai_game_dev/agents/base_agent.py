@@ -195,24 +195,130 @@ class GameDevelopmentAgent(BaseAgent):
         ]
         
     async def _build_graph(self) -> CompiledStateGraph:
-        """Build the game development agent graph."""
+        """Build the game development agent graph with specialized subgraphs."""
         
         # Create the state graph
         graph = StateGraph(AgentState)
         
-        # Add nodes
+        # Add core nodes
         graph.add_node("reasoning", self._reasoning_node)
+        graph.add_node("task_analysis", self._task_analysis_node)
         graph.add_node("tool_execution", self._tool_execution_node)
+        graph.add_node("quality_check", self._quality_check_node)
         graph.add_node("output_formatting", self._output_formatting_node)
         
-        # Add edges
+        # Add edges for coordinated workflow
         graph.add_edge(START, "reasoning")
-        graph.add_edge("reasoning", "tool_execution")
-        graph.add_edge("tool_execution", "output_formatting")
+        graph.add_edge("reasoning", "task_analysis")
+        graph.add_edge("task_analysis", "tool_execution")
+        graph.add_edge("tool_execution", "quality_check")
+        graph.add_edge("quality_check", "output_formatting")
         graph.add_edge("output_formatting", END)
         
         # Compile and return
         return graph.compile()
+        
+    async def _task_analysis_node(self, state: AgentState) -> AgentState:
+        """Analyze the task and determine execution strategy."""
+        
+        task = state.current_task or ""
+        context = state.context or {}
+        
+        # Add task analysis to context
+        state.context["analyzed_task"] = {
+            "task_type": self._determine_task_type(task, context),
+            "complexity": self._estimate_complexity(task),
+            "required_tools": self._identify_required_tools(task, context),
+            "execution_strategy": self._plan_execution(task, context)
+        }
+        
+        return state
+        
+    async def _quality_check_node(self, state: AgentState) -> AgentState:
+        """Perform quality checks on generated outputs."""
+        
+        outputs = state.outputs or {}
+        errors = []
+        
+        # Check for common quality issues
+        if "assets_created" in outputs and outputs["assets_created"] == 0:
+            errors.append("No assets were generated")
+            
+        if "code_files_created" in outputs and outputs["code_files_created"] == 0:
+            errors.append("No code files were generated")
+            
+        # Add quality metrics
+        state.outputs["quality_score"] = self._calculate_quality_score(outputs, errors)
+        state.outputs["quality_issues"] = errors
+        
+        return state
+        
+    def _determine_task_type(self, task: str, context: Dict[str, Any]) -> str:
+        """Determine the type of task being requested."""
+        
+        asset_type = context.get("asset_type", "")
+        
+        if "static" in asset_type or "platform" in asset_type:
+            return "static_asset_generation"
+        elif "educational" in asset_type and "code" in asset_type:
+            return "educational_code_generation"
+        elif "educational" in asset_type and "asset" in asset_type:
+            return "educational_asset_generation"
+        elif "test" in asset_type:
+            return "test_generation"
+        else:
+            return "general_task"
+            
+    def _estimate_complexity(self, task: str) -> str:
+        """Estimate task complexity."""
+        
+        if len(task.split()) < 10:
+            return "simple"
+        elif len(task.split()) < 20:
+            return "moderate"
+        else:
+            return "complex"
+            
+    def _identify_required_tools(self, task: str, context: Dict[str, Any]) -> List[str]:
+        """Identify required tools for the task."""
+        
+        tools = []
+        asset_type = context.get("asset_type", "")
+        
+        if "asset" in asset_type:
+            tools.append("asset_generation")
+        if "code" in asset_type:
+            tools.append("code_generation")
+        if "test" in asset_type:
+            tools.append("testing")
+            
+        return tools
+        
+    def _plan_execution(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Plan the execution strategy."""
+        
+        return {
+            "approach": "direct_execution",
+            "parallel_processing": True,
+            "error_handling": "continue_on_error",
+            "batch_processing": context.get("asset_type", "") != "test"
+        }
+        
+    def _calculate_quality_score(self, outputs: Dict[str, Any], errors: List[str]) -> float:
+        """Calculate a quality score for the outputs."""
+        
+        base_score = 1.0
+        
+        # Deduct for errors
+        base_score -= len(errors) * 0.2
+        
+        # Add points for successful outputs
+        if outputs.get("assets_created", 0) > 0:
+            base_score += 0.3
+        if outputs.get("code_files_created", 0) > 0:
+            base_score += 0.3
+            
+        return max(0.0, min(1.0, base_score))
         
     def _get_base_game_dev_instructions(self) -> str:
         """Get base instructions for game development."""

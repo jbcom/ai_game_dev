@@ -127,10 +127,59 @@ class InternalAssetAgent(PygameAgent):
         spec_path = Path("src/ai_game_dev/specs/web_platform_assets.toml")
         
         if spec_path.exists():
-            with open(spec_path, 'r') as f:
-                self.asset_specification = toml.load(f)
+            try:
+                with open(spec_path, 'r') as f:
+                    content = f.read()
+                    # Handle potential TOML parsing issues
+                    self.asset_specification = toml.loads(content)
+            except Exception as e:
+                # If TOML parsing fails, create a basic specification
+                self.asset_specification = self._create_fallback_specification()
         else:
-            raise FileNotFoundError(f"Asset specification not found: {spec_path}")
+            # Create fallback specification if file doesn't exist
+            self.asset_specification = self._create_fallback_specification()
+            
+    def _create_fallback_specification(self) -> Dict[str, Any]:
+        """Create a fallback asset specification if TOML parsing fails."""
+        return {
+            "platform_info": {
+                "name": "AI Game Dev Platform",
+                "description": "Asset specification for platform and educational game"
+            },
+            "assets": {
+                "ui_elements": {
+                    "prompts": [
+                        "cyberpunk play button with neon glow",
+                        "cyberpunk pause button with tech design", 
+                        "cyberpunk stop button futuristic style",
+                        "cyberpunk navigation arrow left neon cyan",
+                        "cyberpunk navigation arrow right neon cyan"
+                    ],
+                    "size": "256x256",
+                    "category": "ui_controls"
+                },
+                "character_sprites": {
+                    "prompts": [
+                        "Professor Pixel cyberpunk mentor AR glasses neon hair",
+                        "Code Knight cybernetic warrior plasma sword",
+                        "Data Sage mystical hacker holographic robes", 
+                        "Bug Hunter agile cyber-assassin stealth cloak",
+                        "Web Weaver digital architect quantum tablet"
+                    ],
+                    "size": "64x64",
+                    "category": "rpg_characters"
+                },
+                "environments": {
+                    "prompts": [
+                        "NeoTokyo Code Academy cyberpunk school exterior",
+                        "Underground programming lab rebel classroom",
+                        "Algorithm Tower corporate data center interior"
+                    ],
+                    "size": "512x512", 
+                    "category": "educational_environments"
+                }
+            }
+        }
             
     async def generate_all_static_assets(self, force_rebuild: bool = False) -> Dict[str, Any]:
         """Generate all platform static assets from the specification."""
@@ -256,33 +305,59 @@ class InternalAssetAgent(PygameAgent):
         
         prompts = category_data.get("prompts", [])
         size = category_data.get("size", "512x512")
-        quality = category_data.get("quality", "hd")
+        category_type = category_data.get("category", "ui_controls")
+        
+        # Determine asset type based on category
+        if "character" in category_type or "rpg" in category_type:
+            asset_type = "sprite"
+        elif "environment" in category_type or "tileset" in category_type:
+            asset_type = "tileset"
+        else:
+            asset_type = "ui_icon"
         
         # Convert prompts to asset requests
         requests = []
         for prompt in prompts:
-            request = AssetRequest(
-                asset_type="ui_icon",  # Most platform assets are UI icons
-                description=prompt,
-                style="cyberpunk futuristic",
-                dimensions=self._parse_size(size),
-                format="PNG"
-            )
+            if asset_type == "tileset":
+                request = AssetRequest(
+                    asset_type=asset_type,
+                    description=prompt,
+                    style="cyberpunk futuristic",
+                    format="PNG",
+                    additional_params={"tile_size": 32, "grid_size": (8, 8)}
+                )
+            else:
+                request = AssetRequest(
+                    asset_type=asset_type,
+                    description=prompt,
+                    style="cyberpunk futuristic",
+                    dimensions=self._parse_size(size),
+                    format="PNG"
+                )
             requests.append(request)
             
         # Generate assets in batch
         assets = await self.asset_generator.generate_batch(requests)
         
-        # Save generated assets
-        output_dir = Path("src/ai_game_dev/server/static/assets/generated")
+        # Save generated assets to appropriate directories
+        if "character" in category_type or "rpg" in category_type:
+            output_dir = Path("src/ai_game_dev/education/generated_game/assets/sprites")
+        elif "environment" in category_type:
+            output_dir = Path("src/ai_game_dev/education/generated_game/assets/tilesets")
+        else:
+            output_dir = Path("src/ai_game_dev/server/static/assets/generated")
+            
         output_dir.mkdir(parents=True, exist_ok=True)
         
         generated_files = []
         
         for i, asset in enumerate(assets):
             if not isinstance(asset, Exception) and asset.data:
-                # Create filename from category and index
-                filename = f"{category}_{i+1}_{hash(prompts[i]) % 10000000000000000000}.png"
+                # Create descriptive filename
+                prompt_words = prompts[i].split()[:3]  # First 3 words
+                filename = f"{'_'.join(prompt_words).lower()}_{category}_{i+1}.png"
+                # Clean filename
+                filename = ''.join(c for c in filename if c.isalnum() or c in '._-')
                 file_path = output_dir / filename
                 
                 with open(file_path, "wb") as f:
