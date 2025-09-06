@@ -59,6 +59,7 @@ dependencies = [
     "htmy>=0.8.2",
     "fastapi>=0.116.1",
     "jinja2>=3.1.6",
+    "typer>=0.17.4",
 ]
 
 [project.optional-dependencies]
