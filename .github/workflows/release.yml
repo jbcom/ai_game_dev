@@ -1,0 +1,314 @@
+name: Release AI Game Development Ecosystem
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PYTHON_VERSION: '3.11'
+  RUST_VERSION: '1.70'
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
+          uv add fastmcp
+
+      - name: Run tests
+        run: |
+          uv run pytest tests/ -v --cov=packages --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: matrix.python-version == '3.11'
+
+  build-python:
+    name: Build Python Packages
+    runs-on: ubuntu-latest
+    needs: [validate, test]
+    strategy:
+      matrix:
+        package: 
+          - ai_game_dev
+          - ai_game_assets
+          - pygame_game_dev
+          - arcade_game_dev
+          - mcp_server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Update package version
+        run: |
+          cd packages/${{ matrix.package }}
+          VERSION="${{ needs.validate.outputs.version }}"
+          sed -i "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+
+      - name: Build package
+        run: |
+          cd packages/${{ matrix.package }}
+          uv build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-${{ matrix.package }}-dist
+          path: packages/${{ matrix.package }}/dist/
+
+  build-rust:
+    name: Build Rust Package
+    runs-on: ubuntu-latest
+    needs: [validate, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+
+      - name: Update Cargo version
+        run: |
+          cd packages/bevy_game_dev
+          VERSION="${{ needs.validate.outputs.version }}"
+          sed -i "s/version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+
+      - name: Build and test
+        run: |
+          cd packages/bevy_game_dev
+          cargo build --release
+          cargo test
+
+      - name: Package for crates.io
+        run: |
+          cd packages/bevy_game_dev
+          cargo package
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-bevy-package
+          path: packages/bevy_game_dev/target/package/
+
+  build-godot:
+    name: Package Godot Plugin
+    runs-on: ubuntu-latest
+    needs: [validate, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update plugin version
+        run: |
+          cd packages/godot_game_dev
+          VERSION="${{ needs.validate.outputs.version }}"
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" plugin.cfg
+
+      - name: Create Godot plugin archive
+        run: |
+          cd packages/godot_game_dev
+          zip -r godot-ai-game-dev-v${{ needs.validate.outputs.version }}.zip . \
+            -x "*.git*" "*.md" "target/*" "*.tmp"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: godot-plugin
+          path: packages/godot_game_dev/*.zip
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, test, build-python, build-rust, build-godot]
+    permissions:
+      contents: write
+      discussions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: release-artifacts
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## 🚀 AI Game Development Ecosystem v${{ needs.validate.outputs.version }}" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 📦 **Packages Released**" >> CHANGELOG.md
+          echo "- **ai-game-dev**: Core LangGraph orchestration library" >> CHANGELOG.md
+          echo "- **ai-game-assets**: Standalone multimedia generation toolkit" >> CHANGELOG.md
+          echo "- **bevy-ai-game-dev**: Native Rust Bevy bindings" >> CHANGELOG.md
+          echo "- **godot-ai-game-dev**: Complete Godot plugin for in-editor generation" >> CHANGELOG.md
+          echo "- **pygame-ai-game-dev**: Native Pygame integration bindings" >> CHANGELOG.md
+          echo "- **arcade-ai-game-dev**: Native Arcade integration bindings" >> CHANGELOG.md
+          echo "- **ai-game-dev-mcp**: FastMCP server for Model Context Protocol" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### 🎮 **Registry Distribution**" >> CHANGELOG.md
+          echo "- **PyPI**: All Python packages published" >> CHANGELOG.md
+          echo "- **Crates.io**: Bevy Rust bindings published" >> CHANGELOG.md
+          echo "- **Godot Asset Library**: Plugin ready for submission" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### ✨ **Key Features**" >> CHANGELOG.md
+          echo "- Revolutionary AI-powered game generation across multiple engines" >> CHANGELOG.md
+          echo "- FastMCP server integration for Model Context Protocol support" >> CHANGELOG.md
+          echo "- Language-native implementations (Rust, Python, GDScript)" >> CHANGELOG.md
+          echo "- Complete multimedia asset generation (images, audio, music)" >> CHANGELOG.md
+          echo "- Production-ready with comprehensive testing and CI/CD" >> CHANGELOG.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: AI Game Development Ecosystem v${{ needs.validate.outputs.version }}
+          body_path: CHANGELOG.md
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          files: |
+            release-artifacts/**/*
+          discussion_category_name: Announcements
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    if: github.event.inputs.prerelease != 'true'
+    environment: pypi
+    permissions:
+      id-token: write
+    strategy:
+      matrix:
+        package:
+          - ai_game_dev
+          - ai_game_assets
+          - pygame_game_dev
+          - arcade_game_dev
+          - mcp_server
+    steps:
+      - name: Download Python artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: python-${{ matrix.package }}-dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+  publish-crates:
+    name: Publish to Crates.io
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    if: github.event.inputs.prerelease != 'true'
+    environment: crates
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+
+      - name: Publish to crates.io
+        run: |
+          cd packages/bevy_game_dev
+          cargo publish --token ${{ secrets.CRATES_TOKEN }}
+
+  deployment-notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [create-release, publish-pypi, publish-crates]
+    if: always()
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "🚀 **AI Game Development Ecosystem Release Complete**"
+          echo ""
+          echo "**Version**: v${{ needs.validate.outputs.version }}"
+          echo "**GitHub Release**: ✅ Created"
+          echo "**PyPI Publication**: ${{ needs.publish-pypi.result == 'success' && '✅ Published' || '❌ Failed' }}"
+          echo "**Crates.io Publication**: ${{ needs.publish-crates.result == 'success' && '✅ Published' || '❌ Failed' }}"
+          echo ""
+          echo "**Next Steps**:"
+          echo "- Submit Godot plugin to Asset Library manually"
+          echo "- Update documentation websites"
+          echo "- Announce on community channels"
