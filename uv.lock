@@ -110,6 +110,11 @@ web = [
     { name = "streamlit" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "ai-game-dev", extras = ["pygame", "arcade", "audio", "ui", "web", "dev"], marker = "extra == 'all'" },
@@ -164,6 +169,9 @@ requires-dist = [
     { name = "xxhash", specifier = ">=3.5.0" },
 ]
 provides-extras = ["pygame", "bevy", "godot", "arcade", "audio", "ui", "web", "dev", "all"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.4.2" }]
 
 [[package]]
 name = "aiofiles"

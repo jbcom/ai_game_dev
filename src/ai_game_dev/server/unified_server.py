@@ -30,7 +30,7 @@ except ImportError:
     HTMY_AVAILABLE = False
 
 # Always import simple web interface as fallback
-from .simple_web import setup_simple_web_routes
+# Removed simple_web - using Jinja2 interface
 
 
 class UnifiedGameDevServer:
