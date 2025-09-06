@@ -43,25 +43,25 @@ class TestLLMProviderManager:
 
     def test_get_provider_nonexistent(self):
         """Test getting non-existent provider."""
-        manager = LLMManager()
+        manager = LLMProviderManager()
         
-        result = manager.get_provider("nonexistent")
-        assert result is None
+        with pytest.raises(ValueError):
+            manager.get_provider("nonexistent")
 
     def test_get_default_provider(self):
         """Test getting default provider."""
-        manager = LLMManager()
-        mock_provider = MagicMock()
-        manager.add_provider("test", mock_provider, is_default=True)
+        manager = LLMProviderManager()
+        provider = manager.add_provider("test", LLMProvider.OPENAI, "gpt-4", api_key="test-key")
+        manager.set_default_provider("test")
         
         result = manager.get_provider()
-        assert result == mock_provider
+        assert result == provider
 
     def test_list_providers(self):
         """Test listing all providers."""
-        manager = LLMManager()
-        manager.add_provider("provider1", MagicMock())
-        manager.add_provider("provider2", MagicMock())
+        manager = LLMProviderManager()
+        manager.add_provider("provider1", LLMProvider.OPENAI, "gpt-4", api_key="test-key")
+        manager.add_provider("provider2", LLMProvider.ANTHROPIC, "claude-3", api_key="test-key")
         
         providers = manager.list_providers()
         assert "provider1" in providers
@@ -181,5 +181,5 @@ class TestProviderSetup:
         """Test creating default manager with no API keys."""
         manager = create_default_manager()
         
-        assert len(manager.providers) == 0
-        assert manager.default_provider is None
+        assert len(manager._providers) == 0
+        assert manager._default_provider is None

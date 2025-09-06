@@ -10,8 +10,17 @@ import aiofiles
 from openai import OpenAI
 
 # Simplified types without external dependencies
-ImageSize = str  # "1024x1024", "512x512", etc.
-ImageQuality = str  # "standard", "hd"
+from typing import Literal
+
+ImageSize = Literal["1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+ImageQuality = Literal["standard", "hd"]
+
+# Model3D specification type
+class Model3DSpec:
+    """3D model specification."""
+    def __init__(self, format: str = "gltf", quality: str = "medium"):
+        self.format = format
+        self.quality = quality
 
 # Local config
 IMAGES_DIR = Path("generated_assets/images")

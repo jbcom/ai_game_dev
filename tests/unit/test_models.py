@@ -7,7 +7,14 @@ from ai_game_dev.models import (
     ProjectFile,
     GameEngine,
     GameType,
-    ComplexityLevel
+    ComplexityLevel,
+    GameFeature,
+    AssetRequirement,
+    NPCCharacter,
+    DialogueNode,
+    QuestObjective,
+    GameWorld,
+    EngineConfig
 )
 
 
