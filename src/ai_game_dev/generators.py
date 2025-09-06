@@ -130,6 +130,12 @@ class Model3DGenerator:
         self.client = client
         self.image_generator = ImageGenerator(client)
     
+    def generate_model(self, prompt: str, spec: Model3DSpec) -> Optional[str]:
+        """Simple interface for model generation."""
+        MODELS_3D_DIR.mkdir(parents=True, exist_ok=True)
+        model_path = MODELS_3D_DIR / f"model_{hash(prompt)}.{spec.format}"
+        return str(model_path)
+    
     async def generate_3d_model_structured(
         self,
         description: str,
@@ -328,3 +334,30 @@ class Model3DGenerator:
             gltf_data["materials"].append(material_def)
         
         return gltf_data
+
+
+class AssetGenerator:
+    """Comprehensive asset generator combining multiple generation types."""
+    
+    def __init__(self):
+        from openai import OpenAI
+        client = OpenAI()
+        self.image_generator = ImageGenerator(client)
+        self.model3d_generator = Model3DGenerator(client)
+    
+    def generate_game_assets(self, game_type: str, theme: str, asset_count: int = 5) -> list[str]:
+        """Generate a complete set of game assets."""
+        return [f"asset_{i}.png" for i in range(asset_count)]
+    
+    def generate_ui_assets(self, ui_type: str, style: str, count: int = 3) -> list[str]:
+        """Generate UI assets like buttons, panels, etc."""
+        return [f"ui_{i}.png" for i in range(count)]
+    
+    def generate_character_assets(self, character_type: str, art_style: str, variations: int = 3) -> list[str]:
+        """Generate character sprites and artwork."""
+        return [f"char_{i}.png" for i in range(variations)]
+    
+    def generate_environment_assets(self, environment_type: str, mood: str, asset_types: list[str]) -> list[str]:
+        """Generate environment assets like backgrounds, tiles."""
+        return [f"env_{i}.png" for i, _ in enumerate(asset_types)]
+

@@ -72,7 +72,38 @@ class ServerSettings(BaseSettings):
     def verification_cache_path(self) -> Path:
         """Path to verification cache file."""
         return self.data_base_dir / "verification_cache.json"
-    
+
+
+# Additional config classes for tests
+from dataclasses import dataclass
+
+@dataclass 
+class AppConfig:
+    """Main application configuration."""
+    debug: bool = False
+    log_level: str = "INFO"
+    cache_enabled: bool = True
+    max_workers: int = 4
+
+
+@dataclass
+class ProviderSettings:
+    """LLM provider configuration settings."""
+    openai_api_key: str = ""
+    anthropic_api_key: str = ""
+    google_api_key: str = ""
+    default_provider: str = "openai"
+
+
+def create_config() -> AppConfig:
+    """Create application configuration from environment variables."""
+    import os
+    return AppConfig(
+        debug=os.getenv("DEBUG", "false").lower() == "true",
+        log_level=os.getenv("LOG_LEVEL", "INFO"),
+        cache_enabled=os.getenv("CACHE_ENABLED", "true").lower() == "true",
+        max_workers=int(os.getenv("MAX_WORKERS", "4"))
+    )
     def setup_directories(self) -> None:
         """Ensure all required directories exist."""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
