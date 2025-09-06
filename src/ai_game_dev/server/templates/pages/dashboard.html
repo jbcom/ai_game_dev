@@ -4,13 +4,10 @@
 
 {% block content %}
 <div class="hero min-h-96 bg-base-200/20 rounded-box mb-8 glow relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10">
-        <img src="/static/assets/backgrounds/tech-pattern.png" alt="" class="w-full h-full object-cover">
-    </div>
     <div class="hero-content text-center relative z-10">
         <div class="max-w-md">
             <div class="flex justify-center mb-6">
-                <img src="/static/assets/logos/main-logo.png" alt="AI Game Dev" class="w-24 h-24 object-contain glow">
+                <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-24 h-24 object-contain glow">
             </div>
             <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Welcome to AI Game Development
@@ -107,16 +104,22 @@
         <h2 class="card-title text-2xl mb-6">🎮 Supported Game Engines</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             {% for engine in engines %}
-            <div class="card bg-base-200/30 hover:bg-base-200/50 transition-colors">
+            <div class="card glass-panel hover:scale-105 transition-all duration-300">
                 <div class="card-body">
                     <h3 class="card-title">
-                        <img src="/static/assets/engine-icons/{{ engine }}.png" alt="{{ engine|title }}" class="w-8 h-8 object-contain">
+                        {% if engine == 'pygame' %}
+                        <div class="w-8 h-8 rounded bg-orange-500 flex items-center justify-center text-lg">🐍</div>
+                        {% elif engine == 'bevy' %}
+                        <div class="w-8 h-8 rounded bg-orange-600 flex items-center justify-center text-lg">🦀</div>
+                        {% elif engine == 'godot' %}
+                        <div class="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-lg">🎮</div>
+                        {% endif %}
                         {{ engine|title }}
                         <div class="badge badge-primary">{{ engine_info[engine].language }}</div>
                     </h3>
                     <p class="text-sm opacity-80">{{ engine_info[engine].description }}</p>
                     <div class="card-actions justify-end">
-                        <div class="badge badge-success">Ready</div>
+                        <div class="badge badge-success">✅ Ready</div>
                     </div>
                 </div>
             </div>

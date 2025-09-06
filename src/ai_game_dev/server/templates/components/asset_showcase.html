@@ -1,84 +1,106 @@
-<!-- Asset showcase component for demonstrating custom UI elements -->
-<div class="card bg-base-100/20 backdrop-blur-sm shadow-xl mb-8">
-    <div class="card-body">
-        <h2 class="card-title text-2xl mb-6">🎨 Custom UI Asset Library</h2>
-        
-        <!-- Button Showcase -->
-        <div class="mb-6">
-            <h3 class="font-bold mb-3">Custom Buttons</h3>
+<!-- Modern UI Components Showcase -->
+<div class="mt-8">
+    <h2 class="text-2xl font-bold mb-6 text-center">🎨 Modern UI Components</h2>
+    
+    <!-- Interactive Buttons -->
+    <div class="card glass-panel shadow-xl mb-6">
+        <div class="card-body">
+            <h3 class="text-xl font-semibold mb-4">Interactive Buttons</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center">
-                    <img src="/static/assets/buttons/primary-normal.png" alt="Primary Normal" class="w-full max-w-32 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Primary Normal</p>
+                    <button class="btn custom-button mb-2 w-full">Primary</button>
+                    <p class="text-xs">Primary Button</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/buttons/primary-hover.png" alt="Primary Hover" class="w-full max-w-32 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Primary Hover</p>
+                    <button class="btn btn-secondary mb-2 w-full">Secondary</button>
+                    <p class="text-xs">Secondary Button</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/buttons/secondary-normal.png" alt="Secondary Normal" class="w-full max-w-32 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Secondary Normal</p>
+                    <button class="btn btn-success mb-2 w-full">Success</button>
+                    <p class="text-xs">Success Button</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/buttons/success-normal.png" alt="Success Normal" class="w-full max-w-32 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Success Normal</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Progress Bars -->
-        <div class="mb-6">
-            <h3 class="font-bold mb-3">Progress Indicators</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center">
-                    <img src="/static/assets/progress/linear-bar.png" alt="Linear Bar" class="w-full max-w-48 mx-auto mb-2">
-                    <p class="text-xs">Linear Progress Bar</p>
-                </div>
-                <div class="text-center">
-                    <img src="/static/assets/progress/circular-ring.png" alt="Circular Ring" class="w-full max-w-32 mx-auto mb-2">
-                    <p class="text-xs">Circular Progress Ring</p>
-                </div>
-                <div class="text-center">
-                    <img src="/static/assets/progress/step-indicator.png" alt="Step Indicator" class="w-full max-w-48 mx-auto mb-2">
-                    <p class="text-xs">Step Indicator</p>
+                    <button class="btn btn-outline mb-2 w-full">Outline</button>
+                    <p class="text-xs">Outline Button</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Engine Icons -->
-        <div class="mb-6">
-            <h3 class="font-bold mb-3">Engine Icons</h3>
-            <div class="grid grid-cols-3 gap-4">
+    </div>
+    
+    <!-- Progress Indicators -->
+    <div class="card glass-panel shadow-xl mb-6">
+        <div class="card-body">
+            <h3 class="text-xl font-semibold mb-4">Progress Indicators</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="text-center">
-                    <img src="/static/assets/engine-icons/pygame.png" alt="Pygame" class="w-full max-w-24 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Pygame</p>
+                    <div class="mb-4 flex justify-center">
+                        <div class="radial-progress text-primary" style="--value:70;">70%</div>
+                    </div>
+                    <p class="text-sm">Circular Progress</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/engine-icons/bevy.png" alt="Bevy" class="w-full max-w-24 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Bevy</p>
+                    <div class="mb-4">
+                        <div class="progress-enhanced w-full"></div>
+                    </div>
+                    <p class="text-sm">Linear Progress Bar</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/engine-icons/godot.png" alt="Godot" class="w-full max-w-24 mx-auto mb-2 hover:scale-105 transition-transform">
-                    <p class="text-xs">Godot</p>
+                    <div class="mb-4">
+                        <div class="steps steps-horizontal">
+                            <div class="step step-primary">✓</div>
+                            <div class="step step-primary">✓</div>
+                            <div class="step">○</div>
+                        </div>
+                    </div>
+                    <p class="text-sm">Step Indicator</p>
                 </div>
             </div>
         </div>
-        
-        <!-- Glass Panels -->
-        <div>
-            <h3 class="font-bold mb-3">Glass Effect Panels</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    </div>
+    
+    <!-- Game Engines -->
+    <div class="card glass-panel shadow-xl mb-6">
+        <div class="card-body">
+            <h3 class="text-xl font-semibold mb-4">Game Engines</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="text-center">
-                    <img src="/static/assets/panels/card-glass.png" alt="Glass Card" class="w-full max-w-48 mx-auto mb-2">
-                    <p class="text-xs">Glass Card Panel</p>
+                    <div class="mb-4 flex justify-center">
+                        <div class="w-16 h-16 rounded-lg bg-orange-500 flex items-center justify-center text-3xl">🐍</div>
+                    </div>
+                    <p class="text-sm font-medium">Pygame</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/panels/modal-glass.png" alt="Glass Modal" class="w-full max-w-48 mx-auto mb-2">
-                    <p class="text-xs">Glass Modal Panel</p>
+                    <div class="mb-4 flex justify-center">
+                        <div class="w-16 h-16 rounded-lg bg-orange-600 flex items-center justify-center text-3xl">🦀</div>
+                    </div>
+                    <p class="text-sm font-medium">Bevy</p>
                 </div>
                 <div class="text-center">
-                    <img src="/static/assets/panels/sidebar-glass.png" alt="Glass Sidebar" class="w-full max-w-48 mx-auto mb-2">
-                    <p class="text-xs">Glass Sidebar Panel</p>
+                    <div class="mb-4 flex justify-center">
+                        <div class="w-16 h-16 rounded-lg bg-blue-500 flex items-center justify-center text-3xl">🎮</div>
+                    </div>
+                    <p class="text-sm font-medium">Godot</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modern Effects -->
+    <div class="card glass-panel shadow-xl">
+        <div class="card-body">
+            <h3 class="text-xl font-semibold mb-4">Modern Effects</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-4 text-center">
+                    <div class="mb-2 text-2xl">💎</div>
+                    <p class="text-sm">Glass Effect</p>
+                </div>
+                <div class="card bg-gradient-to-br from-primary/20 to-secondary/20 p-4 text-center">
+                    <div class="mb-2 text-2xl">🌈</div>
+                    <p class="text-sm">Gradient Background</p>
+                </div>
+                <div class="card bg-base-100/30 shadow-lg p-4 text-center glow">
+                    <div class="mb-2 text-2xl">✨</div>
+                    <p class="text-sm">Glow Effect</p>
                 </div>
             </div>
         </div>

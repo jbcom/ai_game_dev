@@ -16,22 +16,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "AI Game Dev System"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "AI Game Dev Server"
-
-[[workflows.workflow]]
-name = "AI Game Dev System"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uv run ai-game-dev-server"
 
 [[workflows.workflow]]
 name = "AI Game Dev Server"

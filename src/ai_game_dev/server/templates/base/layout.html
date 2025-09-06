@@ -36,10 +36,9 @@
     <!-- Custom styles with generated assets -->
     <style>
         .game-dev-gradient { 
-            background: url('/static/assets/backgrounds/tech-pattern.png'), 
-                        linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            background-size: cover, cover;
-            background-blend-mode: overlay;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%),
+                        radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.1) 0%, transparent 50%);
         }
         .glow { 
             box-shadow: 0 0 20px rgba(100, 255, 218, 0.3); 
@@ -60,14 +59,38 @@
             opacity: 1; 
         }
         .logo-main {
-            content: url('/static/assets/logos/main-logo.png');
             width: 40px;
             height: 40px;
         }
         .progress-enhanced {
-            background-image: url('/static/assets/ui/progress-bars.png');
-            background-size: contain;
-            background-repeat: no-repeat;
+            background: linear-gradient(90deg, #64ffda 0%, #1976d2 100%);
+            height: 8px;
+            border-radius: 4px;
+        }
+        .engine-icon {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+        }
+        .custom-button {
+            background: linear-gradient(135deg, #64ffda 0%, #1976d2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .custom-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.3);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 16px;
         }
     </style>
     
