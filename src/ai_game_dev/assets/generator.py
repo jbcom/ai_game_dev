@@ -1,88 +1,91 @@
+"""
+Production Asset Generator using OpenAI's latest image generation capabilities.
+Supports single generation, batch processing, variants, and masked edits.
+"""
+
 import asyncio
 import base64
-import io
+import os
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass
-from PIL import Image, ImageDraw, ImageFont
+from typing import Dict, List, Optional, Any, Literal
+from dataclasses import dataclass, field
 
-from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI
+import aiofiles
+from openai import AsyncOpenAI
+
 
 @dataclass
 class AssetRequest:
+    """Request for asset generation."""
     asset_type: str
     description: str
     style: str = "modern"
     dimensions: Optional[tuple[int, int]] = None
     format: str = "PNG"
-    additional_params: Dict[str, Any] = None
+    additional_params: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if self.additional_params is None:
-            self.additional_params = {}
 
 @dataclass
 class GeneratedAsset:
+    """Generated asset with data and metadata."""
     asset_type: str
     description: str
-    file_path: Optional[Path] = None
     data: Optional[bytes] = None
-    metadata: Dict[str, Any] = None
+    file_path: Optional[Path] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if self.metadata is None:
-            self.metadata = {}
 
 class AssetGenerator:
-    def __init__(self):
-        self.llm = None
-        self._init_llm()
-
-    def _init_llm(self):
-        try:
-            self.llm = ChatOpenAI(model="gpt-4", temperature=0.7)
-        except Exception:
-            pass
+    """Production asset generator using OpenAI's image generation capabilities."""
+    
+    def __init__(self, api_key: Optional[str] = None):
+        self.client = AsyncOpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
+        self.cache_dir = Path("generated_assets")
+        self.cache_dir.mkdir(exist_ok=True)
+        
+    async def __aenter__(self):
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.client.close()
 
     async def generate_sprite(self, request: AssetRequest) -> GeneratedAsset:
-        """Generate a game sprite."""
-        if request.asset_type != "sprite":
-            raise ValueError("This method only handles sprite generation")
-
+        """Generate a game sprite using OpenAI image generation."""
         dimensions = request.dimensions or (64, 64)
-        sprite_data = self._create_placeholder_sprite(
-            dimensions, 
-            request.description, 
-            request.style
+        
+        prompt = self._create_sprite_prompt(request.description, request.style, dimensions)
+        
+        image_data = await self._generate_image(
+            prompt=prompt,
+            size=self._get_openai_size(dimensions),
+            style="vivid" if "cyberpunk" in request.style.lower() else "natural"
         )
-
+        
         return GeneratedAsset(
             asset_type="sprite",
             description=request.description,
-            data=sprite_data,
+            data=image_data,
             metadata={
                 "dimensions": dimensions,
                 "style": request.style,
-                "format": request.format
+                "format": request.format,
+                "prompt": prompt
             }
         )
 
     async def generate_tileset(self, request: AssetRequest) -> GeneratedAsset:
         """Generate a tileset for backgrounds."""
-        if request.asset_type != "tileset":
-            raise ValueError("This method only handles tileset generation")
-
         tile_size = request.additional_params.get("tile_size", 32)
         grid_size = request.additional_params.get("grid_size", (8, 8))
         
-        tileset_data = self._create_placeholder_tileset(
-            tile_size, 
-            grid_size, 
-            request.description,
-            request.style
+        prompt = self._create_tileset_prompt(request.description, request.style, tile_size, grid_size)
+        
+        tileset_data = await self._generate_image(
+            prompt=prompt,
+            size="1024x1024",
+            style="vivid" if "cyberpunk" in request.style.lower() else "natural"
         )
-
+        
         return GeneratedAsset(
             asset_type="tileset",
             description=request.description,
@@ -91,77 +94,23 @@ class AssetGenerator:
                 "tile_size": tile_size,
                 "grid_size": grid_size,
                 "style": request.style,
-                "format": request.format
-            }
-        )
-
-    async def generate_sound(self, request: AssetRequest) -> GeneratedAsset:
-        """Generate game sound effects."""
-        if request.asset_type != "sound":
-            raise ValueError("This method only handles sound generation")
-
-        duration = request.additional_params.get("duration", 1.0)
-        sample_rate = request.additional_params.get("sample_rate", 44100)
-        
-        sound_data = self._create_placeholder_sound(
-            duration, 
-            sample_rate, 
-            request.description
-        )
-
-        return GeneratedAsset(
-            asset_type="sound",
-            description=request.description,
-            data=sound_data,
-            metadata={
-                "duration": duration,
-                "sample_rate": sample_rate,
-                "format": "WAV"
-            }
-        )
-
-    async def generate_music(self, request: AssetRequest) -> GeneratedAsset:
-        """Generate background music."""
-        if request.asset_type != "music":
-            raise ValueError("This method only handles music generation")
-
-        duration = request.additional_params.get("duration", 30.0)
-        tempo = request.additional_params.get("tempo", 120)
-        key = request.additional_params.get("key", "C")
-        
-        music_data = self._create_placeholder_music(
-            duration, 
-            tempo, 
-            key, 
-            request.description,
-            request.style
-        )
-
-        return GeneratedAsset(
-            asset_type="music",
-            description=request.description,
-            data=music_data,
-            metadata={
-                "duration": duration,
-                "tempo": tempo,
-                "key": key,
-                "style": request.style,
-                "format": "WAV"
+                "format": request.format,
+                "prompt": prompt
             }
         )
 
     async def generate_ui_icon(self, request: AssetRequest) -> GeneratedAsset:
-        """Generate UI icons like buttons and controls."""
-        if request.asset_type != "ui_icon":
-            raise ValueError("This method only handles UI icon generation")
-
-        dimensions = request.dimensions or (64, 64)
-        icon_data = self._create_ui_icon(
-            dimensions, 
-            request.description, 
-            request.style
+        """Generate UI icons using OpenAI image generation."""
+        dimensions = request.dimensions or (256, 256)
+        
+        prompt = self._create_ui_icon_prompt(request.description, request.style, dimensions)
+        
+        icon_data = await self._generate_image(
+            prompt=prompt,
+            size=self._get_openai_size(dimensions),
+            style="vivid" if "cyberpunk" in request.style.lower() else "natural"
         )
-
+        
         return GeneratedAsset(
             asset_type="ui_icon",
             description=request.description,
@@ -169,255 +118,186 @@ class AssetGenerator:
             metadata={
                 "dimensions": dimensions,
                 "style": request.style,
-                "format": request.format
+                "format": request.format,
+                "prompt": prompt
             }
         )
 
-    def _create_placeholder_sprite(self, dimensions: tuple[int, int], description: str, style: str) -> bytes:
-        """Create a placeholder sprite with basic shapes and colors."""
-        width, height = dimensions
-        img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-
-        # Color scheme based on style
-        colors = {
-            "modern": [(100, 149, 237), (70, 130, 180), (25, 25, 112)],
-            "pixel": [(255, 69, 0), (255, 140, 0), (255, 215, 0)],
-            "minimalist": [(128, 128, 128), (169, 169, 169), (211, 211, 211)],
-            "cartoon": [(255, 105, 180), (255, 20, 147), (219, 112, 147)],
-            "realistic": [(139, 69, 19), (160, 82, 45), (210, 180, 140)]
-        }
-
-        color_set = colors.get(style, colors["modern"])
+    async def generate_image_variant(self, base_image_data: bytes, request: AssetRequest) -> GeneratedAsset:
+        """Generate variants of an existing image."""
         
-        # Generate sprite based on description keywords
-        if "player" in description.lower() or "character" in description.lower():
-            # Draw a simple character
-            draw.ellipse([width//4, height//8, 3*width//4, height//2], fill=color_set[0])  # Head
-            draw.rectangle([width//3, height//2, 2*width//3, 3*height//4], fill=color_set[1])  # Body
-            draw.rectangle([width//4, 3*height//4, 3*width//4, height], fill=color_set[2])  # Legs
-        elif "enemy" in description.lower() or "monster" in description.lower():
-            # Draw a more angular/threatening shape
-            points = [
-                (width//2, height//8),
-                (3*width//4, height//2),
-                (width//2, 7*height//8),
-                (width//4, height//2)
-            ]
-            draw.polygon(points, fill=color_set[0])
-        else:
-            # Generic object - draw a rectangle with details
-            draw.rectangle([width//6, height//6, 5*width//6, 5*height//6], fill=color_set[0])
-            draw.rectangle([width//4, height//4, 3*width//4, 3*height//4], fill=color_set[1])
-
-        # Save to bytes
-        buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
-        return buffer.getvalue()
-
-    def _create_placeholder_tileset(self, tile_size: int, grid_size: tuple[int, int], description: str, style: str) -> bytes:
-        """Create a placeholder tileset."""
-        grid_width, grid_height = grid_size
-        total_width = tile_size * grid_width
-        total_height = tile_size * grid_height
-        
-        img = Image.new("RGBA", (total_width, total_height), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-
-        colors = {
-            "grass": (34, 139, 34),
-            "stone": (128, 128, 128),
-            "water": (30, 144, 255),
-            "dirt": (139, 69, 19),
-            "sand": (238, 203, 173)
-        }
-
-        # Fill tiles with different patterns
-        for y in range(grid_height):
-            for x in range(grid_width):
-                left = x * tile_size
-                top = y * tile_size
-                right = left + tile_size
-                bottom = top + tile_size
-                
-                # Choose color based on position and description
-                if "grass" in description.lower():
-                    color = colors["grass"]
-                elif "stone" in description.lower() or "rock" in description.lower():
-                    color = colors["stone"]
-                elif "water" in description.lower():
-                    color = colors["water"]
-                elif "desert" in description.lower() or "sand" in description.lower():
-                    color = colors["sand"]
-                else:
-                    color = colors["dirt"]
-                
-                # Add some variation
-                variation = (x + y) % 3
-                adjusted_color = tuple(min(255, c + variation * 10) for c in color)
-                
-                draw.rectangle([left, top, right, bottom], fill=adjusted_color)
-                draw.rectangle([left, top, right, bottom], outline=(0, 0, 0, 100), width=1)
-
-        buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
-        return buffer.getvalue()
-
-    def _create_placeholder_sound(self, duration: float, sample_rate: int, description: str) -> bytes:
-        """Create a placeholder sound effect."""
-        import struct
-        import math
-        
-        num_samples = int(duration * sample_rate)
-        
-        # Generate different waveforms based on description
-        if "jump" in description.lower():
-            # Rising tone
-            samples = [math.sin(2 * math.pi * (440 + i * 2) * i / sample_rate) * 0.5 for i in range(num_samples)]
-        elif "hit" in description.lower() or "impact" in description.lower():
-            # Sharp attack, quick decay
-            samples = [math.sin(2 * math.pi * 800 * i / sample_rate) * math.exp(-i / (sample_rate * 0.1)) for i in range(num_samples)]
-        elif "coin" in description.lower() or "pickup" in description.lower():
-            # Pleasant ascending tones
-            samples = [math.sin(2 * math.pi * (440 + i * 4) * i / sample_rate) * 0.3 for i in range(num_samples)]
-        else:
-            # Default beep
-            samples = [math.sin(2 * math.pi * 440 * i / sample_rate) * 0.3 for i in range(num_samples)]
-        
-        # Convert to 16-bit PCM
-        pcm_samples = [int(sample * 32767) for sample in samples]
-        
-        # Create WAV file
-        wav_data = b'RIFF'
-        wav_data += struct.pack('<I', 36 + len(pcm_samples) * 2)
-        wav_data += b'WAVE'
-        wav_data += b'fmt '
-        wav_data += struct.pack('<I', 16)  # Subchunk1Size
-        wav_data += struct.pack('<H', 1)   # AudioFormat (PCM)
-        wav_data += struct.pack('<H', 1)   # NumChannels (mono)
-        wav_data += struct.pack('<I', sample_rate)  # SampleRate
-        wav_data += struct.pack('<I', sample_rate * 2)  # ByteRate
-        wav_data += struct.pack('<H', 2)   # BlockAlign
-        wav_data += struct.pack('<H', 16)  # BitsPerSample
-        wav_data += b'data'
-        wav_data += struct.pack('<I', len(pcm_samples) * 2)
-        
-        for sample in pcm_samples:
-            wav_data += struct.pack('<h', sample)
-        
-        return wav_data
-
-    def _create_placeholder_music(self, duration: float, tempo: int, key: str, description: str, style: str) -> bytes:
-        """Create placeholder background music."""
-        # For now, create a simple tone sequence
-        # In a real implementation, this would use music21 or other music generation libraries
-        return self._create_placeholder_sound(duration, 44100, f"music {description} {style}")
-
-    def _create_ui_icon(self, dimensions: tuple[int, int], description: str, style: str) -> bytes:
-        """Create UI icons with cyberpunk/tech styling."""
-        width, height = dimensions
-        img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-
-        # Cyberpunk color palette
-        neon_cyan = (0, 255, 255)
-        neon_pink = (255, 20, 147)
-        electric_blue = (30, 144, 255)
-        bright_white = (255, 255, 255)
-        dark_gray = (40, 40, 40)
-
-        # Create icon based on description
-        if "pause" in description.lower():
-            # Draw pause bars with neon glow effect
-            bar_width = width // 6
-            bar_height = height // 2
-            bar1_x = width // 3 - bar_width // 2
-            bar2_x = 2 * width // 3 - bar_width // 2
-            bar_y = height // 4
-
-            # Glow effect (multiple layers)
-            for offset in range(3, 0, -1):
-                alpha = 50 + (3 - offset) * 30
-                glow_color = (*neon_cyan, alpha)
-                
-                # Left bar glow
-                draw.rectangle([
-                    bar1_x - offset, bar_y - offset,
-                    bar1_x + bar_width + offset, bar_y + bar_height + offset
-                ], fill=glow_color)
-                
-                # Right bar glow
-                draw.rectangle([
-                    bar2_x - offset, bar_y - offset,
-                    bar2_x + bar_width + offset, bar_y + bar_height + offset
-                ], fill=glow_color)
-
-            # Main bars
-            draw.rectangle([bar1_x, bar_y, bar1_x + bar_width, bar_y + bar_height], fill=bright_white)
-            draw.rectangle([bar2_x, bar_y, bar2_x + bar_width, bar_y + bar_height], fill=bright_white)
-
-        elif "play" in description.lower():
-            # Draw play triangle with neon glow
-            triangle_size = min(width, height) // 3
-            center_x, center_y = width // 2, height // 2
+        temp_path = self.cache_dir / "temp_base.png"
+        async with aiofiles.open(temp_path, "wb") as f:
+            await f.write(base_image_data)
             
-            points = [
-                (center_x - triangle_size // 2, center_y - triangle_size // 2),
-                (center_x + triangle_size // 2, center_y),
-                (center_x - triangle_size // 2, center_y + triangle_size // 2)
-            ]
+        try:
+            with open(temp_path, "rb") as image_file:
+                response = await self.client.images.create_variation(
+                    image=image_file,
+                    n=1,
+                    size=request.additional_params.get("size", "1024x1024"),
+                    response_format="b64_json"
+                )
+                
+            if response.data and response.data[0].b64_json:
+                variant_data = base64.b64decode(response.data[0].b64_json)
+            else:
+                raise RuntimeError("No variant data returned from OpenAI")
+            
+            return GeneratedAsset(
+                asset_type="variant",
+                description=f"Variant of: {request.description}",
+                data=variant_data,
+                metadata={
+                    "base_description": request.description,
+                    "style": request.style,
+                    "format": request.format
+                }
+            )
+            
+        finally:
+            if temp_path.exists():
+                temp_path.unlink()
 
-            # Glow effect
-            for offset in range(3, 0, -1):
-                alpha = 50 + (3 - offset) * 30
-                glow_points = [
-                    (p[0] - offset, p[1] - offset) if i == 0 else
-                    (p[0] + offset, p[1]) if i == 1 else
-                    (p[0] - offset, p[1] + offset)
-                    for i, p in enumerate(points)
-                ]
-                draw.polygon(glow_points, fill=(*neon_pink, alpha))
+    async def generate_masked_edit(self, base_image_data: bytes, mask_data: bytes, request: AssetRequest) -> GeneratedAsset:
+        """Generate targeted edits using image masks."""
+        
+        temp_base = self.cache_dir / "temp_base.png"
+        temp_mask = self.cache_dir / "temp_mask.png"
+        
+        async with aiofiles.open(temp_base, "wb") as f:
+            await f.write(base_image_data)
+        async with aiofiles.open(temp_mask, "wb") as f:
+            await f.write(mask_data)
+            
+        try:
+            with open(temp_base, "rb") as image_file, open(temp_mask, "rb") as mask_file:
+                response = await self.client.images.edit(
+                    image=image_file,
+                    mask=mask_file,
+                    prompt=request.description,
+                    n=1,
+                    size=request.additional_params.get("size", "1024x1024"),
+                    response_format="b64_json"
+                )
+                
+            if response.data and response.data[0].b64_json:
+                edited_data = base64.b64decode(response.data[0].b64_json)
+            else:
+                raise RuntimeError("No edited data returned from OpenAI")
+            
+            return GeneratedAsset(
+                asset_type="masked_edit",
+                description=request.description,
+                data=edited_data,
+                metadata={
+                    "edit_prompt": request.description,
+                    "style": request.style,
+                    "format": request.format
+                }
+            )
+            
+        finally:
+            if temp_base.exists():
+                temp_base.unlink()
+            if temp_mask.exists():
+                temp_mask.unlink()
 
-            # Main triangle
-            draw.polygon(points, fill=bright_white)
-
-        elif "stop" in description.lower():
-            # Draw stop square with neon glow
-            square_size = min(width, height) // 2
-            square_x = (width - square_size) // 2
-            square_y = (height - square_size) // 2
-
-            # Glow effect
-            for offset in range(3, 0, -1):
-                alpha = 50 + (3 - offset) * 30
-                draw.rectangle([
-                    square_x - offset, square_y - offset,
-                    square_x + square_size + offset, square_y + square_size + offset
-                ], fill=(*electric_blue, alpha))
-
-            # Main square
-            draw.rectangle([square_x, square_y, square_x + square_size, square_y + square_size], fill=bright_white)
-
-        # Save to bytes
-        buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
-        return buffer.getvalue()
-
-    async def batch_generate(self, requests: List[AssetRequest]) -> List[GeneratedAsset]:
-        """Generate multiple assets concurrently."""
-        tasks = []
-        for request in requests:
+    async def generate_batch(self, requests: List[AssetRequest]) -> List[GeneratedAsset]:
+        """Generate multiple assets in batch with concurrency control."""
+        
+        async def generate_single(request: AssetRequest) -> GeneratedAsset:
             if request.asset_type == "sprite":
-                tasks.append(self.generate_sprite(request))
+                return await self.generate_sprite(request)
             elif request.asset_type == "tileset":
-                tasks.append(self.generate_tileset(request))
-            elif request.asset_type == "sound":
-                tasks.append(self.generate_sound(request))
-            elif request.asset_type == "music":
-                tasks.append(self.generate_music(request))
+                return await self.generate_tileset(request)
             elif request.asset_type == "ui_icon":
-                tasks.append(self.generate_ui_icon(request))
+                return await self.generate_ui_icon(request)
             else:
                 raise ValueError(f"Unsupported asset type: {request.asset_type}")
+                
+        # Process in batches to respect rate limits
+        batch_size = 5
+        results = []
         
-        return await asyncio.gather(*tasks)
+        for i in range(0, len(requests), batch_size):
+            batch = requests[i:i + batch_size]
+            batch_results = await asyncio.gather(
+                *[generate_single(req) for req in batch],
+                return_exceptions=True
+            )
+            results.extend(batch_results)
+            
+            # Small delay between batches to respect rate limits
+            if i + batch_size < len(requests):
+                await asyncio.sleep(2)
+                
+        return results
+
+    async def _generate_image(
+        self, 
+        prompt: str, 
+        size: Literal["256x256", "512x512", "1024x1024", "1024x1792", "1792x1024"] = "1024x1024",
+        style: Literal["vivid", "natural"] = "natural"
+    ) -> bytes:
+        """Core image generation using OpenAI DALL-E 3."""
+        
+        try:
+            response = await self.client.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                size=size,
+                quality="hd",
+                style=style,
+                n=1,
+                response_format="b64_json"
+            )
+            
+            if response.data and response.data[0].b64_json:
+                return base64.b64decode(response.data[0].b64_json)
+            else:
+                raise RuntimeError("No image data returned from OpenAI")
+            
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate image: {e}")
+
+    def _create_sprite_prompt(self, description: str, style: str, dimensions: tuple) -> str:
+        """Create optimized prompt for sprite generation."""
+        return (
+            f"{description}, {style} style, {dimensions[0]}x{dimensions[1]} pixel art sprite, "
+            f"transparent background, game asset, high quality, detailed, "
+            f"suitable for 2D game development, centered composition"
+        )
+        
+    def _create_tileset_prompt(self, description: str, style: str, tile_size: int, grid_size: tuple) -> str:
+        """Create optimized prompt for tileset generation."""
+        return (
+            f"{description}, {style} style, seamless tileable pattern, "
+            f"{tile_size}px tiles in {grid_size[0]}x{grid_size[1]} grid, "
+            f"game tileset, environment asset, high quality, detailed, "
+            f"suitable for 2D game backgrounds, repeatable pattern"
+        )
+        
+    def _create_ui_icon_prompt(self, description: str, style: str, dimensions: tuple) -> str:
+        """Create optimized prompt for UI icon generation."""
+        return (
+            f"{description}, {style} style, {dimensions[0]}x{dimensions[1]} UI icon, "
+            f"transparent background, clean design, high contrast, "
+            f"user interface element, game UI, vector-style, minimalist"
+        )
+        
+    def _get_openai_size(self, dimensions: tuple) -> Literal["256x256", "512x512", "1024x1024", "1024x1792", "1792x1024"]:
+        """Convert dimensions to OpenAI supported sizes."""
+        width, height = dimensions
+        
+        # Map to closest supported OpenAI size
+        if width <= 256 and height <= 256:
+            return "256x256"
+        elif width <= 512 and height <= 512:
+            return "512x512"
+        elif width > height:
+            return "1792x1024"
+        elif height > width:
+            return "1024x1792"
+        else:
+            return "1024x1024"

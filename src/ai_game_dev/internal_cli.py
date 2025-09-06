@@ -18,9 +18,7 @@ from rich.table import Table
 if os.getenv("AI_GAME_DEV_INTERNAL", "false").lower() != "true":
     raise RuntimeError("Internal CLI requires AI_GAME_DEV_INTERNAL=true environment variable")
 
-from ai_game_dev.education.complete_rpg_generator import create_complete_educational_game
-from ai_game_dev.assets.generator import AssetGenerator, AssetRequest
-from ai_game_dev.cli import _batch_generate_assets
+from ai_game_dev.agents.internal_agent import InternalAssetAgent
 
 internal_app = typer.Typer(help="Internal Development Commands - Not included in release builds")
 console = Console()
@@ -32,7 +30,7 @@ def build_static_assets(
     dry_run: bool = typer.Option(False, help="Show what would be built without building")
 ):
     """
-    Idempotent command to build static platform assets (UI, logos, icons, audio).
+    Idempotent command to build static platform assets using the Internal Asset Agent.
     """
     
     console.print(Panel(
@@ -43,24 +41,39 @@ def build_static_assets(
     
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No files will be created[/yellow]")
+        return
     
-    platform_assets_dir = Path("src/ai_game_dev/server/static/assets")
+    async def run_asset_generation():
+        async with InternalAssetAgent() as agent:
+            task = "Generate all static platform assets from the unified specification including cyberpunk UI elements, engine panels, and branding assets"
+            
+            results = await agent.execute_task(task, {
+                "force_rebuild": force_rebuild,
+                "asset_type": "static_platform"
+            })
+            
+            return results
     
-    if force_rebuild or not _check_platform_assets_complete(platform_assets_dir):
-        if dry_run:
-            console.print("[yellow]Would build platform static assets[/yellow]")
-            return
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Initializing Internal Asset Agent...", total=None)
         
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Building static assets...", total=None)
-            asyncio.run(_build_platform_assets())
+        try:
+            results = asyncio.run(run_asset_generation())
             progress.update(task, completed=True, description="✅ Static assets complete")
-    else:
-        console.print("✅ Static assets up to date")
+            
+            # Display results
+            if results.get("success"):
+                console.print(f"✅ Generated {results.get('assets_created', 0)} static assets")
+            else:
+                console.print(f"⚠️ Asset generation completed with issues: {results.get('response', 'Unknown error')}")
+                
+        except Exception as e:
+            progress.update(task, completed=True, description="❌ Asset generation failed")
+            console.print(f"[red]Error: {e}[/red]")
 
 
 @internal_app.command(name="build-educational-game-code")
@@ -69,7 +82,7 @@ def build_educational_game_code(
     dry_run: bool = typer.Option(False, help="Show what would be built without building")
 ):
     """
-    Idempotent command to build the educational RPG game code.
+    Idempotent command to build the educational RPG game code using the Internal Asset Agent.
     """
     
     console.print(Panel(
@@ -80,24 +93,38 @@ def build_educational_game_code(
     
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No files will be created[/yellow]")
+        return
     
-    educational_game_dir = Path("src/ai_game_dev/education/generated_game")
+    async def run_game_generation():
+        async with InternalAssetAgent() as agent:
+            task = "Generate the complete NeoTokyo Code Academy educational RPG game code with pygame, including all game mechanics, character classes, and educational progression system"
+            
+            results = await agent.execute_task(task, {
+                "force_rebuild": force_rebuild,
+                "asset_type": "educational_game_code"
+            })
+            
+            return results
     
-    if force_rebuild or not _check_educational_rpg_complete(educational_game_dir):
-        if dry_run:
-            console.print("[yellow]Would build educational RPG code[/yellow]")
-            return
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Generating educational RPG with Internal Agent...", total=None)
         
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Generating educational RPG...", total=None)
-            create_complete_educational_game()
+        try:
+            results = asyncio.run(run_game_generation())
             progress.update(task, completed=True, description="✅ Educational RPG code complete")
-    else:
-        console.print("✅ Educational RPG code up to date")
+            
+            if results.get("success"):
+                console.print(f"✅ Generated educational RPG: {results.get('response', 'Complete')}")
+            else:
+                console.print(f"⚠️ Game generation completed with issues: {results.get('response', 'Unknown error')}")
+                
+        except Exception as e:
+            progress.update(task, completed=True, description="❌ Game generation failed")
+            console.print(f"[red]Error: {e}[/red]")
 
 
 @internal_app.command(name="build-educational-game-assets")
@@ -106,7 +133,7 @@ def build_educational_game_assets(
     dry_run: bool = typer.Option(False, help="Show what would be built without building")
 ):
     """
-    Idempotent command to build cyberpunk assets for the educational RPG.
+    Idempotent command to build cyberpunk assets for the educational RPG using the Internal Asset Agent.
     """
     
     console.print(Panel(
@@ -117,30 +144,38 @@ def build_educational_game_assets(
     
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No files will be created[/yellow]")
+        return
     
-    educational_game_dir = Path("src/ai_game_dev/education/generated_game")
-    assets_dir = educational_game_dir / "assets"
+    async def run_educational_assets():
+        async with InternalAssetAgent() as agent:
+            task = "Generate all cyberpunk educational assets including Professor Pixel character sprites, NeoTokyo environment tilesets, character class sprites (Code Knight, Data Sage, Bug Hunter, Web Weaver), and educational UI elements"
+            
+            results = await agent.execute_task(task, {
+                "force_rebuild": force_rebuild,
+                "asset_type": "educational_game_assets"
+            })
+            
+            return results
     
-    if force_rebuild or not _check_educational_assets_complete(assets_dir):
-        if dry_run:
-            console.print("[yellow]Would build educational RPG assets[/yellow]")
-            return
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Generating cyberpunk assets with Internal Agent...", total=None)
         
-        # Ensure game code exists first
-        if not educational_game_dir.exists():
-            console.print("[yellow]Educational game code not found. Building code first...[/yellow]")
-            create_complete_educational_game()
-        
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Generating cyberpunk assets...", total=None)
-            asyncio.run(_generate_educational_assets(educational_game_dir))
+        try:
+            results = asyncio.run(run_educational_assets())
             progress.update(task, completed=True, description="✅ Educational assets complete")
-    else:
-        console.print("✅ Educational RPG assets up to date")
+            
+            if results.get("success"):
+                console.print(f"✅ Generated educational assets: {results.get('assets_created', 0)} files")
+            else:
+                console.print(f"⚠️ Asset generation completed with issues: {results.get('response', 'Unknown error')}")
+                
+        except Exception as e:
+            progress.update(task, completed=True, description="❌ Educational asset generation failed")
+            console.print(f"[red]Error: {e}[/red]")
 
 
 @internal_app.command(name="build-all")
