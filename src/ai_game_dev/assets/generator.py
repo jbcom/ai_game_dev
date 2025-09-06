@@ -150,6 +150,29 @@ class AssetGenerator:
             }
         )
 
+    async def generate_ui_icon(self, request: AssetRequest) -> GeneratedAsset:
+        """Generate UI icons like buttons and controls."""
+        if request.asset_type != "ui_icon":
+            raise ValueError("This method only handles UI icon generation")
+
+        dimensions = request.dimensions or (64, 64)
+        icon_data = self._create_ui_icon(
+            dimensions, 
+            request.description, 
+            request.style
+        )
+
+        return GeneratedAsset(
+            asset_type="ui_icon",
+            description=request.description,
+            data=icon_data,
+            metadata={
+                "dimensions": dimensions,
+                "style": request.style,
+                "format": request.format
+            }
+        )
+
     def _create_placeholder_sprite(self, dimensions: tuple[int, int], description: str, style: str) -> bytes:
         """Create a placeholder sprite with basic shapes and colors."""
         width, height = dimensions
@@ -290,6 +313,96 @@ class AssetGenerator:
         # In a real implementation, this would use music21 or other music generation libraries
         return self._create_placeholder_sound(duration, 44100, f"music {description} {style}")
 
+    def _create_ui_icon(self, dimensions: tuple[int, int], description: str, style: str) -> bytes:
+        """Create UI icons with cyberpunk/tech styling."""
+        width, height = dimensions
+        img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+
+        # Cyberpunk color palette
+        neon_cyan = (0, 255, 255)
+        neon_pink = (255, 20, 147)
+        electric_blue = (30, 144, 255)
+        bright_white = (255, 255, 255)
+        dark_gray = (40, 40, 40)
+
+        # Create icon based on description
+        if "pause" in description.lower():
+            # Draw pause bars with neon glow effect
+            bar_width = width // 6
+            bar_height = height // 2
+            bar1_x = width // 3 - bar_width // 2
+            bar2_x = 2 * width // 3 - bar_width // 2
+            bar_y = height // 4
+
+            # Glow effect (multiple layers)
+            for offset in range(3, 0, -1):
+                alpha = 50 + (3 - offset) * 30
+                glow_color = (*neon_cyan, alpha)
+                
+                # Left bar glow
+                draw.rectangle([
+                    bar1_x - offset, bar_y - offset,
+                    bar1_x + bar_width + offset, bar_y + bar_height + offset
+                ], fill=glow_color)
+                
+                # Right bar glow
+                draw.rectangle([
+                    bar2_x - offset, bar_y - offset,
+                    bar2_x + bar_width + offset, bar_y + bar_height + offset
+                ], fill=glow_color)
+
+            # Main bars
+            draw.rectangle([bar1_x, bar_y, bar1_x + bar_width, bar_y + bar_height], fill=bright_white)
+            draw.rectangle([bar2_x, bar_y, bar2_x + bar_width, bar_y + bar_height], fill=bright_white)
+
+        elif "play" in description.lower():
+            # Draw play triangle with neon glow
+            triangle_size = min(width, height) // 3
+            center_x, center_y = width // 2, height // 2
+            
+            points = [
+                (center_x - triangle_size // 2, center_y - triangle_size // 2),
+                (center_x + triangle_size // 2, center_y),
+                (center_x - triangle_size // 2, center_y + triangle_size // 2)
+            ]
+
+            # Glow effect
+            for offset in range(3, 0, -1):
+                alpha = 50 + (3 - offset) * 30
+                glow_points = [
+                    (p[0] - offset, p[1] - offset) if i == 0 else
+                    (p[0] + offset, p[1]) if i == 1 else
+                    (p[0] - offset, p[1] + offset)
+                    for i, p in enumerate(points)
+                ]
+                draw.polygon(glow_points, fill=(*neon_pink, alpha))
+
+            # Main triangle
+            draw.polygon(points, fill=bright_white)
+
+        elif "stop" in description.lower():
+            # Draw stop square with neon glow
+            square_size = min(width, height) // 2
+            square_x = (width - square_size) // 2
+            square_y = (height - square_size) // 2
+
+            # Glow effect
+            for offset in range(3, 0, -1):
+                alpha = 50 + (3 - offset) * 30
+                draw.rectangle([
+                    square_x - offset, square_y - offset,
+                    square_x + square_size + offset, square_y + square_size + offset
+                ], fill=(*electric_blue, alpha))
+
+            # Main square
+            draw.rectangle([square_x, square_y, square_x + square_size, square_y + square_size], fill=bright_white)
+
+        # Save to bytes
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        return buffer.getvalue()
+
     async def batch_generate(self, requests: List[AssetRequest]) -> List[GeneratedAsset]:
         """Generate multiple assets concurrently."""
         tasks = []
@@ -302,6 +415,8 @@ class AssetGenerator:
                 tasks.append(self.generate_sound(request))
             elif request.asset_type == "music":
                 tasks.append(self.generate_music(request))
+            elif request.asset_type == "ui_icon":
+                tasks.append(self.generate_ui_icon(request))
             else:
                 raise ValueError(f"Unsupported asset type: {request.asset_type}")
         
