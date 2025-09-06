@@ -1,0 +1,12 @@
+[package]
+name = "bevy_space_shooter_example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14"
+bevy_game_dev = { path = "../../packages/bevy_game_dev" }
+
+[[bin]]
+name = "space_shooter"
+path = "src/main.rs"

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-game-dev-web-portal"
+version = "1.0.0"
+description = "Interactive web interface for AI-powered game development"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    {name = "AI Game Dev Team"},
+]
+dependencies = [
+    "mesop>=0.12.0",
+    "ai-game-dev",
+    "ai-game-assets",
+]
+
+[tool.uv.sources]
+ai-game-dev = { workspace = true }
+ai-game-assets = { workspace = true }
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://studio.ai-game-dev.org"
+Repository = "https://github.com/ai-game-dev/ecosystem"
+
+[tool.hatch.build.targets.wheel]
+packages = ["web_portal"]

@@ -1,0 +1,117 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: uv sync --all-extras
+    
+    - name: Run tests
+      run: uv run pytest tests/ -v --cov=packages --cov-report=xml
+    
+    - name: Run type checking
+      run: uv run mypy packages/
+    
+    - name: Run formatting check
+      run: uv run black --check packages/
+    
+    - name: Run linting
+      run: uv run ruff check packages/
+
+  test-rust:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache Cargo dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          packages/bevy_game_dev/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('packages/bevy_game_dev/Cargo.lock') }}
+    
+    - name: Run Rust tests
+      working-directory: packages/bevy_game_dev
+      run: cargo test --verbose
+    
+    - name: Check Rust formatting
+      working-directory: packages/bevy_game_dev
+      run: cargo fmt --check
+    
+    - name: Run Clippy
+      working-directory: packages/bevy_game_dev
+      run: cargo clippy -- -D warnings
+
+  build-packages:
+    runs-on: ubuntu-latest
+    needs: [test-python, test-rust]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+    
+    - name: Build Python packages
+      run: |
+        cd packages/ai_game_dev && uv build --wheel
+        cd ../ai_game_assets && uv build --wheel
+        cd ../pygame_game_dev && uv build --wheel
+        cd ../arcade_game_dev && uv build --wheel
+    
+    - name: Build Rust package
+      working-directory: packages/bevy_game_dev
+      run: cargo build --release
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: built-packages
+        path: |
+          packages/*/dist/*.whl
+          packages/bevy_game_dev/target/release/
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: build-packages
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: built-packages
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+    
+    - name: Run integration tests
+      run: uv run pytest tests/integration/ -v
