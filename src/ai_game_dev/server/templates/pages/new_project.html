@@ -279,8 +279,11 @@ async function generateProject() {
     audioManager.play('notification');
     
     // Show results section
-    document.getElementById('generationResults').classList.remove('hidden');
-    document.getElementById('resultContent').innerHTML = `
+    const resultsSection = document.getElementById('generationResults');
+    const resultContent = document.getElementById('resultContent');
+    
+    if (resultsSection) resultsSection.classList.remove('hidden');
+    if (resultContent) resultContent.innerHTML = `
         <div class="text-center py-8">
             <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
             <h3 class="text-xl font-bold mb-2">AI is crafting your game...</h3>
@@ -298,18 +301,22 @@ async function generateProject() {
         });
         
         const result = await response.text();
-        document.getElementById('resultContent').innerHTML = result;
+        const resultContent = document.getElementById('resultContent');
+        if (resultContent) resultContent.innerHTML = result;
         
         // Play success sound
         audioManager.play('success');
         
     } catch (error) {
         audioManager.play('error');
-        document.getElementById('resultContent').innerHTML = `
-            <div class="alert alert-error">
-                <span>❌ Generation failed: ${error.message}</span>
-            </div>
-        `;
+        const resultContent = document.getElementById('resultContent');
+        if (resultContent) {
+            resultContent.innerHTML = `
+                <div class="alert alert-error">
+                    <span>❌ Generation failed: ${error.message}</span>
+                </div>
+            `;
+        }
     } finally {
         generateBtn.disabled = false;
         generateBtn.innerHTML = '🚀 Generate Project';
@@ -317,8 +324,11 @@ async function generateProject() {
 }
 
 function updateGenerationProgress(message, progress) {
-    document.getElementById('progressText').textContent = message;
-    document.getElementById('progressBar').style.width = `${progress}%`;
+    const progressText = document.getElementById('progressText');
+    const progressBar = document.getElementById('progressBar');
+    
+    if (progressText) progressText.textContent = message;
+    if (progressBar) progressBar.style.width = `${progress}%`;
 }
 
 function showGenerationResults(result) {
