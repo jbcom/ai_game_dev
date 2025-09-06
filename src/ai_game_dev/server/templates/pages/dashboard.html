@@ -1,0 +1,123 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Dashboard - AI Game Development Portal{% endblock %}
+
+{% block content %}
+<div class="hero min-h-96 bg-base-200/20 rounded-box mb-8 glow">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Welcome to AI Game Development
+            </h1>
+            <p class="py-6 text-lg">
+                Create games with AI assistance across multiple engines using cutting-edge language models.
+            </p>
+            <a href="/web/new_project" class="btn btn-primary btn-lg glow hover:scale-105 transition-transform">
+                Start Creating 🚀
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="stats shadow w-full bg-base-100/20 backdrop-blur-sm mb-8">
+    <div class="stat place-items-center">
+        <div class="stat-figure text-primary">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="stat-title">Supported Engines</div>
+        <div class="stat-value text-primary">{{ engines|length }}</div>
+        <div class="stat-desc">Pygame, Bevy, Godot</div>
+    </div>
+    
+    <div class="stat place-items-center">
+        <div class="stat-figure text-secondary">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+            </svg>
+        </div>
+        <div class="stat-title">Projects Generated</div>
+        <div class="stat-value text-secondary">{{ stats.projects_generated or 0 }}</div>
+        <div class="stat-desc">{% if stats.projects_generated %}Ready to build!{% else %}Start your first project!{% endif %}</div>
+    </div>
+    
+    <div class="stat place-items-center">
+        <div class="stat-figure text-accent">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z"/>
+            </svg>
+        </div>
+        <div class="stat-title">Assets Created</div>
+        <div class="stat-value text-accent">{{ stats.assets_created or 0 }}</div>
+        <div class="stat-desc">Ready to generate</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Quick Start Guide -->
+    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">🚀 Quick Start Guide</h2>
+            <div class="steps steps-vertical lg:steps-horizontal">
+                <div class="step step-primary">Describe your game idea</div>
+                <div class="step">Choose your engine</div>
+                <div class="step">Generate project</div>
+                <div class="step">Build and play!</div>
+            </div>
+            <div class="card-actions justify-end mt-4">
+                <a href="/web/new_project" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">📈 Recent Activity</h2>
+            {% if recent_projects %}
+                <div class="space-y-2">
+                    {% for project in recent_projects %}
+                    <div class="flex justify-between items-center p-2 bg-base-200/30 rounded">
+                        <span>{{ project.name }}</span>
+                        <span class="text-sm opacity-70">{{ project.engine }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="text-4xl mb-4">🎮</div>
+                    <p class="text-lg mb-4">No projects yet!</p>
+                    <p class="opacity-70">Create your first AI-generated game to see activity here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Engine Showcase -->
+<div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">🎮 Supported Game Engines</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% for engine in engines %}
+            <div class="card bg-base-200/30 hover:bg-base-200/50 transition-colors">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        {{ engine_info[engine].icon }} {{ engine|title }}
+                        <div class="badge badge-primary">{{ engine_info[engine].language }}</div>
+                    </h3>
+                    <p class="text-sm opacity-80">{{ engine_info[engine].description }}</p>
+                    <div class="card-actions justify-end">
+                        <div class="badge badge-success">Ready</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="card-actions justify-center mt-6">
+            <a href="/web/engines" class="btn btn-outline">View All Engines</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

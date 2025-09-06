@@ -1,0 +1,201 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Create New Project - AI Game Development Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            🚀 Create New Game Project
+        </h1>
+        <p class="text-lg opacity-80">Describe your game idea and let AI generate a complete project for you</p>
+    </div>
+    
+    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl glow">
+        <div class="card-body">
+            <form hx-post="/web/generate-project" 
+                  hx-target="#result" 
+                  hx-indicator="#loading" 
+                  class="space-y-6">
+                
+                <!-- Project Description -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-lg font-semibold">Project Description</span>
+                        <span class="label-text-alt">Required</span>
+                    </label>
+                    <textarea 
+                        name="description" 
+                        class="textarea textarea-bordered textarea-lg bg-base-100/50 min-h-24" 
+                        placeholder="Describe your game idea in detail... (e.g., A 2D platformer where the player is a ninja cat collecting magical fish while avoiding robot dogs. The game should have pixel art graphics and a retro chiptune soundtrack.)"
+                        rows="4" 
+                        required
+                        maxlength="1000">
+                    </textarea>
+                    <label class="label">
+                        <span class="label-text-alt">Be specific about gameplay, art style, and unique features</span>
+                        <span class="label-text-alt">0/1000 characters</span>
+                    </label>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Engine Selection -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Game Engine</span>
+                        </label>
+                        <select name="engine" class="select select-bordered bg-base-100/50" required>
+                            <option disabled selected>Choose an engine...</option>
+                            {% for engine in engines %}
+                            <option value="{{ engine }}">
+                                {{ engine|title }} ({{ engine_info[engine].language }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt">Each engine has different strengths</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Complexity Level -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Complexity Level</span>
+                        </label>
+                        <select name="complexity" class="select select-bordered bg-base-100/50">
+                            <option value="beginner">Beginner - Simple mechanics</option>
+                            <option value="intermediate" selected>Intermediate - Balanced features</option>
+                            <option value="advanced">Advanced - Complex systems</option>
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt">Affects code structure and features</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Art Style -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Art Style</span>
+                        </label>
+                        <select name="art_style" class="select select-bordered bg-base-100/50">
+                            <option value="modern" selected>Modern - Clean and contemporary</option>
+                            <option value="pixel">Pixel Art - Retro 8-bit style</option>
+                            <option value="minimalist">Minimalist - Simple shapes</option>
+                            <option value="cartoon">Cartoonish - Fun and colorful</option>
+                            <option value="realistic">Realistic - Detailed graphics</option>
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt">Influences asset generation</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Advanced Options (Collapsible) -->
+                <div class="collapse collapse-arrow bg-base-200/20">
+                    <input type="checkbox" />
+                    <div class="collapse-title text-lg font-medium">
+                        🔧 Advanced Options
+                    </div>
+                    <div class="collapse-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Target Platform</span>
+                                </label>
+                                <select name="platform" class="select select-bordered select-sm bg-base-100/50">
+                                    <option value="desktop" selected>Desktop (Windows/Mac/Linux)</option>
+                                    <option value="web">Web Browser</option>
+                                    <option value="mobile">Mobile (Android/iOS)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Project Name</span>
+                                </label>
+                                <input type="text" 
+                                       name="project_name" 
+                                       placeholder="Auto-generated if empty" 
+                                       class="input input-bordered input-sm bg-base-100/50" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-control mt-4">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Include sample assets</span>
+                                <input type="checkbox" name="include_assets" checked class="checkbox checkbox-primary" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generate Button -->
+                <div class="form-control mt-8">
+                    <button type="submit" class="btn btn-primary btn-lg glow hover:scale-105 transition-transform">
+                        🚀 Generate Project
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Loading Indicator -->
+            <div id="loading" class="htmx-indicator mt-6">
+                <div class="alert alert-info">
+                    <span class="loading loading-spinner loading-lg"></span>
+                    <div>
+                        <h3 class="font-bold">Generating your game project...</h3>
+                        <div class="text-sm">This may take 30-60 seconds depending on complexity</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Result Area -->
+            <div id="result" class="mt-6"></div>
+        </div>
+    </div>
+    
+    <!-- Engine Recommendations -->
+    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl mt-8">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">💡 Engine Recommendations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for engine in engines %}
+                <div class="card bg-base-200/30 hover:bg-base-200/50 transition-colors">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg">
+                            {{ engine_info[engine].icon }} {{ engine|title }}
+                        </h3>
+                        <p class="text-sm opacity-80">{{ engine_info[engine].description }}</p>
+                        <div class="card-actions justify-between items-center mt-2">
+                            <div class="badge badge-outline">{{ engine_info[engine].complexity }}</div>
+                            <div class="badge badge-primary">{{ engine_info[engine].language }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character counter for description
+document.querySelector('textarea[name="description"]').addEventListener('input', function() {
+    const counter = this.parentElement.querySelector('.label-text-alt:last-child');
+    counter.textContent = `${this.value.length}/1000 characters`;
+});
+
+// Engine selection hints
+document.querySelector('select[name="engine"]').addEventListener('change', function() {
+    const hints = {
+        'pygame': 'Great for 2D games and prototypes. Easy to learn Python syntax.',
+        'bevy': 'Modern Rust engine with ECS architecture. Best performance.',
+        'godot': 'Visual scripting and scene-based development. Very versatile.'
+    };
+    
+    const hint = this.parentElement.querySelector('.label-text-alt');
+    if (hints[this.value]) {
+        hint.textContent = hints[this.value];
+    }
+});
+</script>
+{% endblock %}

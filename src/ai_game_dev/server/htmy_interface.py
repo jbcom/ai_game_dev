@@ -56,7 +56,7 @@ DependsRenderFunc = Annotated[RendererFunction, Depends(render)]
 
 
 @component
-def page(content: ComponentType, context: Context) -> Component:
+def page(content: Component, context: Context) -> Component:
     """
     Main page layout component with game development styling.
     """
@@ -80,7 +80,7 @@ def page(content: ComponentType, context: Context) -> Component:
                 """),
             ),
             html.body(
-                content,
+                *(content if is_component_sequence(content) else [content]),
                 data_theme=user.preferred_theme,
                 class_="min-h-screen game-dev-bg text-white",
             ),
@@ -90,7 +90,7 @@ def page(content: ComponentType, context: Context) -> Component:
 
 
 @component
-def header(context: Context) -> Component:
+def header(props: None, context: Context) -> Component:
     """Header component with navigation."""
     return html.header(
         html.div(
@@ -115,8 +115,7 @@ def header(context: Context) -> Component:
     )
 
 
-@component
-def navigation_tabs(current_tab: str, context: Context) -> Component:
+def navigation_tabs(current_tab: str) -> Component:
     """Navigation tabs component."""
     tabs = [
         ("dashboard", "📊 Dashboard"),
@@ -144,7 +143,7 @@ def navigation_tabs(current_tab: str, context: Context) -> Component:
 
 
 @component
-def dashboard_content(context: Context) -> Component:
+def dashboard_content(props: None, context: Context) -> Component:
     """Dashboard page content."""
     engines = get_supported_engines()
     
@@ -215,7 +214,7 @@ def dashboard_content(context: Context) -> Component:
 
 
 @component
-def project_form(context: Context) -> Component:
+def project_form(props: None, context: Context) -> Component:
     """New project creation form."""
     engines = get_supported_engines()
     
@@ -311,8 +310,11 @@ def project_form(context: Context) -> Component:
 
 
 @component
-def generation_result(success: bool, result_data: dict, context: Context) -> Component:
+def generation_result(props: dict, context: Context) -> Component:
     """Display generation result."""
+    success = props.get("success", False)
+    result_data = props.get("result_data", {})
+    
     if success:
         return html.div(
             html.div(
@@ -341,7 +343,7 @@ def generation_result(success: bool, result_data: dict, context: Context) -> Com
 
 
 @component
-def engines_list(context: Context) -> Component:
+def engines_list(props: None, context: Context) -> Component:
     """Display available engines."""
     engines = get_supported_engines()
     
@@ -384,35 +386,33 @@ def setup_htmy_routes(app: FastAPI):
     @app.get("/web/dashboard")
     async def web_dashboard(render: DependsRenderFunc) -> HTMLResponse:
         """Dashboard page."""
-        return await render(
-            page((
-                header,
-                navigation_tabs("dashboard"),
-                dashboard_content
-            ))
-        )
+        # Create proper components following HTMY patterns
+        content_components = [
+            header(None),
+            navigation_tabs("dashboard"),
+            dashboard_content(None)
+        ]
+        return await render(page(content_components))
     
     @app.get("/web/new_project")
     async def web_new_project(render: DependsRenderFunc) -> HTMLResponse:
         """New project page."""
-        return await render(
-            page((
-                header,
-                navigation_tabs("new_project"),
-                project_form
-            ))
-        )
+        content_components = [
+            header(None),
+            navigation_tabs("new_project"),
+            project_form(None)
+        ]
+        return await render(page(content_components))
     
     @app.get("/web/engines")
     async def web_engines(render: DependsRenderFunc) -> HTMLResponse:
         """Engines page."""
-        return await render(
-            page((
-                header,
-                navigation_tabs("engines"),
-                engines_list
-            ))
-        )
+        content_components = [
+            header(None),
+            navigation_tabs("engines"),
+            engines_list(None)
+        ]
+        return await render(page(content_components))
     
     @app.post("/web/generate-project")
     async def web_generate_project(
@@ -433,13 +433,19 @@ def setup_htmy_routes(app: FastAPI):
             )
             
             return await render(
-                generation_result(True, {
-                    "engine_type": result.engine_type,
-                    "main_files": result.main_files,
-                    "project_path": str(result.project_path) if result.project_path else None
+                generation_result({
+                    "success": True,
+                    "result_data": {
+                        "engine_type": result.engine_type,
+                        "main_files": result.main_files,
+                        "project_path": str(result.project_path) if result.project_path else None
+                    }
                 })
             )
         except Exception as e:
             return await render(
-                generation_result(False, {"error": str(e)})
+                generation_result({
+                    "success": False,
+                    "result_data": {"error": str(e)}
+                })
             )

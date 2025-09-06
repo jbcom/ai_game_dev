@@ -1,0 +1,25 @@
+<footer class="footer footer-center p-10 bg-base-200/20 backdrop-blur-sm text-base-content rounded mt-8">
+    <nav class="grid grid-flow-col gap-4">
+        <a href="/web/dashboard" class="link link-hover">Dashboard</a>
+        <a href="/web/new_project" class="link link-hover">Create Project</a>
+        <a href="/web/engines" class="link link-hover">Engines</a>
+        <a href="/health" class="link link-hover">Status</a>
+    </nav>
+    <nav>
+        <div class="grid grid-flow-col gap-4">
+            <div class="tooltip" data-tip="FastMCP Server">
+                <span class="badge badge-primary">MCP</span>
+            </div>
+            <div class="tooltip" data-tip="HTMX + DaisyUI">
+                <span class="badge badge-secondary">HTMX</span>
+            </div>
+            <div class="tooltip" data-tip="Multi-Engine Support">
+                <span class="badge badge-accent">{{ engines|length }} Engines</span>
+            </div>
+        </div>
+    </nav>
+    <aside>
+        <p>Copyright © {{ current_year }} - AI Game Development Portal</p>
+        <p class="text-sm opacity-70">Powered by LangChain, LangGraph & Multi-LLM Architecture</p>
+    </aside>
+</footer>

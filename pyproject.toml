@@ -54,8 +54,11 @@ dependencies = [
     "xxhash>=3.5.0",
     # MCP Server dependencies
     "fastmcp>=2.12.2",
-    "uvicorn>=0.35.0",
+    "uvicorn[standard]>=0.35.0",
     "starlette>=0.47.3",
+    "htmy>=0.8.2",
+    "fastapi>=0.116.1",
+    "jinja2>=3.1.6",
 ]
 
 [project.optional-dependencies]
@@ -135,6 +138,7 @@ python = ["3.11", "3.12"]
 
 # Development environment with UV
 [tool.hatch.envs.dev]
+type = "virtual"
 installer = "uv"  
 dependencies = [
     # Static Analysis & Formatting
@@ -166,11 +170,15 @@ build-backend = "hatchling.build"
 [tool.hatchling.build.targets.wheel]
 packages = ["src/ai_game_dev"]
 
-# Default Hatch environment 
+# Default Hatch environment with local .venv
 [tool.hatch.envs.default]
+type = "virtual"
 installer = "uv"
+path = ".venv"
 
 [tool.hatch.envs.test]
+type = "virtual"
+installer = "uv"
 dependencies = [
     "pytest>=7.0",
     "pytest-asyncio>=0.23.0",

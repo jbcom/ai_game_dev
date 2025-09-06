@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Game Development Portal{% endblock %}</title>
+    
+    <!-- Production Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.11/dist/full.min.css" rel="stylesheet">
+    
+    <!-- HTMX for dynamic interactions -->
+    <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+    
+    <!-- Custom styles -->
+    <style>
+        .game-dev-gradient { 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); 
+        }
+        .glow { 
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.3); 
+        }
+        .card-glass { 
+            backdrop-filter: blur(10px); 
+            background: rgba(255,255,255,0.1); 
+        }
+        .htmx-indicator { 
+            opacity: 0; 
+            transition: opacity 500ms ease-in; 
+        }
+        .htmx-request .htmx-indicator { 
+            opacity: 1; 
+        }
+        .htmx-request.htmx-indicator { 
+            opacity: 1; 
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen game-dev-gradient text-white">
+    <!-- Navigation -->
+    {% include 'components/navbar.html' %}
+    
+    <!-- Main content -->
+    <main class="container mx-auto p-6">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% include 'components/footer.html' %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

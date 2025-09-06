@@ -21,13 +21,16 @@ from .sse_transport import create_sse_server
 from ai_game_dev.engines import engine_manager, generate_for_engine, get_supported_engines
 from ai_game_dev.assets import AssetTools
 
-# Try to import HTMY for web UI
+# Try to import HTMY for web UI, fallback to simple web interface
 try:
     import htmy
     from .htmy_interface import setup_htmy_routes
     HTMY_AVAILABLE = True
 except ImportError:
     HTMY_AVAILABLE = False
+
+# Always import simple web interface as fallback
+from .simple_web import setup_simple_web_routes
 
 
 class UnifiedGameDevServer:
@@ -152,11 +155,25 @@ class UnifiedGameDevServer:
         # Mount the SSE MCP server for MCP protocol communication
         self.app.mount("/mcp", create_sse_server(self.mcp))
         
-        # Setup HTMY web interface if available
-        if HTMY_AVAILABLE:
-            setup_htmy_routes(self.app)
-        else:
-            self.setup_fallback_web_routes()
+        # Setup Jinja2 web interface (production-ready templates)
+        from .jinja_interface import setup_jinja_routes
+        setup_jinja_routes(self.app)
+        print("✅ Jinja2 interface loaded successfully")
+        
+        # Add redirect from root to web interface
+        @self.app.get("/", response_class=HTMLResponse)
+        async def root_redirect():
+            """Redirect root to web interface."""
+            return HTMLResponse("""
+                <html>
+                    <head>
+                        <meta http-equiv="refresh" content="0; URL=/web/dashboard">
+                    </head>
+                    <body>
+                        <p>Redirecting to <a href="/web/dashboard">AI Game Development Portal</a>...</p>
+                    </body>
+                </html>
+            """)
     
         
     def setup_fallback_web_routes(self):
@@ -193,7 +210,7 @@ class UnifiedGameDevServer:
                 "status": "healthy",
                 "services": {
                     "mcp_sse": True,
-                    "web_ui": HTMY_AVAILABLE,
+                    "web_ui": True,
                     "engines": len(get_supported_engines()),
                     "mcp_endpoint": "http://localhost:5000/mcp/sse"
                 }
@@ -246,7 +263,7 @@ class UnifiedGameDevServer:
         print(f"🌐 Web Interface: http://{self.host}:{self.port}")
         print(f"🔧 MCP SSE Endpoint: http://{self.host}:{self.port}/mcp/sse")
         print(f"📡 REST API: http://{self.host}:{self.port}/api/")
-        print(f"💾 HTMY Available: {HTMY_AVAILABLE}")
+        print(f"💾 Web UI: Simple HTML + HTMX + DaisyUI")
         print(f"🎮 Supported Engines: {', '.join(get_supported_engines())}")
         print("Press Ctrl+C to stop the server")
         
