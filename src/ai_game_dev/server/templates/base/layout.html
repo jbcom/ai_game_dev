@@ -36,9 +36,14 @@
     <!-- Custom styles with generated assets -->
     <style>
         .game-dev-gradient { 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%),
-                        radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.1) 0%, transparent 50%);
+            background: 
+                url('/static/assets/textures/circuit-pattern.png'),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%),
+                radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.1) 0%, transparent 50%);
+            background-size: 200px 200px, cover, cover, cover;
+            background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+            background-blend-mode: overlay, normal, overlay, overlay;
         }
         .glow { 
             box-shadow: 0 0 20px rgba(100, 255, 218, 0.3); 
@@ -87,10 +92,29 @@
             box-shadow: 0 8px 25px rgba(100, 255, 218, 0.3);
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
+            background: 
+                url('/static/assets/textures/glass-panel.png'),
+                rgba(255, 255, 255, 0.05);
+            background-size: cover, auto;
+            background-blend-mode: overlay, normal;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(100, 255, 218, 0.2);
             border-radius: 16px;
+        }
+        .hex-pattern {
+            background: 
+                url('/static/assets/textures/hexagon-overlay.png'),
+                rgba(255, 255, 255, 0.02);
+            background-size: 100px 100px, auto;
+            background-repeat: repeat, no-repeat;
+            background-blend-mode: overlay, normal;
+        }
+        .particle-glow {
+            background: url('/static/assets/textures/particle-glow.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.3;
         }
     </style>
     

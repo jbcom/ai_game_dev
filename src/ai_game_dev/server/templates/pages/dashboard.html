@@ -3,7 +3,8 @@
 {% block title %}Dashboard - AI Game Development Portal{% endblock %}
 
 {% block content %}
-<div class="hero min-h-96 bg-base-200/20 rounded-box mb-8 glow relative overflow-hidden">
+<div class="hero min-h-96 bg-base-200/20 rounded-box mb-8 glow relative overflow-hidden hex-pattern">
+    <div class="absolute inset-0 particle-glow"></div>
     <div class="hero-content text-center relative z-10">
         <div class="max-w-md">
             <div class="flex justify-center mb-6">
@@ -59,7 +60,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Quick Start Guide -->
-    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
+    <div class="card glass-panel shadow-xl">
         <div class="card-body">
             <h2 class="card-title text-2xl mb-4">🚀 Quick Start Guide</h2>
             <div class="steps steps-vertical lg:steps-horizontal">
@@ -75,7 +76,7 @@
     </div>
     
     <!-- Recent Activity -->
-    <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
+    <div class="card glass-panel shadow-xl">
         <div class="card-body">
             <h2 class="card-title text-2xl mb-4">📈 Recent Activity</h2>
             {% if recent_projects %}
@@ -99,7 +100,7 @@
 </div>
 
 <!-- Engine Showcase with Custom Icons -->
-<div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
+<div class="card glass-panel shadow-xl">
     <div class="card-body">
         <h2 class="card-title text-2xl mb-6">🎮 Supported Game Engines</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
