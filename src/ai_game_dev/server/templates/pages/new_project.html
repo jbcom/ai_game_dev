@@ -203,7 +203,13 @@ function updatePreview() {
     document.querySelectorAll('.engine-card').forEach(card => {
         card.classList.remove('border-primary', 'bg-primary/10');
     });
-    document.querySelector(`input[value="${selectedEngine}"]`).closest('.engine-card').classList.add('border-primary', 'bg-primary/10');
+    const selectedInput = document.querySelector(`input[value="${selectedEngine}"]`);
+    if (selectedInput) {
+        const engineCard = selectedInput.closest('.engine-card');
+        if (engineCard) {
+            engineCard.classList.add('border-primary', 'bg-primary/10');
+        }
+    }
     
     // Update engine specs
     const info = engineInfo[selectedEngine];
@@ -237,7 +243,8 @@ function connectWebSocket() {
         ws = new WebSocket(`ws://${window.location.host}/ws/generation`);
         
         ws.onopen = function() {
-            document.getElementById('websocketStatus').classList.remove('hidden');
+            const statusEl = document.getElementById('websocketStatus');
+            if (statusEl) statusEl.classList.remove('hidden');
         };
         
         ws.onmessage = function(event) {
@@ -252,7 +259,8 @@ function connectWebSocket() {
         };
         
         ws.onclose = function() {
-            document.getElementById('websocketStatus').classList.add('hidden');
+            const statusEl = document.getElementById('websocketStatus');
+            if (statusEl) statusEl.classList.add('hidden');
         };
     } catch (error) {
         console.log('WebSocket not available, using HTTP fallback');
