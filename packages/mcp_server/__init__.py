@@ -6,9 +6,8 @@ Model Context Protocol server providing game development capabilities using Fast
 __version__ = "1.0.0"
 __author__ = "AI Game Dev Team"
 
-from .server import create_server, start_server
+from .server import mcp
 
 __all__ = [
-    "create_server",
-    "start_server",
+    "mcp",
 ]
