@@ -1,5 +1,5 @@
-# AI Game Development Ecosystem - Cross-Language Build System
-# Requires: just, uv, cargo, gdtoolkit
+# AI Game Development - Unified Package Build System
+# Requires: just, uv, sphinx, cargo (optional), gdtoolkit (optional)
 
 set shell := ["bash", "-c"]
 set dotenv-load := true
@@ -12,140 +12,135 @@ default:
 # 🏗️ BUILD COMMANDS
 # =============================================================================
 
-# Build all packages across all languages
-build-all: build-python build-rust build-godot
-    @echo "✅ All packages built successfully"
+# Build the unified AI game development package
+build:
+    @echo "🐍 Building ai-game-dev package..."
+    uv build
 
-# Build Python packages
-build-python:
-    @echo "🐍 Building Python packages..."
-    uv build packages/ai_game_dev/
-    uv build packages/ai_game_assets/
-    uv build packages/pygame_game_dev/
-    uv build packages/arcade_game_dev/
-    uv build packages/mcp_server/
+# Build with specific target
+build-wheel:
+    @echo "🎯 Building wheel distribution..."
+    uv build --wheel
 
-# Build Rust packages
-build-rust:
-    @echo "🦀 Building Rust packages..."
-    cd packages/bevy_game_dev && cargo build --release
-
-# Build Godot plugin
-build-godot:
-    @echo "🎮 Building Godot plugin..."
-    cd packages/godot_game_dev && zip -r godot-ai-game-dev.zip . -x "*.git*" "*.md" "target/*"
+# Build source distribution
+build-sdist:
+    @echo "📦 Building source distribution..."
+    uv build --sdist
 
 # Clean all build artifacts
 clean:
     @echo "🧹 Cleaning build artifacts..."
-    find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
-    find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
+    rm -rf dist/ build/ src/ai_game_dev.egg-info/
     find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
     find . -name "*.pyc" -delete 2>/dev/null || true
     find . -name ".pytest_cache" -type d -exec rm -rf {} + 2>/dev/null || true
     find . -name "htmlcov" -type d -exec rm -rf {} + 2>/dev/null || true
-    rm -f *.zip coverage.xml .coverage 2>/dev/null || true
+    find . -name ".coverage" -delete 2>/dev/null || true
+    rm -rf docs/_build/ docs/doctrees/ coverage.xml
 
 # =============================================================================
 # 🧪 TESTING COMMANDS
 # =============================================================================
 
-# Run all tests across all languages
-test-all: test-python test-rust test-godot
-    @echo "✅ All tests completed"
+# Run all tests with coverage
+test:
+    @echo "🧪 Running tests with coverage..."
+    uv run pytest tests/ -v --cov=src/ai_game_dev --cov-report=html --cov-report=xml --cov-report=term-missing
 
-# Run Python tests with coverage
-test-python:
-    @echo "🐍 Running Python tests..."
-    uv run pytest tests/ -v --cov=packages --cov-report=html --cov-report=xml --cov-report=term-missing
+# Run tests without coverage (faster)
+test-fast:
+    @echo "⚡ Running fast tests..."
+    uv run pytest tests/ -v -x
 
-# Run Rust tests
-test-rust:
-    @echo "🦀 Running Rust tests..."
-    cd packages/bevy_game_dev && cargo test --all-features
+# Run specific test file
+test-file file:
+    @echo "🎯 Running tests in {{file}}..."
+    uv run pytest {{file}} -v
 
-# Run GDScript tests (validation)
-test-godot:
-    @echo "🎮 Running GDScript validation..."
-    gdlint packages/godot_game_dev/ || true
+# Run tests matching pattern
+test-match pattern:
+    @echo "🔍 Running tests matching '{{pattern}}'..."
+    uv run pytest tests/ -v -k "{{pattern}}"
 
 # Run benchmarks
 bench:
     @echo "⚡ Running performance benchmarks..."
-    cd packages/bevy_game_dev && cargo bench
-    uv run pytest tests/ --benchmark-only --benchmark-json=benchmark-results.json || true
+    uv run pytest tests/ --benchmark-only --benchmark-json=benchmark-results.json
 
 # =============================================================================
 # 🔍 QUALITY ASSURANCE
 # =============================================================================
 
 # Run complete quality analysis
-qa: lint security coverage
-    @echo "📊 Generating quality report..."
-    python .github/scripts/generate_quality_report.py
+qa: lint type-check security test
+    @echo "✅ Quality analysis completed"
 
-# Run all linting across languages
-lint: lint-python lint-rust lint-godot
-    @echo "✅ All linting completed"
+# Format and lint all code
+lint:
+    @echo "🎨 Formatting and linting code..."
+    uv run black src/ tests/
+    uv run isort src/ tests/
+    uv run ruff check src/ tests/ --fix
 
-# Lint Python code
-lint-python:
-    @echo "🐍 Linting Python code..."
-    uv run ruff check packages/ --fix
-    uv run black packages/
-    uv run isort packages/
-    uv run mypy packages/ --config-file pyproject.toml || true
-    uv run pylint packages/ || true
+# Type checking with mypy
+type-check:
+    @echo "🔍 Running type checks..."
+    uv run mypy src/ai_game_dev --config-file pyproject.toml
 
-# Lint Rust code
-lint-rust:
-    @echo "🦀 Linting Rust code..."
-    cd packages/bevy_game_dev && cargo fmt --all
-    cd packages/bevy_game_dev && cargo clippy --all-targets --all-features -- -D warnings
-
-# Lint GDScript code
-lint-godot:
-    @echo "🎮 Linting GDScript code..."
-    gdformat packages/godot_game_dev/ || true
-    gdlint packages/godot_game_dev/ || true
-
-# Run security analysis
+# Security analysis
 security:
     @echo "🔒 Running security analysis..."
-    uv run bandit -r packages/ -f txt || true
+    uv run bandit -r src/ -f txt
 
-# Generate code coverage reports
-coverage:
-    @echo "📈 Generating coverage reports..."
-    uv run pytest tests/ --cov=packages --cov-report=html --cov-report=xml
-    cd packages/bevy_game_dev && cargo tarpaulin --out xml --output-dir ../../ || true
+# Check code complexity
+complexity:
+    @echo "📊 Checking code complexity..."
+    uv run radon cc src/ --min C
+
+# Run all linting tools
+lint-all: lint type-check
+    @echo "🎯 Running comprehensive linting..."
+    uv run pylint src/ai_game_dev/ || true
+    uv run flake8 src/ tests/ || true
 
 # =============================================================================
-# 📦 PACKAGING & DISTRIBUTION
+# 📚 DOCUMENTATION COMMANDS (RST + Sphinx)
 # =============================================================================
 
-# Package all distributions
-package-all: package-python package-rust package-godot
-    @echo "📦 All packages created"
+# Build Sphinx documentation
+docs:
+    @echo "📚 Building Sphinx documentation..."
+    cd docs && uv run sphinx-build -b html . _build/html
 
-# Package Python distributions
-package-python: build-python
-    @echo "🐍 Packaging Python distributions..."
-    mkdir -p dist/python/
-    cp packages/*/dist/* dist/python/ 2>/dev/null || true
+# Build documentation with clean rebuild
+docs-clean:
+    @echo "🧹 Clean building documentation..."
+    cd docs && uv run sphinx-build -b html . _build/html -E
 
-# Package Rust distribution
-package-rust: build-rust
-    @echo "🦀 Packaging Rust distribution..."
-    mkdir -p dist/rust/
-    cd packages/bevy_game_dev && cargo package
-    cp packages/bevy_game_dev/target/package/*.crate dist/rust/ 2>/dev/null || true
+# Serve documentation locally
+docs-serve:
+    @echo "🌐 Serving documentation on http://localhost:8000..."
+    cd docs/_build/html && python -m http.server 8000
 
-# Package Godot plugin
-package-godot: build-godot
-    @echo "🎮 Packaging Godot plugin..."
-    mkdir -p dist/godot/
-    cp packages/godot_game_dev/*.zip dist/godot/ 2>/dev/null || true
+# Watch documentation files and rebuild automatically
+docs-watch:
+    @echo "👀 Watching documentation files..."
+    find docs/ -name "*.rst" -o -name "*.py" | entr -r just docs
+
+# Generate API documentation from docstrings
+docs-api:
+    @echo "🔧 Generating API documentation..."
+    cd docs && uv run sphinx-apidoc -o api ../src/ai_game_dev --force
+
+# Check documentation for broken links
+docs-linkcheck:
+    @echo "🔗 Checking documentation links..."
+    cd docs && uv run sphinx-build -b linkcheck . _build/linkcheck
+
+# Build PDF documentation
+docs-pdf:
+    @echo "📄 Building PDF documentation..."
+    cd docs && uv run sphinx-build -b latexpdf . _build/pdf
 
 # =============================================================================
 # 🚀 DEVELOPMENT COMMANDS
@@ -154,59 +149,64 @@ package-godot: build-godot
 # Set up development environment
 setup:
     @echo "🔧 Setting up development environment..."
-    curl -LsSf https://astral.sh/uv/install.sh | sh || true
     uv sync --all-extras --dev
-    pip install gdtoolkit==4.2.2 || true
-    rustup update || true
-    rustup component add rustfmt clippy || true
+    uv pip install sphinx sphinxcontrib-napoleon sphinx-rtd-theme
+    uv run pre-commit install
 
 # Install pre-commit hooks
 hooks:
     @echo "🪝 Installing pre-commit hooks..."
-    uv run pre-commit install
+    uv run pre-commit install --install-hooks
     uv run pre-commit install --hook-type commit-msg
 
-# Start development server (MCP)
+# Start MCP development server
 dev:
-    @echo "🚀 Starting development MCP server..."
-    cd packages/mcp_server && uv run python main.py
+    @echo "🚀 Starting MCP server..."
+    uv run ai-game-dev-server
 
 # Hot reload development with file watching
 watch:
-    @echo "👀 Starting file watcher..."
-    find packages/ -name "*.py" -o -name "*.rs" -o -name "*.gd" | entr -r just dev
+    @echo "👀 Starting file watcher for auto-restart..."
+    find src/ -name "*.py" | entr -r uv run ai-game-dev-server
+
+# Start interactive Python shell with package loaded
+shell:
+    @echo "🐍 Starting interactive shell..."
+    uv run python -c "import ai_game_dev; print('AI Game Dev loaded successfully'); import IPython; IPython.start_ipython()"
 
 # =============================================================================
 # 📊 ANALYSIS & REPORTING
 # =============================================================================
 
 # Generate comprehensive analysis report
-analyze:
-    @echo "📊 Running comprehensive analysis..."
-    just qa
-    @echo "📈 Analysis complete. Check quality-report.html"
+analyze: qa
+    @echo "📊 Generating analysis report..."
+    @echo "Lines of code:"
+    find src/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}'
+    @echo "Test coverage: see htmlcov/index.html"
+    @echo "Documentation: see docs/_build/html/index.html"
 
-# Count lines of code across languages
+# Count lines of code
 loc:
     @echo "📏 Lines of code analysis:"
-    @echo "Python:"
-    find packages/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}'
-    @echo "Rust:"
-    find packages/ -name "*.rs" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
-    @echo "GDScript:"
-    find packages/ -name "*.gd" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
+    @echo "Source code:"
+    find src/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}'
+    @echo "Tests:"
+    find tests/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
+    @echo "Documentation:"
+    find docs/ -name "*.rst" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
 
 # Show project status
 status:
-    @echo "🎮 AI Game Development Ecosystem Status"
-    @echo "========================================"
-    @echo "Packages:"
-    @ls -1 packages/ | sed 's/^/  /'
+    @echo "🎮 AI Game Development Package Status"
+    @echo "====================================="
+    @echo "Package: ai-game-dev"
+    @echo "Location: src/ai_game_dev/"
     @echo ""
     @echo "Dependencies:"
-    @which uv >/dev/null && echo "  ✅ UV (Python)" || echo "  ❌ UV (Python)"
-    @which cargo >/dev/null && echo "  ✅ Cargo (Rust)" || echo "  ❌ Cargo (Rust)"
-    @which gdformat >/dev/null && echo "  ✅ GDToolkit (GDScript)" || echo "  ❌ GDToolkit (GDScript)"
+    @which uv >/dev/null && echo "  ✅ UV (Python package manager)" || echo "  ❌ UV (Python package manager)"
+    @which sphinx-build >/dev/null && echo "  ✅ Sphinx (Documentation)" || echo "  ❌ Sphinx (Documentation)"
+    @which python >/dev/null && echo "  ✅ Python" || echo "  ❌ Python"
     @echo ""
     just loc
 
@@ -218,73 +218,129 @@ status:
 update:
     @echo "⬆️ Updating dependencies..."
     uv sync --upgrade
-    cd packages/bevy_game_dev && cargo update
 
 # Check for outdated dependencies
 outdated:
     @echo "🔍 Checking for outdated dependencies..."
-    uv pip list --outdated || true
-    cd packages/bevy_game_dev && cargo outdated || echo "Install cargo-outdated for Rust dependency checking"
+    uv pip list --outdated
 
 # Format all code
-format: lint-python lint-rust lint-godot
-    @echo "✨ All code formatted"
+format:
+    @echo "✨ Formatting all code..."
+    uv run black src/ tests/ docs/
+    uv run isort src/ tests/
 
 # Validate project structure
 validate:
-    @echo "🔍 Validating project structure..."
-    @test -d packages/ai_game_dev && echo "✅ ai_game_dev package exists" || echo "❌ ai_game_dev package missing"
-    @test -d packages/ai_game_assets && echo "✅ ai_game_assets package exists" || echo "❌ ai_game_assets package missing"
-    @test -d packages/bevy_game_dev && echo "✅ bevy_game_dev package exists" || echo "❌ bevy_game_dev package missing"
-    @test -d packages/godot_game_dev && echo "✅ godot_game_dev package exists" || echo "❌ godot_game_dev package missing"
-    @test -d packages/pygame_game_dev && echo "✅ pygame_game_dev package exists" || echo "❌ pygame_game_dev package missing"
-    @test -d packages/arcade_game_dev && echo "✅ arcade_game_dev package exists" || echo "❌ arcade_game_dev package missing"
-    @test -d packages/mcp_server && echo "✅ mcp_server package exists" || echo "❌ mcp_server package missing"
+    @echo "🔍 Validating unified package structure..."
+    @test -d src/ai_game_dev && echo "✅ Core package exists" || echo "❌ Core package missing"
+    @test -d src/ai_game_dev/assets && echo "✅ Assets module exists" || echo "❌ Assets module missing"
+    @test -d src/ai_game_dev/mcp_server && echo "✅ MCP server exists" || echo "❌ MCP server missing"
+    @test -d src/ai_game_dev/engine_specs && echo "✅ Engine specs exist" || echo "❌ Engine specs missing"
+    @test -f src/ai_game_dev/providers.py && echo "✅ Multi-LLM providers exist" || echo "❌ Multi-LLM providers missing"
+    @test -f src/ai_game_dev/schemas/game_world_spec.json && echo "✅ JSON schemas exist" || echo "❌ JSON schemas missing"
 
 # =============================================================================
-# 🚀 RELEASE COMMANDS
+# 📦 PACKAGING & RELEASE
 # =============================================================================
 
-# Prepare release (version bump, changelog, etc.)
+# Prepare for release
 release-prep version:
     @echo "🚀 Preparing release {{version}}..."
-    @echo "Updating version in all packages..."
-    sed -i 's/version = ".*"/version = "{{version}}"/' packages/*/pyproject.toml
-    sed -i 's/version = ".*"/version = "{{version}}"/' packages/bevy_game_dev/Cargo.toml
-    sed -i 's/"version": ".*"/"version": "{{version}}"/' packages/godot_game_dev/plugin.cfg
+    sed -i 's/version = ".*"/version = "{{version}}"/' pyproject.toml
+    sed -i 's/__version__ = ".*"/__version__ = "{{version}}"/' src/ai_game_dev/__init__.py
+    @echo "Version updated to {{version}}"
 
-# Create release artifacts
-release-build: clean package-all
-    @echo "📦 Creating release artifacts..."
-    tar -czf ai-game-dev-ecosystem-$(date +%Y%m%d).tar.gz dist/
-    @echo "✅ Release artifacts created"
+# Build release distributions
+release-build: clean build docs
+    @echo "📦 Building release distributions..."
+    @echo "✅ Wheel and source distributions created in dist/"
+    @echo "✅ Documentation built in docs/_build/html/"
 
-# =============================================================================
-# 📚 DOCUMENTATION
-# =============================================================================
+# Upload to PyPI (test)
+upload-test:
+    @echo "🧪 Uploading to Test PyPI..."
+    uv run twine upload --repository testpypi dist/*
 
-# Generate documentation
-docs:
-    @echo "📚 Generating documentation..."
-    cd packages/bevy_game_dev && cargo doc --no-deps --open || true
-
-# Serve documentation locally
-docs-serve:
-    @echo "🌐 Serving documentation..."
-    python -m http.server 8000 -d packages/bevy_game_dev/target/doc/ || true
+# Upload to PyPI (production)
+upload:
+    @echo "🚀 Uploading to PyPI..."
+    uv run twine upload dist/*
 
 # =============================================================================
-# 🎯 SHORTCUTS
+# 🎯 SHORTCUTS & WORKFLOWS
 # =============================================================================
 
 # Quick development cycle
-quick: lint-python test-python
+quick: lint test-fast
     @echo "⚡ Quick development check completed"
 
 # Full CI simulation
-ci: clean setup lint test-all security coverage package-all
+ci: clean lint type-check security test docs build
     @echo "🎯 Full CI simulation completed"
 
 # Emergency fix workflow
-fix: format lint test-python
+fix: format lint test-fast
     @echo "🚑 Emergency fixes applied"
+
+# Complete development workflow
+all: setup lint type-check test docs build
+    @echo "🎉 Complete development workflow finished"
+
+# Install package in development mode
+install:
+    @echo "📦 Installing package in development mode..."
+    uv pip install -e .
+
+# Uninstall package
+uninstall:
+    @echo "🗑️ Uninstalling package..."
+    uv pip uninstall ai-game-dev
+
+# =============================================================================
+# 🛠️ ENGINE-SPECIFIC COMMANDS
+# =============================================================================
+
+# Generate engine-specific templates
+templates:
+    @echo "🎯 Generating engine templates..."
+    uv run python -c "
+import toml
+import os
+for spec_file in os.listdir('src/ai_game_dev/engine_specs/'):
+    if spec_file.endswith('.toml'):
+        engine = spec_file[:-5]
+        print(f'  ✅ {engine.title()} template available')
+"
+
+# Validate TOML specifications
+validate-specs:
+    @echo "🔍 Validating engine specifications..."
+    uv run python -c "
+import toml
+import os
+import json
+for spec_file in os.listdir('src/ai_game_dev/engine_specs/'):
+    if spec_file.endswith('.toml'):
+        try:
+            toml.load(f'src/ai_game_dev/engine_specs/{spec_file}')
+            print(f'  ✅ {spec_file} is valid')
+        except Exception as e:
+            print(f'  ❌ {spec_file} has errors: {e}')
+"
+
+# Validate JSON schemas
+validate-schemas:
+    @echo "🔍 Validating JSON schemas..."
+    uv run python -c "
+import json
+import os
+for schema_file in os.listdir('src/ai_game_dev/schemas/'):
+    if schema_file.endswith('.json'):
+        try:
+            with open(f'src/ai_game_dev/schemas/{schema_file}') as f:
+                json.load(f)
+            print(f'  ✅ {schema_file} is valid')
+        except Exception as e:
+            print(f'  ❌ {schema_file} has errors: {e}')
+"

@@ -1,162 +1,49 @@
-# Revolutionary AI-Powered Game Development System
+# replit.md
 
 ## Overview
 
-This is the world's most advanced AI-powered game development system, featuring GPT-5 intelligence, multi-agent orchestration, and persistent long-term memory. The system transforms any game specification format into complete, deployable games with revolutionary agent coordination, semantic memory, and engine-specific optimization. Built on OpenAI's cutting-edge MCP (Model Context Protocol) Server architecture with async capabilities, vector-powered memory, and intelligent workflow orchestration.
+This is a revolutionary unified AI-powered game development library that provides comprehensive tools for creating games using artificial intelligence. The system is now consolidated into a single Python package (`ai-game-dev`) with multi-LLM provider support, comprehensive asset generation, and engine-specific TOML specifications.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (September 2025)
+## Unified Architecture
 
-### 🚀 **PRODUCTION-READY ECOSYSTEM COMPLETE**
-- **✅ Complete CI/CD Pipeline**: GitHub Actions with automated testing, quality checks, and publishing workflows
-- **✅ FastMCP Server**: Modern Model Context Protocol server with proper FastMCP 2.11+ implementation
-- **✅ Clean Architecture**: No root-level clutter, all code properly organized in packages/
-- **✅ Registry Ready**: All 6 packages ready for PyPI, Cargo, and Godot Asset Library publication
-- **✅ Example Projects**: Working demos for Pygame, Bevy, and interactive showcases
-- **✅ Performance Optimization**: Production monitoring, caching, batch processing, and rate limiting
-- **✅ Community Infrastructure**: Contribution guidelines, documentation hub, and deployment guides
-- **✅ Web Portal**: Interactive Mesop interface for browser-based game generation
+### Single Package Structure
 
-### 🏗️ **CORE SYSTEM ARCHITECTURE**
-- **🏗️ UV WORKSPACE ARCHITECTURE**: Complete migration to UV workspace with separated concerns
-- **🎨 AI GAME ASSETS LIBRARY**: Standalone multimedia package with OpenAI TTS, music21, Google Fonts, CC0 libraries
-- **🧠 PURE LANGGRAPH CORE**: Clean separation of orchestration logic from multimedia generation
-- **🔧 LANGUAGE-NATIVE ENGINES**: Engine adapters generate native Rust (Bevy), GDScript (Godot), Python (Pygame/Arcade)
-- **🎵 COMPREHENSIVE AUDIO**: TTS with voice selection, procedural music generation, Freesound API integration
-- **🌐 ASSET ECOSYSTEM**: Google Fonts, CC0 libraries, Internet Archive seeding with PyTorch embeddings
-- **⚡ STRUCTURED TOOLS**: LangChain-compatible tools for seamless agent workflow integration
-- **💾 SQLite State Management**: Full persistence across development sessions with checkpointing support
+**Consolidated Package**: All functionality unified under `src/ai_game_dev/` with modular subdirectories for assets, MCP server, and engine specifications.
 
-## System Architecture
+**Multi-LLM Provider Support**: Unified provider system supporting OpenAI, Anthropic Claude, Google Gemini, and local LLMs via Ollama with automatic fallback capabilities.
 
-### UV Workspace Structure
-```
-packages/
-├── ai_game_dev/           # Pure LangChain/LangGraph orchestration (Python)
-│   ├── __init__.py
-│   ├── library.py         # Main AIGameDev class
-│   ├── models.py          # Core data models
-│   ├── langgraph_agents.py # Multi-agent orchestration
-│   ├── engine_adapters.py # Language-native engine interfaces
-│   └── config.py          # Configuration management
-├── ai_game_assets/        # Standalone multimedia generation (Python)
-│   ├── audio/             # TTS, music21, Freesound integration
-│   │   ├── tts_generator.py
-│   │   ├── music_generator.py
-│   │   ├── freesound_client.py
-│   │   └── audio_tools.py
-│   └── assets/            # Visual assets and fonts
-│       ├── cc0_libraries.py
-│       ├── google_fonts.py
-│       ├── archive_seeder.py
-│       └── asset_tools.py
-├── bevy_game_dev/         # Native Rust Bevy bindings
-│   ├── Cargo.toml
-│   └── src/lib.rs
-├── godot_game_dev/        # Native GDScript Godot bindings  
-│   ├── project.godot
-│   └── GameGenerator.gd
-├── pygame_game_dev/       # Native Python Pygame bindings
-│   └── __init__.py
-├── arcade_game_dev/       # Native Python Arcade bindings
-│   └── __init__.py
-└── web_portal/            # Mesop web interface
-    └── app.py
-```
+**Engine-Specific TOML Templates**: Comprehensive engine specifications with metaprompts for Pygame, Bevy, Godot, and Arcade. Each template includes code generation patterns, asset integration guides, and optimization strategies.
 
-### Core Framework
-- **Pure LangGraph Orchestration**: Clean separation of AI orchestration from multimedia generation
-- **UV Workspace Management**: Modern Python project structure with proper dependency isolation
-- **Language-Native Engine Adapters**: Generate Rust (Bevy), GDScript (Godot), Python (Pygame/Arcade) code
-- **Standalone Asset Library**: Independent multimedia package for TTS, music, fonts, and visual assets
-- **Structured Tool Integration**: LangChain-compatible tools for seamless agent workflow integration
-- **Async/Await Pattern**: Leverages Python's asyncio for non-blocking operations and improved performance
-- **Type Safety**: Implements comprehensive type hints with modern Python typing features for better code reliability
+**JSON Schema Integration**: Structured game world specifications enabling AI tools to understand exactly what to generate, including metadata, gameplay mechanics, asset requirements, and narrative elements.
 
-### Seed-Enhanced Generation System
-- **Contextual Seeds**: Store reusable context data (style guides, character sheets, color palettes)
-- **Smart Consumption**: Automatically enhance prompts with relevant seed data
-- **Project Organization**: Group seeds by project context for targeted enhancement
-- **Priority-Based Filtering**: Critical seeds always included, others based on relevance
-- **Usage Tracking**: Monitor seed consumption with optional usage limits and expiration
-- **Multi-format Support**: Handles various image sizes and qualities through typed literals
-- **Batch Processing**: Generate multiple assets simultaneously with seed enhancement
-- **Content Validation**: AI-powered safety checks and quality validation for all generated content
+### Core Components
 
-### Caching and Storage
-- **Advanced TTL Caching**: Time-based expiration with automatic cleanup and LRU eviction
-- **XDG Standards**: Proper system directory usage (~/.cache and ~/.local/share)
-- **Content-based Caching**: Hash-based system for generated content to avoid redundant API calls
-- **Structured File Organization**: Separates different asset types with metadata tracking
-- **Cache Management**: Automatic cleanup, size limits, and performance optimization
-- **Idempotent Operations**: Skip existing content unless forced by parameter
+**LangChain/LangGraph Orchestration**: Pure multi-agent workflows for intelligent game generation with support for multiple LLM providers and sophisticated dialogue/quest generation.
 
-### File Management
-- **Async File Operations**: Uses aiofiles for non-blocking file I/O operations
-- **Path Management**: Leverages pathlib for modern, cross-platform path handling
-- **Image Processing**: Integrates PIL (Pillow) for image manipulation capabilities
+**Comprehensive Asset Generation**: Integrated multimedia creation including CC0 graphics libraries, Google Fonts typography, TTS/music generation, and Internet Archive semantic seeding with PyTorch embeddings.
 
-## Advanced Features
+**FastMCP Server**: Model Context Protocol server for external tool integration, providing structured interfaces for Claude, ChatGPT, and other AI assistants.
 
-### Performance & Monitoring
-- **Structured Logging**: Rich-formatted console output with file logging
-- **Performance Metrics**: Detailed operation tracking, cache hit rates, API usage
-- **Error Handling**: Comprehensive exception hierarchy with proper error recovery
-- **Async Optimization**: Non-blocking operations with connection pooling
+**Professional Development Tools**: Async/await performance optimization, intelligent caching systems, batch processing capabilities, and cross-language static analysis.
 
-### Content Safety & Quality
-- **Content Validation**: AI-powered safety checks and NSFW detection
-- **Quality Assurance**: Automatic validation of generated images and 3D models
-- **Moderation Integration**: OpenAI moderation API for text prompts
+### Documentation and Quality
 
-### Batch Operations & Export
-- **Bulk Processing**: Generate multiple assets simultaneously with progress tracking
-- **Format Conversion**: Export to multiple formats with optimization options
-- **Streaming Support**: Real-time progress updates for long-running operations
+**Sphinx with RST**: Professional documentation system using ReStructuredText with sphinx-autodoc2 for automatic API generation from static analysis. No need to install packages for documentation generation.
 
-## Official Registry Distribution
+**Automated Quality Pipeline**: Comprehensive static analysis with MyPy, Pylint, Bandit, Ruff, and support for additional languages. Integrated with pre-commit hooks and CI/CD workflows.
 
-### 📦 **Cargo (crates.io)**
-- **bevy-ai-game-dev**: Native Rust Bevy bindings with full ECS support
-- Keywords: bevy, gamedev, ai, procedural, ecs
-- Category: game-development, game-engines
+**Justfile Build System**: Streamlined build system with 80+ commands for development, testing, documentation, packaging, and deployment workflows.
 
-### 🎮 **Godot Asset Library**
-- **AI Game Development Generator**: Complete Godot plugin for in-editor AI generation
-- Category: Tools | Support: Community | Version: Godot 4.3+
-- Direct integration with Godot's native GDScript and scene system
+## Production Ready Features
 
-### 🐍 **PyPI (Python Package Index)**
-- **ai-game-dev**: Core LangGraph orchestration library
-- **ai-game-assets**: Standalone multimedia generation toolkit
-- **pygame-ai-game-dev**: Native Pygame integration bindings
-- **arcade-ai-game-dev**: Native Arcade integration bindings
+**Single pyproject.toml**: Unified dependency management with hatch build backend and UV package manager. Optional dependency groups for different use cases (pygame, audio, web, dev).
 
-### 🔧 **Distribution Strategy**
-- **Independent Versioning**: Each package evolves at its own pace
-- **Cross-Language Compatibility**: Rust, Python, and GDScript interoperability
-- **Production Ready**: Full documentation, testing, and CI/CD pipeline
-- **Community Focus**: Open source with comprehensive examples and tutorials
+**Modern Python Standards**: Python 3.11+ with modern type annotations, async/await patterns, and contemporary import styles. No legacy compatibility layers.
 
-## External Dependencies
+**Performance Optimization**: Intelligent caching, connection pooling, batch processing, and modular loading for optimal performance across different deployment scenarios.
 
-### AI Services
-- **OpenAI API**: Primary service for image generation and vision analysis
-- **API Key Management**: Secure environment variable-based authentication
-
-### Python Libraries
-- **LangChain/LangGraph**: Core AI orchestration framework
-- **OpenAI Python Client**: Official OpenAI API client library
-- **aiofiles**: Async file operations
-- **Pillow (PIL)**: Image processing and manipulation
-- **music21**: Procedural music generation
-- **PyTorch**: Semantic analysis and embeddings
-
-### System Requirements
-- **Python 3.11+**: Modern Python runtime with latest async features
-- **Rust 1.70+**: For Bevy engine bindings compilation
-- **Godot 4.3+**: For GDScript plugin integration
-- **Package Management**: Uses modern UV workspace + Cargo + PyPI ecosystem
+**Enterprise Deployment**: Docker support, PyPI distribution, comprehensive testing suite, and professional documentation ready for production use.

@@ -1,0 +1,128 @@
+/* Custom CSS for AI Game Development Documentation */
+
+/* Brand colors */
+:root {
+    --primary-color: #2980B9;
+    --secondary-color: #3498DB;
+    --accent-color: #E74C3C;
+    --success-color: #27AE60;
+    --warning-color: #F39C12;
+    --dark-color: #2C3E50;
+}
+
+/* Enhanced code blocks */
+.highlight {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.highlight pre {
+    margin: 0;
+    background: transparent;
+}
+
+/* Feature badges */
+.feature-badge {
+    display: inline-block;
+    background: var(--primary-color);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0.2rem;
+}
+
+.feature-badge.llm { background: var(--secondary-color); }
+.feature-badge.engine { background: var(--success-color); }
+.feature-badge.asset { background: var(--warning-color); }
+.feature-badge.tool { background: var(--accent-color); }
+
+/* Enhanced admonitions */
+.admonition {
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--primary-color);
+}
+
+.admonition.note {
+    background: #e8f4fd;
+    border-left-color: var(--primary-color);
+}
+
+.admonition.warning {
+    background: #fff3cd;
+    border-left-color: var(--warning-color);
+}
+
+.admonition.tip {
+    background: #d4edda;
+    border-left-color: var(--success-color);
+}
+
+/* Navigation improvements */
+.wy-nav-content {
+    max-width: 1200px;
+}
+
+.wy-nav-content-wrap {
+    margin-left: 300px;
+}
+
+/* Enhanced tables */
+.wy-table-responsive table td,
+.wy-table-responsive table th {
+    white-space: normal;
+}
+
+/* Code inline styling */
+code.literal {
+    background: #f1f3f4;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Logo and branding */
+.wy-side-nav-search {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.wy-side-nav-search input[type=text] {
+    border-radius: 25px;
+}
+
+/* Footer customization */
+.rst-footer-buttons {
+    margin-top: 2rem;
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+    .wy-nav-content-wrap {
+        margin-left: 0;
+    }
+    
+    .feature-badge {
+        display: block;
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+}
+
+/* Enhanced code syntax highlighting */
+.highlight .hll { background-color: #ffffcc }
+.highlight .c { color: #408080; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #408080; font-style: italic } /* Comment.Special */

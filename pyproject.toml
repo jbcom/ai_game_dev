@@ -5,7 +5,7 @@ description = "Revolutionary AI-powered game development library with multi-LLM 
 authors = [
     {name = "AI Game Dev Team", email = "team@ai-game-dev.com"}
 ]
-readme = "README.md"
+readme = {content-type = "text/x-rst", file = "docs/index.rst"}
 license = {text = "MIT"}
 requires-python = ">=3.11"
 keywords = ["ai", "game-development", "langchain", "langgraph", "assets", "procedural"]
@@ -107,7 +107,7 @@ Issues = "https://github.com/ai-game-dev/ai-game-dev/issues"
 
 [project.scripts]
 ai-game-dev = "ai_game_dev.cli:main"
-ai-game-dev-server = "ai_game_dev.mcp_server.server:main"
+ai-game-dev-server = "ai_game_dev.mcp_server.main:main"
 
 [tool.uv]
 dev-dependencies = [
@@ -139,6 +139,12 @@ dev-dependencies = [
     
     # GDScript Analysis
     "gdtoolkit>=4.2.0",
+    
+    # Documentation
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "sphinx-autodoc2>=0.5.0",
+    "myst-parser>=2.0.0",
     
     # Build tools
     "pre-commit>=3.0.0",

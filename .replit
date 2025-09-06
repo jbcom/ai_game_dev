@@ -27,7 +27,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd src/ai_game_dev/mcp_server && python main.py"
+args = "uv run ai-game-dev-server"
 
 [[ports]]
 localPort = 5000
