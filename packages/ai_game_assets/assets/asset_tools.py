@@ -134,312 +134,305 @@ class AssetTools:
             summary=summary
         )
     
-    def _analyze_asset_context(
+    async def _gather_graphics_assets(
         self,
         game_description: str,
-        art_style: str,
-        color_palette: str
-    ) -> Dict[str, Any]:
-        """Analyze game description to determine asset context."""
+        asset_types: list[str],
+        style_preferences: str,
+        max_assets: int,
+        output_dir: Path
+    ) -> dict[str, list[dict[str, Any]]]:
+        """Gather graphics assets from CC0 libraries."""
         
-        desc_lower = game_description.lower()
+        graphics_dir = output_dir / "graphics"
+        graphics_dir.mkdir(exist_ok=True)
         
-        # Determine game genre for asset selection
-        genre = "modern"
-        if any(word in desc_lower for word in ["fantasy", "magic", "medieval", "dragon"]):
-            genre = "fantasy"
-        elif any(word in desc_lower for word in ["sci-fi", "space", "robot", "cyber", "future"]):
-            genre = "sci-fi"
-        elif any(word in desc_lower for word in ["horror", "scary", "dark", "zombie"]):
-            genre = "horror"
-        elif any(word in desc_lower for word in ["retro", "pixel", "8bit", "arcade"]):
-            genre = "retro"
-        elif any(word in desc_lower for word in ["cartoon", "cute", "colorful", "fun"]):
-            genre = "cartoon"
+        graphics_assets = {}
         
-        # Determine primary game contexts
-        contexts = []
-        if any(word in desc_lower for word in ["platformer", "jump", "run"]):
-            contexts.append("platformer")
-        if any(word in desc_lower for word in ["rpg", "role", "character", "quest"]):
-            contexts.append("rpg")
-        if any(word in desc_lower for word in ["puzzle", "solve", "brain"]):
-            contexts.append("puzzle")
-        if any(word in desc_lower for word in ["action", "fast", "combat"]):
-            contexts.append("action")
-        
-        # Analyze visual complexity
-        complexity = "intermediate"
-        if any(word in desc_lower for word in ["simple", "minimal", "basic"]):
-            complexity = "simple"
-        elif any(word in desc_lower for word in ["complex", "detailed", "rich"]):
-            complexity = "complex"
-        
-        return {
-            "genre": genre,
-            "contexts": contexts,
-            "art_style": art_style,
-            "color_palette": color_palette,
-            "complexity": complexity
+        # Map asset types to search categories
+        type_mapping = {
+            "sprites": "sprites",
+            "textures": "textures", 
+            "ui": "ui",
+            "graphics": "all",
+            "backgrounds": "textures",
+            "characters": "sprites",
+            "items": "sprites"
         }
-    
-    async def _generate_visual_assets(
-        self,
-        game_description: str,
-        asset_context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        """Generate visual assets using CC0 libraries."""
-        
-        genre = asset_context["genre"]
-        art_style = asset_context["art_style"]
-        
-        # Determine needed asset types
-        asset_types = self._determine_visual_asset_types(game_description)
-        
-        all_assets = []
         
         for asset_type in asset_types:
-            # Build search query
-            search_keywords = f"{genre} {art_style}"
-            if asset_context["color_palette"]:
-                search_keywords += f" {asset_context['color_palette']}"
-            
-            # Search CC0 libraries
-            assets = await self.cc0_library.search_assets(
-                asset_type=asset_type,
-                keywords=search_keywords,
-                max_results=5,
-                style=art_style
-            )
-            
-            # Convert to serializable format
-            for asset in assets:
-                all_assets.append({
-                    "type": asset_type,
-                    "name": asset.name,
-                    "description": asset.description,
-                    "download_url": asset.download_url,
-                    "preview_url": asset.preview_url,
-                    "license": asset.license,
-                    "source": asset.source_library,
-                    "tags": asset.tags,
-                    "resolution": asset.resolution
-                })
+            if asset_type in type_mapping:
+                search_category = type_mapping[asset_type]
+                
+                # Search for assets
+                search_query = f"{game_description} {style_preferences} {asset_type}".strip()
+                found_assets = await self._cc0_client.search_assets(
+                    search_query, search_category, "cc0"
+                )
+                
+                # Limit results and add metadata
+                limited_assets = found_assets[:max_assets]
+                
+                for asset in limited_assets:
+                    asset["search_query"] = search_query
+                    asset["asset_type"] = asset_type
+                    asset["local_category"] = search_category
+                
+                graphics_assets[asset_type] = limited_assets
         
-        return all_assets
+        # Save graphics manifest
+        graphics_manifest = graphics_dir / "graphics_manifest.json"
+        with open(graphics_manifest, 'w') as f:
+            json.dump(graphics_assets, f, indent=2)
+        
+        return graphics_assets
     
-    def _determine_visual_asset_types(self, game_description: str) -> List[AssetType]:
-        """Determine needed visual asset types from game description."""
-        
-        desc_lower = game_description.lower()
-        asset_types = []
-        
-        # Always include these basics
-        asset_types.extend(["sprite", "icon"])
-        
-        # Add context-specific assets
-        if any(word in desc_lower for word in ["background", "environment", "world"]):
-            asset_types.append("texture")
-        
-        if any(word in desc_lower for word in ["character", "player", "hero", "enemy"]):
-            asset_types.append("sprite")
-        
-        if any(word in desc_lower for word in ["ui", "interface", "menu", "button"]):
-            asset_types.append("icon")
-        
-        if any(word in desc_lower for word in ["3d", "model", "object"]):
-            asset_types.append("model")
-        
-        return list(set(asset_types))  # Remove duplicates
-    
-    async def _generate_font_pack(
+    async def _gather_font_assets(
         self,
         game_description: str,
-        asset_context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        """Generate typography pack using Google Fonts."""
+        style_preferences: str,
+        output_dir: Path
+    ) -> dict[str, Any]:
+        """Gather font assets from Google Fonts."""
         
-        genre = asset_context["genre"]
+        fonts_dir = output_dir / "fonts"
+        fonts_dir.mkdir(exist_ok=True)
         
-        # Map game genres to font contexts
-        font_context_map = {
-            "fantasy": FontGameContext.FANTASY,
-            "sci-fi": FontGameContext.SCI_FI,
-            "retro": FontGameContext.RETRO,
-            "modern": FontGameContext.MODERN,
-            "horror": FontGameContext.MODERN,  # Use modern as fallback
-            "cartoon": FontGameContext.MODERN
+        # Determine game style for font selection
+        combined_description = f"{game_description} {style_preferences}".strip()
+        
+        # Create font pack
+        font_pack = await self._fonts_client.create_font_pack(
+            combined_description, fonts_dir
+        )
+        
+        # Get font recommendations
+        game_style = self._fonts_client._analyze_game_style(combined_description)
+        recommended_fonts = await self._fonts_client.get_fonts_for_game_style(game_style)
+        
+        font_assets = {
+            "downloaded_fonts": font_pack,
+            "game_style": game_style,
+            "recommended_fonts": recommended_fonts,
+            "font_pairings": {}
         }
         
-        primary_context = font_context_map.get(genre, FontGameContext.MODERN)
+        # Add font pairing suggestions
+        for font_family in font_pack.keys():
+            if not font_family.startswith("system_"):
+                pairings = self._fonts_client.get_font_pairing_suggestions(font_family)
+                font_assets["font_pairings"][font_family] = pairings
         
-        # Get font recommendations for different uses
-        ui_fonts = await self.fonts_manager.search_fonts(
-            game_context=FontGameContext.UI,
-            max_results=3
-        )
-        
-        title_fonts = await self.fonts_manager.search_fonts(
-            game_context=FontGameContext.TITLE,
-            style_keywords=f"{genre} {asset_context['art_style']}",
-            max_results=3
-        )
-        
-        dialogue_fonts = await self.fonts_manager.search_fonts(
-            game_context=FontGameContext.DIALOGUE,
-            max_results=2
-        )
-        
-        # Combine and format results
-        font_pack = []
-        
-        # Add UI fonts
-        for font in ui_fonts:
-            font_pack.append({
-                "usage": "ui",
-                "family": font.family,
-                "category": font.category,
-                "variants": font.variants,
-                "style_tags": font.style_tags,
-                "game_contexts": font.game_contexts,
-                "download_files": font.files
-            })
-        
-        # Add title fonts
-        for font in title_fonts:
-            font_pack.append({
-                "usage": "title",
-                "family": font.family,
-                "category": font.category,
-                "variants": font.variants,
-                "style_tags": font.style_tags,
-                "game_contexts": font.game_contexts,
-                "download_files": font.files
-            })
-        
-        # Add dialogue fonts
-        for font in dialogue_fonts:
-            font_pack.append({
-                "usage": "dialogue",
-                "family": font.family,
-                "category": font.category,
-                "variants": font.variants,
-                "style_tags": font.style_tags,
-                "game_contexts": font.game_contexts,
-                "download_files": font.files
-            })
-        
-        return font_pack
+        return font_assets
     
-    async def _generate_semantic_seeds(
+    async def _gather_archived_assets(
         self,
         game_description: str,
-        theme_keywords: str,
-        asset_context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        """Generate semantic seeds using Internet Archive."""
+        max_assets: int,
+        output_dir: Path
+    ) -> dict[str, Any]:
+        """Gather assets from Internet Archive."""
         
-        if not theme_keywords:
-            # Extract keywords from game description
-            theme_keywords = asset_context["genre"]
+        archive_dir = output_dir / "archived"
+        archive_dir.mkdir(exist_ok=True)
         
-        # Generate semantic seed
-        seed = await self.archive_seeder.generate_semantic_seed(
-            concept=theme_keywords,
-            context_description=game_description,
-            max_reference_items=10
+        # Create curated asset seed
+        curated_seed = await self._archive_client.create_curated_asset_seed(
+            game_description, max_collections=max_assets, max_size_mb=100
         )
         
-        # Search for related archive items
-        archive_items = await self.archive_seeder.search_archive(
-            keywords=theme_keywords,
-            media_type="image",
-            max_results=15
-        )
+        # Save seed metadata
+        seed_metadata_path = archive_dir / "curated_seed.json"
+        with open(seed_metadata_path, 'w') as f:
+            json.dump(curated_seed, f, indent=2, default=str)
         
-        # Format results
-        semantic_seeds = [{
-            "concept": seed.concept,
-            "description": seed.description,
-            "keywords": seed.keywords,
-            "context_strength": seed.context_strength,
-            "reference_items": [
-                {
-                    "title": item.title,
-                    "description": item.description,
-                    "download_url": item.download_url,
-                    "preview_url": item.preview_url,
-                    "subjects": item.subjects,
-                    "similarity_score": item.embedding_score
-                } for item in archive_items[:5]  # Top 5 most relevant
-            ]
-        }]
-        
-        return semantic_seeds
+        return {
+            "curated_seed": curated_seed,
+            "total_collections": len(curated_seed.get("collections", [])),
+            "estimated_size_mb": curated_seed.get("total_estimated_size_mb", 0),
+            "download_order": curated_seed.get("recommended_download_order", [])
+        }
     
-    def _create_asset_summary(
+    def _create_package_metadata(
         self,
-        visual_assets: List[Dict[str, Any]],
-        fonts: List[Dict[str, Any]],
-        semantic_seeds: List[Dict[str, Any]]
+        game_description: str,
+        asset_types: list[str],
+        style_preferences: str,
+        graphics_assets: dict[str, Any],
+        font_assets: dict[str, Any],
+        archived_assets: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Create comprehensive metadata for the asset package."""
+        
+        return {
+            "generation_info": {
+                "game_description": game_description,
+                "requested_asset_types": asset_types,
+                "style_preferences": style_preferences,
+                "generation_timestamp": "2025-01-01T00:00:00Z"
+            },
+            "asset_counts": {
+                "graphics_categories": len(graphics_assets),
+                "total_graphics_assets": sum(len(assets) for assets in graphics_assets.values()),
+                "font_families": len(font_assets.get("downloaded_fonts", {})),
+                "archived_collections": archived_assets.get("total_collections", 0)
+            },
+            "estimated_storage": {
+                "fonts_mb": 5,  # Estimated
+                "archived_mb": archived_assets.get("estimated_size_mb", 0),
+                "total_estimated_mb": 5 + archived_assets.get("estimated_size_mb", 0)
+            },
+            "licenses": {
+                "graphics": "CC0 (Creative Commons Zero)",
+                "fonts": "Open Font License / Google Fonts",
+                "archived": "CC0 (Creative Commons Zero)"
+            },
+            "usage_recommendations": self._generate_usage_recommendations(
+                game_description, graphics_assets, font_assets
+            )
+        }
+    
+    def _generate_usage_recommendations(
+        self,
+        game_description: str,
+        graphics_assets: dict[str, Any],
+        font_assets: dict[str, Any]
+    ) -> list[str]:
+        """Generate usage recommendations for the asset package."""
+        
+        recommendations = []
+        
+        # Graphics recommendations
+        if graphics_assets:
+            recommendations.append("Use sprites for character animations and interactive objects")
+            if "ui" in graphics_assets:
+                recommendations.append("Apply UI assets consistently across all game interfaces")
+            if "textures" in graphics_assets:
+                recommendations.append("Tile textures seamlessly for background elements")
+        
+        # Font recommendations
+        if font_assets:
+            game_style = font_assets.get("game_style", "modern")
+            recommendations.append(f"Primary fonts selected for {game_style} style - use consistently")
+            recommendations.append("Reserve decorative fonts for titles and special UI elements")
+        
+        # Game-specific recommendations
+        desc_lower = game_description.lower()
+        if "mobile" in desc_lower:
+            recommendations.append("Optimize all assets for mobile screen sizes and performance")
+        if "multiplayer" in desc_lower:
+            recommendations.append("Ensure visual consistency for all player-visible assets")
+        if "retro" in desc_lower or "pixel" in desc_lower:
+            recommendations.append("Maintain pixel-perfect scaling for authentic retro appearance")
+        
+        return recommendations
+    
+    def _create_package_summary(
+        self,
+        graphics_assets: dict[str, Any],
+        font_assets: dict[str, Any],
+        archived_assets: dict[str, Any]
     ) -> str:
-        """Create a summary of the generated asset pack."""
+        """Create a human-readable summary of the asset package."""
         
         summary_parts = []
         
-        if visual_assets:
-            asset_types = set(asset["type"] for asset in visual_assets)
-            summary_parts.append(f"Found {len(visual_assets)} visual assets ({', '.join(asset_types)})")
-        
-        if fonts:
-            font_uses = set(font["usage"] for font in fonts)
-            summary_parts.append(f"Selected {len(fonts)} fonts for {', '.join(font_uses)}")
-        
-        if semantic_seeds:
-            total_references = sum(len(seed.get("reference_items", [])) for seed in semantic_seeds)
-            summary_parts.append(f"Generated {len(semantic_seeds)} semantic seeds with {total_references} references")
-        
-        return "Asset pack includes: " + ", ".join(summary_parts) + "."
-    
-    def create_langraph_tool(self) -> StructuredTool:
-        """Create a unified LangGraph tool for complete asset workflow."""
-        
-        async def _generate_asset_workflow(
-            game_description: str,
-            asset_needs: List[str],
-            art_style: str = "modern",
-            color_palette: str = "",
-            theme_keywords: str = ""
-        ) -> Dict[str, Any]:
-            """Generate complete asset pack for game development."""
-            
-            result = await self.generate_complete_asset_pack(
-                game_description=game_description,
-                asset_needs=asset_needs,
-                art_style=art_style,
-                color_palette=color_palette,
-                theme_keywords=theme_keywords
+        # Graphics summary
+        if graphics_assets:
+            total_graphics = sum(len(assets) for assets in graphics_assets.values())
+            categories = list(graphics_assets.keys())
+            summary_parts.append(
+                f"Graphics: {total_graphics} assets across {len(categories)} categories "
+                f"({', '.join(categories)})"
             )
-            
-            return {
-                "visual_assets": result.visual_assets,
-                "fonts": result.fonts,
-                "semantic_seeds": result.semantic_seeds,
-                "summary": result.asset_pack_summary,
-                "total_assets": (
-                    len(result.visual_assets) +
-                    len(result.fonts) +
-                    len(result.semantic_seeds)
-                )
+        
+        # Fonts summary
+        if font_assets:
+            font_count = len(font_assets.get("downloaded_fonts", {}))
+            game_style = font_assets.get("game_style", "modern")
+            summary_parts.append(f"Fonts: {font_count} font families optimized for {game_style} style")
+        
+        # Archive summary
+        if archived_assets:
+            collections = archived_assets.get("total_collections", 0)
+            size_mb = archived_assets.get("estimated_size_mb", 0)
+            summary_parts.append(f"Archived: {collections} curated collections (~{size_mb:.1f}MB)")
+        
+        if summary_parts:
+            return "Asset package includes: " + "; ".join(summary_parts) + "."
+        else:
+            return "Asset package created successfully."
+    
+    def analyze_asset_requirements(
+        self,
+        game_description: str,
+        target_platform: str = "desktop"
+    ) -> dict[str, Any]:
+        """Analyze game description to determine optimal asset requirements."""
+        
+        desc_lower = game_description.lower()
+        
+        # Base requirements
+        requirements = {
+            "essential_types": ["ui", "sprites"],
+            "recommended_types": [],
+            "optional_types": [],
+            "estimated_count": {},
+            "style_suggestions": [],
+            "technical_constraints": {}
+        }
+        
+        # Analyze game type for requirements
+        if any(word in desc_lower for word in ["platformer", "2d", "side-scrolling"]):
+            requirements["essential_types"].extend(["textures", "backgrounds"])
+            requirements["recommended_types"].extend(["animations"])
+            requirements["style_suggestions"].append("pixel art or hand-drawn")
+        
+        if any(word in desc_lower for word in ["3d", "first-person", "third-person"]):
+            requirements["essential_types"].extend(["textures", "models"])
+            requirements["recommended_types"].extend(["materials", "lighting"])
+            requirements["style_suggestions"].append("realistic or stylized 3D")
+        
+        if any(word in desc_lower for word in ["rpg", "adventure", "story"]):
+            requirements["recommended_types"].extend(["characters", "environments", "icons"])
+            requirements["optional_types"].extend(["portraits", "items"])
+        
+        # Platform-specific constraints
+        if target_platform == "mobile":
+            requirements["technical_constraints"] = {
+                "max_texture_size": "1024x1024",
+                "recommended_formats": ["PNG", "JPG"],
+                "performance_priority": "high",
+                "file_size_budget": "50MB total"
+            }
+        elif target_platform == "web":
+            requirements["technical_constraints"] = {
+                "max_texture_size": "512x512",
+                "recommended_formats": ["PNG", "WebP"],
+                "performance_priority": "medium",
+                "file_size_budget": "20MB total"
+            }
+        else:  # desktop
+            requirements["technical_constraints"] = {
+                "max_texture_size": "2048x2048",
+                "recommended_formats": ["PNG", "JPG", "TGA"],
+                "performance_priority": "low",
+                "file_size_budget": "500MB total"
             }
         
-        return StructuredTool.from_function(
-            func=_generate_asset_workflow,
-            name="generate_complete_assets",
-            description=(
-                "Generate a complete asset pack for game development including "
-                "CC0 visual assets, Google Fonts typography, and semantic seeds from "
-                "Internet Archive. Provides end-to-end asset production workflow."
-            ),
-            args_schema=AssetWorkflowRequest
-        )
+        # Estimate asset counts
+        base_counts = {"ui": 15, "sprites": 10, "textures": 8, "fonts": 3}
+        
+        complexity_multiplier = 1.0
+        if any(word in desc_lower for word in ["complex", "large", "many", "extensive"]):
+            complexity_multiplier = 2.0
+        elif any(word in desc_lower for word in ["simple", "minimal", "small"]):
+            complexity_multiplier = 0.5
+        
+        for asset_type in requirements["essential_types"] + requirements["recommended_types"]:
+            if asset_type in base_counts:
+                requirements["estimated_count"][asset_type] = int(
+                    base_counts[asset_type] * complexity_multiplier
+                )
+        
+        return requirements
