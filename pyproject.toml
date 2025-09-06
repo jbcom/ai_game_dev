@@ -52,6 +52,7 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "pyyaml>=6.0.2",
     "toml>=0.10.2",
+    "xdg-base-dirs>=6.0.1",
     
     # Async and performance
     "uvloop>=0.20.0; platform_system != 'Windows'",
@@ -77,7 +78,13 @@ audio = [
     "pydub>=0.25.0",
 ]
 
-# Web interface
+# User interfaces
+ui = [
+    "textual>=0.82.0",
+    "rich>=13.0.0",
+]
+
+# Web interface  
 web = [
     "mesop>=0.12.0",
     "streamlit>=1.28.0",
@@ -96,7 +103,7 @@ dev = [
 
 # All optional dependencies
 all = [
-    "ai-game-dev[pygame,arcade,audio,web,dev]"
+    "ai-game-dev[pygame,arcade,audio,ui,web,dev]"
 ]
 
 [project.urls]
@@ -106,7 +113,8 @@ Repository = "https://github.com/ai-game-dev/ai-game-dev"
 Issues = "https://github.com/ai-game-dev/ai-game-dev/issues"
 
 [project.scripts]
-ai-game-dev = "ai_game_dev.cli:main"
+ai-game-dev = "ai_game_dev.ui.cli.main:launch_cli"
+ai-game-dev-web = "ai_game_dev.ui.web.portal:launch_web_portal"
 ai-game-dev-server = "ai_game_dev.mcp_server.main:main"
 
 [tool.uv]

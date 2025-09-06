@@ -1,4 +1,4 @@
-"""Configuration and settings for the MCP server."""
+"""Configuration and settings for the AI Game Dev system."""
 
 from pathlib import Path
 from typing import ClassVar
@@ -6,6 +6,11 @@ from typing import ClassVar
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from xdg_base_dirs import xdg_cache_home, xdg_data_home
+
+
+def get_config() -> "ServerSettings":
+    """Get the current configuration."""
+    return ServerSettings()
 
 
 class ServerSettings(BaseSettings):
