@@ -5,9 +5,15 @@ Provides structured interfaces for Rust Bevy, Python Pygame/Arcade, etc.
 from typing import Dict, Any, List, Optional, Protocol
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from pathlib import Path
+import os
+import json
 
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
+from openai import AsyncOpenAI
+
+from ai_game_dev.config import settings
 
 
 class EngineGenerationRequest(BaseModel):
@@ -28,10 +34,17 @@ class EngineGenerationResult:
     asset_requirements: List[str]
     build_instructions: str
     deployment_notes: str
+    generated_files: Dict[str, str]  # filename -> actual code content
+    project_path: Optional[Path] = None
 
 
 class EngineAdapter(ABC):
     """Abstract base class for engine adapters."""
+    
+    def __init__(self):
+        self.llm_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.output_dir = settings.cache_dir / "generated_projects"
+        self.output_dir.mkdir(exist_ok=True)
     
     @property
     @abstractmethod
@@ -65,6 +78,36 @@ class EngineAdapter(ABC):
     def get_build_instructions(self) -> str:
         """Get instructions for building the project."""
         pass
+    
+    async def generate_code_with_llm(self, prompt: str, max_tokens: int = 4000) -> str:
+        """Generate code using LLM."""
+        try:
+            response = await self.llm_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": f"You are an expert {self.native_language} developer specializing in {self.engine_name} game development. Generate clean, production-ready code with proper structure and comments."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=max_tokens,
+                temperature=0.7
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            return f"// Error generating code: {e}\n// Fallback placeholder code"
+    
+    async def save_project_files(self, project_name: str, files: Dict[str, str]) -> Path:
+        """Save generated files to disk."""
+        project_path = self.output_dir / f"{self.engine_name}_{project_name}"
+        project_path.mkdir(exist_ok=True)
+        
+        for filename, content in files.items():
+            file_path = project_path / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+        
+        return project_path
 
 
 class BevyEngineAdapter(EngineAdapter):
@@ -305,15 +348,104 @@ class PygameEngineAdapter(EngineAdapter):
         features: List[str] = None,
         art_style: str = "modern"
     ) -> EngineGenerationResult:
-        """Generate Pygame Python project."""
+        """Generate Pygame Python project with real working code."""
+        
+        features = features or []
+        project_name = description.replace(" ", "_").lower()[:20]
+        
+        # Generate main.py
+        main_prompt = f"""
+        Create a complete main.py file for a Pygame game: {description}
+        Complexity: {complexity}
+        Features: {', '.join(features)}
+        Art style: {art_style}
+        
+        Include:
+        - Proper pygame initialization
+        - Game loop with event handling
+        - Screen setup and rendering
+        - Import statements for other modules
+        - Professional code structure
+        
+        Make it production-ready and well-commented.
+        """
+        
+        # Generate game.py
+        game_prompt = f"""
+        Create a complete game.py file for a Pygame game: {description}
+        
+        Include:
+        - Game class with proper state management
+        - Update and render methods
+        - Collision detection if needed
+        - Score/health systems
+        - Game mechanics implementation
+        - Asset loading and management
+        
+        Features to implement: {', '.join(features)}
+        Complexity: {complexity}
+        """
+        
+        # Generate player.py
+        player_prompt = f"""
+        Create a complete player.py file for a Pygame game: {description}
+        
+        Include:
+        - Player class with movement
+        - Input handling
+        - Sprite management
+        - Physics and collision bounds
+        - Animation if appropriate
+        
+        Features: {', '.join(features)}
+        Style: {art_style}
+        """
+        
+        # Generate requirements.txt
+        requirements_content = """pygame>=2.5.0
+numpy>=1.24.0
+"""
+        
+        # Generate README.md
+        readme_content = f"""# {description.title()}
+
+A {complexity} complexity Pygame game featuring:
+{chr(10).join(f"- {feature}" for feature in features)}
+
+## Installation
+
+1. Install Python 3.8+
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run the game: `python main.py`
+
+## Features
+
+- {art_style.title()} art style
+- Professional game architecture
+- Modular code structure
+"""
+        
+        # Generate all code files
+        generated_files = {
+            "main.py": await self.generate_code_with_llm(main_prompt),
+            "game.py": await self.generate_code_with_llm(game_prompt),
+            "player.py": await self.generate_code_with_llm(player_prompt),
+            "requirements.txt": requirements_content,
+            "README.md": readme_content
+        }
+        
+        # Save files to disk
+        project_path = await self.save_project_files(project_name, generated_files)
         
         return EngineGenerationResult(
             engine_type="pygame",
             project_structure=self.get_project_template(),
-            main_files=["main.py", "game.py", "player.py"],
+            main_files=list(generated_files.keys()),
             asset_requirements=["player.png", "background.png", "sounds.wav"],
             build_instructions=self.get_build_instructions(),
-            deployment_notes="Use PyInstaller or cx_Freeze for standalone executables"
+            deployment_notes="Use PyInstaller or cx_Freeze for standalone executables",
+            generated_files=generated_files,
+            project_path=project_path
         )
     
     def get_project_template(self) -> Dict[str, str]:
