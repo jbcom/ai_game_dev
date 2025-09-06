@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 @pytest.mark.e2e
+@pytest.mark.asyncio
 async def test_generate_pygame_game():
     """Generate a real Pygame game using proper engine adapter."""
     from ai_game_dev.engine_adapters import EngineAdapterManager
@@ -47,6 +48,7 @@ async def test_generate_pygame_game():
 
 
 @pytest.mark.e2e
+@pytest.mark.asyncio
 async def test_generate_bevy_game():
     """Generate a real Bevy (Rust) game using proper engine adapter."""
     from ai_game_dev.engine_adapters import EngineAdapterManager
@@ -88,6 +90,7 @@ async def test_generate_bevy_game():
 
 
 @pytest.mark.e2e
+@pytest.mark.asyncio
 async def test_generate_godot_game():
     """Generate a real Godot game using proper engine adapter."""
     from ai_game_dev.engine_adapters import EngineAdapterManager
