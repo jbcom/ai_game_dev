@@ -129,6 +129,7 @@ def setup_jinja_routes(app: FastAPI) -> None:
         context = get_template_context(request, "engines")
         return templates.TemplateResponse("pages/engines.html", context)
     
+    
     @app.get("/web/projects", response_class=HTMLResponse)
     async def web_projects(request: Request, page: int = 1, limit: int = 12):
         """Projects management page."""
