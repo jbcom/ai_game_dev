@@ -1,0 +1,16 @@
+[tool.uv.workspace]
+members = [
+    "packages/ai_game_dev",
+    "packages/ai_game_assets", 
+    "packages/pygame_game_dev",
+    "packages/arcade_game_dev"
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]

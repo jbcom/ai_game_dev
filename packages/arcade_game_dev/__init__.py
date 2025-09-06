@@ -10,6 +10,8 @@ from typing import List, Dict, Any
 from dataclasses import dataclass
 from enum import Enum
 
+from ai_game_dev import AIGameDev, GameSpec as BaseGameSpec
+
 
 class GameType(Enum):
     TWO_DIMENSIONAL = "2d"

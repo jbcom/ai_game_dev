@@ -5,11 +5,13 @@ This package provides native Python bindings for Pygame game development
 integration with the AI Game Development ecosystem.
 """
 
-import pygame
 import json
+import pygame
 from typing import List, Dict, Any
 from dataclasses import dataclass
 from enum import Enum
+
+from ai_game_dev import AIGameDev, GameSpec as BaseGameSpec
 
 
 class GameType(Enum):

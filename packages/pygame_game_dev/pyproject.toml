@@ -25,7 +25,11 @@ classifiers = [
 ]
 dependencies = [
     "pygame>=2.5.0",
+    "ai-game-dev",
 ]
+
+[tool.uv.sources]
+ai-game-dev = { workspace = true }
 
 [project.optional-dependencies]
 physics = ["pymunk>=6.5.0"]
