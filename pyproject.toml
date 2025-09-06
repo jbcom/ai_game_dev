@@ -118,7 +118,7 @@ Issues = "https://github.com/ai-game-dev/ai-game-dev/issues"
 [project.scripts]
 ai-game-dev = "ai_game_dev.ui.cli.main:launch_cli"
 ai-game-dev-web = "ai_game_dev.ui.web.portal:launch_web_portal"
-ai-game-dev-server = "ai_game_dev.mcp_server.main:main"
+ai-game-dev-server = "ai_game_dev.mcp_server.server:run_server"
 
 [tool.uv]
 dev-dependencies = [

@@ -23,8 +23,15 @@ from ai_game_dev.providers import (
     create_default_manager
 )
 
+# Audio tools
+from ai_game_dev.audio import AudioTools
+
 # Asset management
-from ai_game_dev.assets.ai_game_assets.audio.audio_tools import AudioTools
+from ai_game_dev.assets import AssetTools, ArchiveSeeder
+
+# Graphics and fonts
+from ai_game_dev.graphics import CC0Libraries
+from ai_game_dev.fonts import GoogleFonts
 
 # Version info
 __version__ = "1.0.0"
@@ -52,8 +59,16 @@ __all__ = [
     "setup_ollama",
     "create_default_manager",
     
-    # Asset tools
+    # Audio tools
     "AudioTools",
+    
+    # Asset tools
+    "AssetTools",
+    "ArchiveSeeder",
+    
+    # Graphics and fonts
+    "CC0Libraries",
+    "GoogleFonts",
     
     # Version
     "__version__",
