@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from contextlib import contextmanager
 
-from ai_game_dev.engines.base import GameGenerationResult
+from ai_game_dev.engines.base import EngineGenerationResult
 
 @dataclass
 class ProjectInfo:
@@ -110,7 +110,7 @@ class ProjectManager:
         
         return project
 
-    def update_project_with_result(self, project_id: str, result: GameGenerationResult) -> ProjectInfo:
+    def update_project_with_result(self, project_id: str, result: EngineGenerationResult) -> ProjectInfo:
         now = datetime.now()
         
         with self._get_connection() as conn:
