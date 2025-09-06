@@ -82,9 +82,9 @@ class ImageGenerator:
                 else:
                     raise ValueError("No image data returned from Responses API")
             else:
-                # Use traditional Images API with gpt-image-1
+                # Use traditional Images API with dall-e-3
                 response = self.client.images.generate(
-                    model="gpt-image-1",
+                    model="dall-e-3",
                     prompt=prompt,
                     size=size,
                     quality=quality,
