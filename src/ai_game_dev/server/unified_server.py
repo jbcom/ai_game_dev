@@ -1,5 +1,5 @@
 """
-Unified server combining FastMCP and Mesop web interface.
+Unified server combining FastMCP SSE and Mesop web interface.
 Serves both MCP protocol endpoints and web UI from a single HTTP server.
 """
 import json
@@ -11,11 +11,14 @@ from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from mcp.server.fastmcp import FastMCP
+
+# Import our SSE transport layer
+from .sse_transport import create_sse_server
 
 # Import our core functionality
 from ai_game_dev.engines import engine_manager, generate_for_engine, get_supported_engines
 from ai_game_dev.assets import AssetTools
-from ai_game_dev.providers import get_provider
 
 # Try to import mesop for web UI
 try:
@@ -29,7 +32,7 @@ except ImportError:
 class UnifiedGameDevServer:
     """
     Unified server combining MCP protocol and web interface.
-    Provides both HTTP endpoints for MCP clients and web UI for browser access.
+    Provides both SSE-based MCP endpoints and web UI from a single FastAPI server.
     """
     
     def __init__(self, host: str = "0.0.0.0", port: int = 5000):
@@ -40,6 +43,10 @@ class UnifiedGameDevServer:
             description="Unified server for game development with MCP protocol and web interface",
             version="1.0.0"
         )
+        
+        # Initialize FastMCP server for SSE connections
+        self.mcp = FastMCP("AI Game Development Server")
+        self.setup_mcp_tools()
         self.setup_middleware()
         self.setup_routes()
     
@@ -53,73 +60,44 @@ class UnifiedGameDevServer:
             allow_headers=["*"],
         )
     
-    def setup_routes(self):
-        """Setup all routes for both MCP and web interface."""
-        self.setup_mcp_routes()
-        self.setup_web_routes()
-        self.setup_api_routes()
-    
-    def setup_mcp_routes(self):
-        """Setup Model Context Protocol endpoints."""
+    def setup_mcp_tools(self):
+        """Setup MCP tools using FastMCP decorators."""
         
-        @self.app.post("/mcp/tools/generate_game")
-        async def mcp_generate_game(request: Request):
-            """MCP endpoint for game generation."""
-            data = await request.json()
-            
+        @self.mcp.tool()
+        async def generate_game(
+            description: str,
+            engine: str = "pygame",
+            complexity: str = "intermediate",
+            features: List[str] = None,
+            art_style: str = "modern"
+        ) -> str:
+            """Generate a complete game project using the specified engine."""
             try:
                 result = await generate_for_engine(
-                    engine_name=data.get("engine", "pygame"),
-                    description=data.get("description", ""),
-                    complexity=data.get("complexity", "intermediate"),
-                    features=data.get("features", []),
-                    art_style=data.get("art_style", "modern")
+                    engine_name=engine,
+                    description=description,
+                    complexity=complexity,
+                    features=features or [],
+                    art_style=art_style
                 )
                 
-                return JSONResponse({
+                return json.dumps({
                     "success": True,
-                    "result": {
-                        "engine_type": result.engine_type,
-                        "main_files": result.main_files,
-                        "asset_requirements": result.asset_requirements,
-                        "build_instructions": result.build_instructions,
-                        "project_path": str(result.project_path) if result.project_path else None,
-                        "generated_files_count": len(result.generated_files)
-                    }
-                })
+                    "engine_type": result.engine_type,
+                    "main_files": result.main_files,
+                    "asset_requirements": result.asset_requirements,
+                    "project_path": str(result.project_path) if result.project_path else None,
+                    "message": f"✅ Generated {description} for {engine} engine successfully!"
+                }, indent=2)
             except Exception as e:
-                return JSONResponse({
+                return json.dumps({
                     "success": False,
                     "error": str(e)
-                }, status_code=500)
+                }, indent=2)
         
-        @self.app.post("/mcp/tools/generate_assets")
-        async def mcp_generate_assets(request: Request):
-            """MCP endpoint for asset generation."""
-            data = await request.json()
-            
-            try:
-                # Use asset generation tools
-                asset_tools = AssetTools()
-                
-                result = {
-                    "success": True,
-                    "asset_type": data.get("asset_type", "image"),
-                    "description": data.get("description", ""),
-                    "style": data.get("style", "modern"),
-                    "message": "Asset generation initiated"
-                }
-                
-                return JSONResponse(result)
-            except Exception as e:
-                return JSONResponse({
-                    "success": False,
-                    "error": str(e)
-                }, status_code=500)
-        
-        @self.app.get("/mcp/tools/list_engines")
-        async def mcp_list_engines():
-            """MCP endpoint to list available engines."""
+        @self.mcp.tool()
+        def list_game_engines() -> str:
+            """List all available game engines and their capabilities."""
             try:
                 engines = get_supported_engines()
                 engine_info = {
@@ -127,16 +105,51 @@ class UnifiedGameDevServer:
                     for engine in engines
                 }
                 
-                return JSONResponse({
+                return json.dumps({
                     "success": True,
                     "engines": engines,
-                    "engine_info": engine_info
-                })
+                    "engine_info": engine_info,
+                    "total_engines": len(engines)
+                }, indent=2)
             except Exception as e:
-                return JSONResponse({
+                return json.dumps({
                     "success": False,
                     "error": str(e)
-                }, status_code=500)
+                }, indent=2)
+        
+        @self.mcp.tool()
+        async def generate_assets(
+            asset_type: str,
+            description: str,
+            style: str = "modern",
+            resolution: str = "512x512"
+        ) -> str:
+            """Generate game assets like images, sounds, and music."""
+            try:
+                # Use asset generation tools
+                asset_tools = AssetTools()
+                
+                return json.dumps({
+                    "success": True,
+                    "asset_type": asset_type,
+                    "description": description,
+                    "style": style,
+                    "resolution": resolution,
+                    "message": f"✅ Asset generation initiated: {description}"
+                }, indent=2)
+            except Exception as e:
+                return json.dumps({
+                    "success": False,
+                    "error": str(e)
+                }, indent=2)
+    
+    def setup_routes(self):
+        """Setup all routes for both MCP SSE and web interface."""
+        # Mount the SSE MCP server for MCP protocol communication
+        self.app.mount("/mcp", create_sse_server(self.mcp))
+        
+        self.setup_web_routes()
+        self.setup_api_routes()
     
     def setup_web_routes(self):
         """Setup web interface routes."""
@@ -150,14 +163,18 @@ class UnifiedGameDevServer:
                         <head><title>AI Game Development Server</title></head>
                         <body style="font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: white;">
                             <h1>🎮 AI Game Development Server</h1>
-                            <p>MCP protocol is available at the following endpoints:</p>
+                            <h2>MCP Protocol Connection</h2>
+                            <p>Connect your MCP client to: <code>http://localhost:5000/mcp/sse</code></p>
+                            <p>Available MCP tools:</p>
                             <ul>
-                                <li><code>POST /mcp/tools/generate_game</code> - Generate game projects</li>
-                                <li><code>POST /mcp/tools/generate_assets</code> - Generate game assets</li>
-                                <li><code>GET /mcp/tools/list_engines</code> - List available engines</li>
+                                <li><strong>generate_game</strong> - Generate complete game projects</li>
+                                <li><strong>generate_assets</strong> - Generate game assets</li>
+                                <li><strong>list_game_engines</strong> - List available engines</li>
                             </ul>
-                            <p><strong>Note:</strong> Web UI requires Mesop to be installed.</p>
+                            <h2>Web Interface</h2>
+                            <p><strong>Note:</strong> Full web UI requires Mesop to be installed.</p>
                             <p>Install with: <code>pip install mesop</code></p>
+                            <p>Use the <a href="/api/" style="color: #64ffda;">REST API</a> for web-based interactions.</p>
                         </body>
                     </html>
                 """)
@@ -171,9 +188,10 @@ class UnifiedGameDevServer:
             return JSONResponse({
                 "status": "healthy",
                 "services": {
-                    "mcp": True,
+                    "mcp_sse": True,
                     "web_ui": MESOP_AVAILABLE,
-                    "engines": len(get_supported_engines())
+                    "engines": len(get_supported_engines()),
+                    "mcp_endpoint": "http://localhost:5000/mcp/sse"
                 }
             })
     
@@ -345,8 +363,8 @@ class UnifiedGameDevServer:
         """Start the unified server."""
         print(f"🚀 Starting Unified AI Game Development Server")
         print(f"🌐 Web Interface: http://{self.host}:{self.port}")
-        print(f"🔧 MCP Endpoints: http://{self.host}:{self.port}/mcp/")
-        print(f"📡 API Endpoints: http://{self.host}:{self.port}/api/")
+        print(f"🔧 MCP SSE Endpoint: http://{self.host}:{self.port}/mcp/sse")
+        print(f"📡 REST API: http://{self.host}:{self.port}/api/")
         print(f"💾 Mesop Available: {MESOP_AVAILABLE}")
         print(f"🎮 Supported Engines: {', '.join(get_supported_engines())}")
         print("Press Ctrl+C to stop the server")
