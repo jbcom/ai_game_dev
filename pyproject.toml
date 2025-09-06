@@ -114,7 +114,7 @@ ai-game-dev = "ai_game_dev.ui.cli.main:launch_cli"
 ai-game-dev-web = "ai_game_dev.ui.web.portal:launch_web_portal"
 ai-game-dev-server = "ai_game_dev.mcp_server.server:run_server"
 
-# Hatch testing environment with UV backend
+# Hatch testing environment with UV backend - includes E2E dependencies
 [tool.hatch.envs.hatch-test]
 installer = "uv"
 dependencies = [
@@ -128,24 +128,6 @@ dependencies = [
     "vcrpy>=4.2.0",
 ]
 
-# E2E testing environment with real integrations
-[tool.hatch.envs.e2e]
-installer = "uv"
-dependencies = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-vcr>=1.0.2",
-    "vcrpy>=4.2.0",
-    "pytest-mock>=3.12.0",
-    "pytest-cov>=4.1.0",
-]
-
-[tool.hatch.envs.e2e.scripts]
-run-all = "python tests/e2e/test_runner.py"
-pygame = "python tests/e2e/test_runner.py pygame"
-bevy = "python tests/e2e/test_runner.py bevy"  
-godot = "python tests/e2e/test_runner.py godot"
-arcade = "python tests/e2e/test_runner.py arcade"
 
 # Matrix testing for multiple Python versions  
 [[tool.hatch.envs.hatch-test.matrix]]
@@ -191,10 +173,13 @@ installer = "uv"
 [tool.hatch.envs.test]
 dependencies = [
     "pytest>=7.0",
+    "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.0",
     "pytest-mock>=3.10", 
     "pytest-benchmark>=4.0",
     "pytest-xdist>=3.0",
+    "pytest-vcr>=1.0.2",
+    "vcrpy>=4.2.0",
     "coverage[toml]>=7.0",
 ]
 
@@ -342,8 +327,7 @@ markers = [
     "e2e: End-to-end tests that use real AI models and generate complete games",
     "unit: Unit tests for individual components", 
     "integration: Integration tests for component interactions",
-    "integration: marks tests as integration tests",
-    "e2e: marks tests as end-to-end tests",
+    "asyncio: Async test functions",
 ]
 
 [tool.coverage.run]

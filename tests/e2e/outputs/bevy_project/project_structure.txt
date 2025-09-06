@@ -1,0 +1,14 @@
+Engine: bevy
+Main files: ['main.rs', 'components.rs', 'systems.rs', 'physics.rs']
+Asset requirements: ['player_model.gltf', 'environment_textures']
+Build instructions: Build Instructions for Bevy Project:
+
+1. Install Rust: https://rustup.rs/
+2. Navigate to project directory
+3. Run: cargo run (for development)
+4. Run: cargo build --release (for optimized build)
+
+Optional optimizations:
+- Enable LLD linker for faster builds
+- Use 'cargo-watch' for automatic recompilation
+
