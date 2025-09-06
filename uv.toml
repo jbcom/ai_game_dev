@@ -71,15 +71,19 @@ dev-dependencies = [
 
 [tool.uv.workspace]
 members = [
-    "packages/ai-game-dev-core",
-    "packages/ai-game-assets",
-    "packages/web-portal"
+    "packages/ai_game_dev",
+    "packages/ai_game_assets", 
+    "packages/pygame_game_dev",
+    "packages/arcade_game_dev",
+    "packages/web_portal"
 ]
 
 [tool.uv.sources]
-ai-game-dev-core = { workspace = true }
-ai-game-assets = { workspace = true }
-web-portal = { workspace = true }
+ai_game_dev = { workspace = true }
+ai_game_assets = { workspace = true }
+pygame_game_dev = { workspace = true }
+arcade_game_dev = { workspace = true }
+web_portal = { workspace = true }
 
 [build-system]
 requires = ["uv>=0.5.0"]

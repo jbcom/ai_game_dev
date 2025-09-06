@@ -29,29 +29,36 @@ Preferred communication style: Simple, everyday language.
 ### UV Workspace Structure
 ```
 packages/
-├── ai-game-dev-core/           # Pure LangChain/LangGraph orchestration
-│   └── src/ai_game_dev/
-│       ├── __init__.py
-│       ├── library.py          # Main AIGameDev class
-│       ├── models.py           # Core data models
-│       ├── langgraph_agents.py # Multi-agent orchestration
-│       ├── engine_adapters.py  # Language-native engine interfaces
-│       └── config.py           # Configuration management
-├── ai-game-assets/             # Standalone multimedia generation
-│   └── src/ai_game_assets/
-│       ├── audio/              # TTS, music21, Freesound integration
-│       │   ├── tts_generator.py
-│       │   ├── music_generator.py
-│       │   ├── freesound_client.py
-│       │   └── audio_tools.py
-│       └── assets/             # Visual assets and fonts
-│           ├── cc0_libraries.py
-│           ├── google_fonts.py
-│           ├── archive_seeder.py
-│           └── asset_tools.py
-└── web-portal/                 # Mesop web interface
-    └── src/web_portal/
-        └── app.py
+├── ai_game_dev/           # Pure LangChain/LangGraph orchestration (Python)
+│   ├── __init__.py
+│   ├── library.py         # Main AIGameDev class
+│   ├── models.py          # Core data models
+│   ├── langgraph_agents.py # Multi-agent orchestration
+│   ├── engine_adapters.py # Language-native engine interfaces
+│   └── config.py          # Configuration management
+├── ai_game_assets/        # Standalone multimedia generation (Python)
+│   ├── audio/             # TTS, music21, Freesound integration
+│   │   ├── tts_generator.py
+│   │   ├── music_generator.py
+│   │   ├── freesound_client.py
+│   │   └── audio_tools.py
+│   └── assets/            # Visual assets and fonts
+│       ├── cc0_libraries.py
+│       ├── google_fonts.py
+│       ├── archive_seeder.py
+│       └── asset_tools.py
+├── bevy_game_dev/         # Native Rust Bevy bindings
+│   ├── Cargo.toml
+│   └── src/lib.rs
+├── godot_game_dev/        # Native GDScript Godot bindings  
+│   ├── project.godot
+│   └── GameGenerator.gd
+├── pygame_game_dev/       # Native Python Pygame bindings
+│   └── __init__.py
+├── arcade_game_dev/       # Native Python Arcade bindings
+│   └── __init__.py
+└── web_portal/            # Mesop web interface
+    └── app.py
 ```
 
 ### Core Framework
