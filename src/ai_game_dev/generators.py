@@ -9,9 +9,19 @@ from datetime import datetime
 import aiofiles
 from openai import OpenAI
 
-from openai_mcp_server.models import ImageSize, ImageQuality, Model3DSpec
-from openai_mcp_server.config import IMAGES_DIR, MODELS_3D_DIR
-from openai_mcp_server.utils import get_image_path
+# Simplified types without external dependencies
+ImageSize = str  # "1024x1024", "512x512", etc.
+ImageQuality = str  # "standard", "hd"
+
+# Local config
+IMAGES_DIR = Path("generated_assets/images")
+MODELS_3D_DIR = Path("generated_assets/models")
+
+def get_image_path(base_dir: Path, prompt: str, size: str, quality: str) -> Path:
+    """Generate image file path based on parameters."""
+    import hashlib
+    prompt_hash = hashlib.md5(prompt.encode()).hexdigest()[:8]
+    return base_dir / f"{prompt_hash}_{size}_{quality}.png"
 
 
 class ImageGenerator:
