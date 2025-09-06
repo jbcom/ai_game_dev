@@ -101,7 +101,7 @@
     </div>
 </div>
 
-<!-- Engine Showcase -->
+<!-- Engine Showcase with Custom Icons -->
 <div class="card bg-base-100/20 backdrop-blur-sm shadow-xl">
     <div class="card-body">
         <h2 class="card-title text-2xl mb-6">🎮 Supported Game Engines</h2>
@@ -110,7 +110,8 @@
             <div class="card bg-base-200/30 hover:bg-base-200/50 transition-colors">
                 <div class="card-body">
                     <h3 class="card-title">
-                        {{ engine_info[engine].icon }} {{ engine|title }}
+                        <img src="/static/assets/engine-icons/{{ engine }}.png" alt="{{ engine|title }}" class="w-8 h-8 object-contain">
+                        {{ engine|title }}
                         <div class="badge badge-primary">{{ engine_info[engine].language }}</div>
                     </h3>
                     <p class="text-sm opacity-80">{{ engine_info[engine].description }}</p>
@@ -126,4 +127,7 @@
         </div>
     </div>
 </div>
+
+<!-- Asset Showcase -->
+{% include 'components/asset_showcase.html' %}
 {% endblock %}
