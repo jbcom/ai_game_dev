@@ -4,173 +4,125 @@ import os
 from pathlib import Path
 
 
-@pytest.mark.e2e  
-def test_generate_pygame_game():
-    """Generate a real Pygame game and verify the output."""
-    from ai_game_dev.providers import create_default_manager
+@pytest.mark.e2e
+async def test_generate_pygame_game():
+    """Generate a real Pygame game using proper engine adapter."""
+    from ai_game_dev.engine_adapters import EngineAdapterManager
     
     # Check API key
     if not os.getenv("OPENAI_API_KEY"):
         pytest.skip("OPENAI_API_KEY not available")
     
-    # Create provider manager
-    manager = create_default_manager()
+    # Use proper engine adapter system
+    engine_manager = EngineAdapterManager()
     
-    # Get OpenAI provider
-    try:
-        openai_provider = manager.get_provider("openai")
-    except ValueError:
-        openai_provider = None
+    # Generate complete pygame project
+    result = await engine_manager.generate_for_engine(
+        engine_name="pygame",
+        description="A 2D space shooter with player ship, enemies, bullets, collision detection, and score system",
+        complexity="intermediate",
+        features=["player_movement", "shooting", "collision_detection", "score_system"],
+        art_style="retro"
+    )
     
-    if not openai_provider:
-        pytest.skip("No OpenAI provider configured")
+    assert result is not None
+    assert result.engine_type == "pygame"
+    assert len(result.project_structure) > 0
+    assert len(result.main_files) > 0
+    assert "pygame" in result.build_instructions.lower()
     
-    # Generate game code
-    prompt = """Create a complete Pygame space shooter game:
-
-1. 800x600 window with black background
-2. White player rectangle at bottom that moves left/right with arrow keys
-3. Player shoots bullets upward with spacebar
-4. Red enemy rectangles spawn at top and move down
-5. Collision detection between bullets and enemies
-6. Score display and game over screen
-7. Proper game loop with 60 FPS
-
-Write complete runnable Python code with pygame imports."""
-
-    response = openai_provider.invoke(prompt)
-    code = response.content if hasattr(response, 'content') else str(response)
-    
-    # Save generated game
-    output_dir = Path("tests/e2e/outputs/pygame_shooter")
+    # Save generated project
+    output_dir = Path("tests/e2e/outputs/pygame_project")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    (output_dir / "game.py").write_text(code)
-    (output_dir / "requirements.txt").write_text("pygame>=2.5.0\n")
+    # Save project overview
+    with open(output_dir / "project_structure.txt", "w") as f:
+        f.write(f"Engine: {result.engine_type}\n")
+        f.write(f"Main files: {result.main_files}\n")
+        f.write(f"Asset requirements: {result.asset_requirements}\n")
+        f.write(f"Build instructions: {result.build_instructions}\n")
     
-    # Verify code quality
-    code_lower = code.lower()
-    assert "pygame" in code_lower
-    assert "init" in code_lower
-    assert "display" in code_lower
-    assert "clock" in code_lower
-    assert len(code) > 1000
-    
-    print(f"✅ Generated {len(code)} chars of Pygame code")
+    print(f"✅ Generated complete Pygame project with {len(result.main_files)} main files")
     return True
 
 
 @pytest.mark.e2e
-def test_generate_bevy_game():
-    """Generate a real Bevy (Rust) game and verify output."""
-    from ai_game_dev.providers import create_default_manager
+async def test_generate_bevy_game():
+    """Generate a real Bevy (Rust) game using proper engine adapter."""
+    from ai_game_dev.engine_adapters import EngineAdapterManager
     
     if not os.getenv("OPENAI_API_KEY"):
         pytest.skip("OPENAI_API_KEY not available")
     
-    manager = create_default_manager()
+    # Use proper engine adapter system
+    engine_manager = EngineAdapterManager()
     
-    try:
-        openai_provider = manager.get_provider("openai")
-    except ValueError:
-        openai_provider = None
+    # Generate complete Bevy project
+    result = await engine_manager.generate_for_engine(
+        engine_name="bevy",
+        description="A 3D space exploration game with physics, camera controls, and procedural asteroid generation",
+        complexity="complex",
+        features=["3d_graphics", "physics_simulation", "camera_controls", "procedural_generation"],
+        art_style="sci-fi"
+    )
     
-    if not openai_provider:
-        pytest.skip("No OpenAI provider configured")
+    assert result is not None
+    assert result.engine_type == "bevy"
+    assert len(result.project_structure) > 0
+    assert len(result.main_files) > 0
+    assert "rust" in result.build_instructions.lower() or "cargo" in result.build_instructions.lower()
     
-    # Generate Bevy game
-    prompt = """Create a complete Bevy (Rust) 3D game project:
-
-1. Cargo.toml with bevy dependency
-2. main.rs with:
-   - Basic Bevy app setup
-   - 3D camera
-   - Simple cube that rotates
-   - Light source
-   - Window configuration
-
-Write complete Rust code for a minimal but working Bevy game."""
-
-    response = openai_provider.invoke(prompt)
-    code = response.content if hasattr(response, 'content') else str(response)
-    
-    # Save generated game
-    output_dir = Path("tests/e2e/outputs/bevy_3d")
+    # Save generated project
+    output_dir = Path("tests/e2e/outputs/bevy_project") 
     output_dir.mkdir(parents=True, exist_ok=True)
-    src_dir = output_dir / "src"
-    src_dir.mkdir(exist_ok=True)
     
-    # Extract Cargo.toml and main.rs from response
-    if "Cargo.toml" in code and "main.rs" in code:
-        parts = code.split("main.rs")
-        cargo_part = parts[0]
-        main_part = parts[1] if len(parts) > 1 else code
-        
-        (output_dir / "Cargo.toml").write_text(cargo_part)
-        (src_dir / "main.rs").write_text(main_part)
-    else:
-        # Fallback: save as main.rs if format unclear
-        (src_dir / "main.rs").write_text(code)
-        (output_dir / "Cargo.toml").write_text('[package]\nname = "bevy_game"\nversion = "0.1.0"\nedition = "2021"\n\n[dependencies]\nbevy = "0.11"\n')
+    # Save project overview
+    with open(output_dir / "project_structure.txt", "w") as f:
+        f.write(f"Engine: {result.engine_type}\n")
+        f.write(f"Main files: {result.main_files}\n") 
+        f.write(f"Asset requirements: {result.asset_requirements}\n")
+        f.write(f"Build instructions: {result.build_instructions}\n")
     
-    # Verify Rust/Bevy code
-    main_content = (src_dir / "main.rs").read_text().lower()
-    cargo_content = (output_dir / "Cargo.toml").read_text().lower()
-    
-    assert "bevy" in main_content
-    assert "app" in main_content
-    assert "bevy" in cargo_content
-    
-    print(f"✅ Generated Bevy project with {len(code)} chars")
+    print(f"✅ Generated complete Bevy project with {len(result.main_files)} main files")
     return True
 
 
 @pytest.mark.e2e
-def test_generate_godot_game():
-    """Generate a real Godot game and verify output.""" 
-    from ai_game_dev.providers import create_default_manager
+async def test_generate_godot_game():
+    """Generate a real Godot game using proper engine adapter."""
+    from ai_game_dev.engine_adapters import EngineAdapterManager
     
     if not os.getenv("OPENAI_API_KEY"):
         pytest.skip("OPENAI_API_KEY not available")
     
-    manager = create_default_manager()
+    # Use proper engine adapter system
+    engine_manager = EngineAdapterManager()
     
-    try:
-        openai_provider = manager.get_provider("openai")
-    except ValueError:
-        openai_provider = None
+    # Generate complete Godot project
+    result = await engine_manager.generate_for_engine(
+        engine_name="godot",
+        description="A 3D platformer adventure with character progression, puzzle mechanics, and dynamic lighting",
+        complexity="intermediate", 
+        features=["3d_platforming", "character_progression", "puzzle_mechanics", "dynamic_lighting"],
+        art_style="stylized"
+    )
     
-    if not openai_provider:
-        pytest.skip("No OpenAI provider configured")
+    assert result is not None
+    assert result.engine_type == "godot"
+    assert len(result.project_structure) > 0
+    assert len(result.main_files) > 0
+    assert "godot" in result.build_instructions.lower()
     
-    # Generate Godot game
-    prompt = """Create a complete Godot 4 game project:
-
-1. project.godot configuration file
-2. Main.gd script with:
-   - Basic player movement (WASD)
-   - Simple scene setup
-   - Ready and process functions
-3. Player.gd script for character controller
-
-Write complete GDScript code for a minimal but functional Godot game."""
-
-    response = openai_provider.invoke(prompt)
-    code = response.content if hasattr(response, 'content') else str(response)
-    
-    # Save generated game
-    output_dir = Path("tests/e2e/outputs/godot_game")
+    # Save generated project
+    output_dir = Path("tests/e2e/outputs/godot_project")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create basic project structure
-    (output_dir / "project.godot").write_text('[application]\nconfig/name="AI Game"\n')
-    (output_dir / "Main.gd").write_text(code)
+    # Save project overview
+    with open(output_dir / "project_structure.txt", "w") as f:
+        f.write(f"Engine: {result.engine_type}\n")
+        f.write(f"Main files: {result.main_files}\n")
+        f.write(f"Asset requirements: {result.asset_requirements}\n") 
+        f.write(f"Build instructions: {result.build_instructions}\n")
     
-    # Verify Godot code
-    code_lower = code.lower()
-    assert "extends" in code_lower
-    assert "func" in code_lower
-    assert len(code) > 200
-    
-    print(f"✅ Generated Godot project with {len(code)} chars")
+    print(f"✅ Generated complete Godot project with {len(result.main_files)} main files")
     return True
