@@ -108,6 +108,64 @@ class GameConfig:
     quality_threshold: float = 0.8
     debug_mode: bool = False
 
+
+# Additional models needed by tests
+@dataclass
+class GameFeature:
+    """Game feature specification."""
+    name: str
+    description: str
+    priority: str = "medium"
+
+
+@dataclass 
+class AssetRequirement:
+    """Asset requirement specification."""
+    type: str
+    description: str
+    quantity: int = 1
+
+
+@dataclass
+class NPCCharacter:
+    """Non-player character specification."""
+    name: str
+    description: str
+    dialogue: Optional[List[str]] = None
+    
+
+@dataclass
+class DialogueNode:
+    """Dialogue node for conversations."""
+    text: str
+    character: str
+    options: List[str] = field(default_factory=list)
+
+
+@dataclass
+class QuestObjective:
+    """Quest objective specification."""
+    description: str
+    type: str
+    completed: bool = False
+
+
+@dataclass
+class GameWorld:
+    """Game world specification."""
+    name: str
+    description: str
+    locations: List[str] = field(default_factory=list)
+    npcs: List[NPCCharacter] = field(default_factory=list)
+
+
+@dataclass
+class EngineConfig:
+    """Engine-specific configuration."""
+    engine: GameEngine
+    settings: Dict[str, Any] = field(default_factory=dict)
+    target_fps: int = 60
+
 # Type definitions for OpenAI API
 ImageSize = Literal["1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
 ImageQuality = Literal["standard", "hd", "low", "medium", "high"] 
