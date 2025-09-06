@@ -208,19 +208,32 @@ async def _batch_generate_assets(spec: dict, output_directory: str):
             
             for i, prompt in enumerate(prompts):
                 try:
-                    # Generate each image individually using our own tool
+                    console.print(f"[blue]Generating: {prompt[:50]}...[/blue]")
+                    
+                    # Create filename
+                    filename = f"{category}_{i+1}_{abs(hash(prompt))}.png"
+                    output_path = Path(output_directory) / filename
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Use our internal generate_image_tool
                     import subprocess
                     import json
                     
-                    # Call our generate_image_tool via subprocess (simulating the tool call)
-                    # In a real implementation, we'd integrate directly with the image generation
-                    console.print(f"[blue]Generating: {prompt[:50]}...[/blue]")
+                    # Call generate_image_tool via function call
+                    result = await _generate_image_internal(
+                        prompt=prompt,
+                        output_path=str(output_path),
+                        size="1024x1024"
+                    )
                     
-                    # For now, simulate successful generation
-                    filename = f"{category}_{i+1}_{abs(hash(prompt))}.png"
+                    if result and output_path.exists():
+                        successful += 1
+                        total_generated += 1
+                        console.print(f"[green]✓ Saved: {filename}[/green]")
+                    else:
+                        failed += 1
+                        failed_generations.append(f"{category}_{i+1}: Generation failed")
                     
-                    successful += 1
-                    total_generated += 1
                     progress.update(task, advance=1)
                     
                 except Exception as e:
@@ -246,6 +259,36 @@ async def _batch_generate_assets(spec: dict, output_directory: str):
             console.print(f"  • {failure}")
         if len(failed_generations) > 5:
             console.print(f"  • ... and {len(failed_generations) - 5} more")
+
+async def _generate_image_internal(prompt: str, output_path: str, size: str = "1024x1024"):
+    """Internal function to generate images using our image generation tool."""
+    try:
+        import openai
+        import requests
+        
+        # Use OpenAI client directly 
+        client = openai.OpenAI()
+        response = client.images.generate(
+            model="gpt-image-1",
+            prompt=prompt,
+            size=size,
+            quality="high",
+            n=1
+        )
+        
+        # Download and save
+        image_url = response.data[0].url
+        img_response = requests.get(image_url)
+        
+        if img_response.status_code == 200:
+            with open(output_path, 'wb') as f:
+                f.write(img_response.content)
+            return True
+        return False
+        
+    except Exception as e:
+        console.print(f"[red]Image generation error: {e}[/red]")
+        return False
 
 def _show_asset_summary(spec: dict):
     """Show summary of assets that would be generated."""
