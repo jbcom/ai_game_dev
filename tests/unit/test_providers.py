@@ -4,9 +4,10 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import os
 
 from ai_game_dev.providers import (
-    LLMManager,
+    LLMProvider,
+    ModelConfig,
     setup_openai,
-    setup_anthropic, 
+    setup_anthropic,
     setup_google,
     setup_ollama,
     create_default_manager

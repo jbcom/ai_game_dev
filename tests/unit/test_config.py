@@ -2,35 +2,33 @@
 import pytest
 import os
 from unittest.mock import patch
-from ai_game_dev.config import Config
+from ai_game_dev.config import ServerSettings as Config
 
 
 class TestConfig:
     """Test configuration management."""
 
+    @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"})
     def test_config_defaults(self):
         """Test config with default values."""
         config = Config()
         
-        assert config.openai_api_key is None
-        assert config.anthropic_api_key is None
-        assert config.google_api_key is None
-        assert config.debug is False
+        assert config.openai_api_key == "test-key"
+        assert config.server_name == "openai-multimodal-server"
+        assert config.enable_caching is True
 
     @patch.dict(os.environ, {
         "OPENAI_API_KEY": "test_openai",
-        "ANTHROPIC_API_KEY": "test_anthropic",
-        "GOOGLE_API_KEY": "test_google",
-        "DEBUG": "true"
+        "OPENAI_MCP_SERVER_NAME": "custom-server",
+        "OPENAI_MCP_ENABLE_CACHING": "false"
     })
     def test_config_from_env(self):
         """Test config loaded from environment variables."""
         config = Config()
         
         assert config.openai_api_key == "test_openai"
-        assert config.anthropic_api_key == "test_anthropic"
-        assert config.google_api_key == "test_google"
-        assert config.debug is True
+        assert config.server_name == "custom-server"
+        assert config.enable_caching is False
 
     def test_config_explicit_values(self):
         """Test config with explicit values."""

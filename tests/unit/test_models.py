@@ -2,14 +2,12 @@
 import pytest
 from pydantic import ValidationError
 from ai_game_dev.models import (
+    GameSpec,
     GameProject,
-    GameFeature,
-    AssetRequirement,
-    NPCCharacter,
-    DialogueNode,
-    QuestObjective,
-    GameWorld,
-    EngineConfig
+    ProjectFile,
+    GameEngine,
+    GameType,
+    ComplexityLevel
 )
 
 

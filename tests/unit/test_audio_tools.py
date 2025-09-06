@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import tempfile
 from pathlib import Path
 
-from ai_game_dev.assets.ai_game_assets.audio.audio_tools import (
+from ai_game_dev.audio.audio_tools import (
     AudioTools,
     AudioWorkflowRequest,
     AudioWorkflowResult

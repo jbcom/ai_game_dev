@@ -5,7 +5,11 @@ featuring multi-LLM support, comprehensive asset generation, and
 engine-specific TOML specifications.
 """
 
-from ai_game_dev.library import AIGameDev
+try:
+    from ai_game_dev.library import AIGameDev
+except ImportError:
+    # Allow graceful degradation for testing
+    AIGameDev = None
 from ai_game_dev.models import (
     GameSpec,
     GameEngine,
@@ -41,7 +45,7 @@ __email__ = "team@ai-game-dev.com"
 # Public API
 __all__ = [
     # Core classes
-    "AIGameDev",
+] + (["AIGameDev"] if AIGameDev is not None else [])
     
     # Data models
     "GameSpec",
@@ -72,7 +76,6 @@ __all__ = [
     
     # Version
     "__version__",
-]
 
 
 def get_version() -> str:

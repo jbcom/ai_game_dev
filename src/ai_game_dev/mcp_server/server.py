@@ -136,5 +136,15 @@ def list_game_engines() -> str:
     }, indent=2)
 
 
-if __name__ == "__main__":
+def run_server():
+    """Run the FastMCP server."""
+    print("🚀 Starting AI Game Development MCP Server...")
+    print("Available tools:")
+    print("  - generate_game")
+    print("  - get_asset_templates")
+    print("  - get_engine_info")
     mcp.run()
+
+
+if __name__ == "__main__":
+    run_server()
