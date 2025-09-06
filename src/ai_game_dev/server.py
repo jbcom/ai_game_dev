@@ -526,7 +526,7 @@ def create_server() -> FastMCP:
             )
             
             # Create result object for verification
-            from .models import GenerationResult
+            from ai_game_dev.models import GenerationResult
             import uuid
             initial_result = GenerationResult(
                 id=str(uuid.uuid4()),
@@ -1097,7 +1097,7 @@ def create_server() -> FastMCP:
                 result_id = str(uuid4())
                 asset_path = await bevy_generator._save_asset(response.data[0].url, name, asset_type)
                 
-                from .models import GenerationResult
+                from ai_game_dev.models import GenerationResult
                 result = GenerationResult(
                     id=result_id,
                     type="image",
@@ -1377,7 +1377,7 @@ def create_server() -> FastMCP:
             await ensure_narrative_systems()
             
             # Create minimal world format for name generation
-            from .world_builder import WorldFormat, GameType
+            from ai_game_dev.world_builder import WorldFormat, GameType
             import uuid
             
             temp_world = WorldFormat(
@@ -1654,7 +1654,7 @@ def create_server() -> FastMCP:
             await yarn_runner_instance.initialize()
             
             # Parse dialogue content into nodes
-            from .yarn_integration import YarnDialogueNode
+            from ai_game_dev.yarn_integration import YarnDialogueNode
             import uuid
             
             # Simple parsing - in practice this would be more sophisticated

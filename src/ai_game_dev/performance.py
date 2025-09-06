@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 import json
 from pathlib import Path
 
-from .logging_config import get_logger
-from .cache_manager import CacheManager
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.cache_manager import CacheManager
 
 logger = get_logger(__name__, component="performance")
 

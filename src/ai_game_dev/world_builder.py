@@ -12,11 +12,11 @@ from dataclasses import dataclass, asdict
 import aiofiles
 from openai import AsyncOpenAI
 
-from .config import settings
-from .logging_config import get_logger
-from .seed_system import seed_queue, SeedType, SeedPriority
-from .narrative_system import NarrativeGenerator
-from .utils import ensure_directory_exists
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.seed_system import seed_queue, SeedType, SeedPriority
+from ai_game_dev.narrative_system import NarrativeGenerator
+from ai_game_dev.utils import ensure_directory_exists
 
 logger = get_logger(__name__, component="world_builder")
 

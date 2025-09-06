@@ -12,14 +12,14 @@ import aiofiles
 from openai import AsyncOpenAI
 from PIL import Image, ImageDraw
 
-from .config import settings
-from .logging_config import get_logger
-from .models import (
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.models import (
     EditOperation, GenerationResult, ImageEditRequest, ImageSize, ImageQuality,
     MaskRegion, VerificationCriteria, VerificationMode
 )
-from .cache_manager import CacheManager
-from .utils import ensure_directory_exists
+from ai_game_dev.cache_manager import CacheManager
+from ai_game_dev.utils import ensure_directory_exists
 
 
 logger = get_logger(__name__, component="advanced_generators")

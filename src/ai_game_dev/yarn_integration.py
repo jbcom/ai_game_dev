@@ -13,9 +13,9 @@ from dataclasses import dataclass, asdict
 import aiofiles
 from openai import AsyncOpenAI
 
-from .config import settings
-from .logging_config import get_logger
-from .utils import ensure_directory_exists
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.utils import ensure_directory_exists
 
 logger = get_logger(__name__, component="yarn_integration")
 

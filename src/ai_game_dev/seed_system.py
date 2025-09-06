@@ -12,9 +12,9 @@ from datetime import datetime
 
 import aiofiles
 
-from .config import settings
-from .logging_config import get_logger
-from .utils import ensure_directory_exists
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.utils import ensure_directory_exists
 
 logger = get_logger(__name__, component="seed_system")
 

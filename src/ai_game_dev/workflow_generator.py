@@ -6,9 +6,9 @@ from typing import Any, Dict, List
 
 from openai import AsyncOpenAI
 
-from .config import settings
-from .logging_config import get_logger
-from .models import (
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.models import (
     TaskAnalysisResult, WorkflowSpec, WorkflowType, UIElementSpec, 
     ImageEditRequest, VerificationCriteria, EditOperation, ImageSize
 )

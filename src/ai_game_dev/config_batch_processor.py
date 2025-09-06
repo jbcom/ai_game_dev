@@ -15,11 +15,11 @@ try:
 except ImportError:
     yaml = None
 
-from .advanced_generators import AdvancedImageGenerator, VisionVerifier
-from .workflow_generator import WorkflowAnalyzer
-from .config import settings
-from .logging_config import get_logger
-from .models import (
+from ai_game_dev.advanced_generators import AdvancedImageGenerator, VisionVerifier
+from ai_game_dev.workflow_generator import WorkflowAnalyzer
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.models import (
     WorkflowSpec, UIElementSpec, ImageEditRequest, VerificationCriteria,
     GenerationResult, TaskAnalysisResult
 )
@@ -359,7 +359,7 @@ class ConfigBatchProcessor:
         
         try:
             # Use existing batch processor
-            from .batch_processor import BatchProcessor
+            from ai_game_dev.batch_processor import BatchProcessor
             batch_processor = BatchProcessor(self.client)
             
             results = await batch_processor.batch_generate_images(prompts, size, quality)

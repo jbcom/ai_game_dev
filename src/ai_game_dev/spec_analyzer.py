@@ -13,10 +13,10 @@ import aiofiles
 import tomli
 from openai import AsyncOpenAI
 
-from .config import settings
-from .logging_config import get_logger
-from .seed_system import seed_queue, SeedType, SeedPriority
-from .utils import ensure_directory_exists
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.seed_system import seed_queue, SeedType, SeedPriority
+from ai_game_dev.utils import ensure_directory_exists
 
 logger = get_logger(__name__, component="spec_analyzer")
 

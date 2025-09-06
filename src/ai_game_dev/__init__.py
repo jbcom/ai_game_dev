@@ -5,15 +5,14 @@ featuring multi-LLM support, comprehensive asset generation, and
 engine-specific TOML specifications.
 """
 
-from .library import AIGameDev
-from .models import (
+from ai_game_dev.library import AIGameDev
+from ai_game_dev.models import (
     GameSpec,
-    AssetPackage,
-    DialogueSystem,
-    QuestSystem,
-    GameEngineTarget
+    GameEngine,
+    GameType,
+    ComplexityLevel
 )
-from .providers import (
+from ai_game_dev.providers import (
     LLMProviderManager,
     LLMProvider,
     ModelConfig,
@@ -25,8 +24,8 @@ from .providers import (
 )
 
 # Asset management
-from .assets.asset_tools import AssetTools
-from .assets.audio.audio_tools import AudioTools
+from ai_game_dev.assets.asset_tools import AssetTools
+from ai_game_dev.assets.audio.audio_tools import AudioTools
 
 # Version info
 __version__ = "1.0.0"
@@ -40,10 +39,9 @@ __all__ = [
     
     # Data models
     "GameSpec",
-    "AssetPackage", 
-    "DialogueSystem",
-    "QuestSystem",
-    "GameEngineTarget",
+    "GameEngine",
+    "GameType",
+    "ComplexityLevel",
     
     # LLM providers
     "LLMProviderManager",

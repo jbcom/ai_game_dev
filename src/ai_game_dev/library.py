@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 
 from ai_game_dev.langgraph_agents import GameDevelopmentAgent
-from ai_game_dev.config import settings
+from ai_game_dev.config import ServerSettings
 from ai_game_dev.logging_config import get_logger
 
 logger = get_logger(__name__, component="library")

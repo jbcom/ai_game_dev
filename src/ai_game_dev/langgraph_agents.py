@@ -21,9 +21,9 @@ except ImportError:
         # Fallback - create a simple state manager without checkpointing
         SqliteSaver = None
 
-from .engine_adapters import EngineAdapterManager
-from .config import get_config
-from .logging_config import get_logger
+from ai_game_dev.engine_adapters import EngineAdapterManager
+from ai_game_dev.config import get_config
+from ai_game_dev.logging_config import get_logger
 
 # Import asset generation tools from the separate package
 try:

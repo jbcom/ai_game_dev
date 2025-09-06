@@ -11,10 +11,10 @@ import aiofiles
 from openai import AsyncOpenAI
 from PIL import Image
 
-from .config import settings
-from .logging_config import get_logger
-from .models import ImageSize, GenerationResult
-from .utils import ensure_directory_exists
+from ai_game_dev.config import settings
+from ai_game_dev.logging_config import get_logger
+from ai_game_dev.models import ImageSize, GenerationResult
+from ai_game_dev.utils import ensure_directory_exists
 
 logger = get_logger(__name__, component="bevy_assets")
 

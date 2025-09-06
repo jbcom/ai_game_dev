@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install
 
-from openai_mcp_server.config import settings
+from ai_game_dev.config import ServerSettings
 
 
 class StructuredFormatter(logging.Formatter):
@@ -42,6 +42,7 @@ def setup_logging(log_level: str = "INFO") -> None:
     )
     
     # Create file handler for persistent logs
+    settings = ServerSettings()
     log_dir = settings.data_base_dir / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     
