@@ -8,7 +8,7 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Form, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
@@ -105,6 +105,14 @@ def setup_jinja_routes(app: FastAPI) -> None:
     # Mount static files
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    
+    @app.get("/favicon.ico")
+    async def favicon():
+        """Serve favicon."""
+        favicon_path = STATIC_DIR / "favicon.svg"
+        if favicon_path.exists():
+            return FileResponse(favicon_path)
+        return Response(status_code=204)
     
     @app.get("/web")
     @app.get("/web/") 
