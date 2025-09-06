@@ -149,18 +149,41 @@
             background-position: center;
             opacity: 0.6;
         }
+        /* Frame safe zone system */
+        :root {
+            /* Safe preset - conservative spacing */
+            --inset-top-safe: 14%;
+            --inset-right-safe: 12%;
+            --inset-bottom-safe: 15%;
+            --inset-left-safe: 16%;
+            
+            /* Tight preset - closer to frame */
+            --inset-top-tight: 11%;
+            --inset-right-tight: 10%;
+            --inset-bottom-tight: 12%;
+            --inset-left-tight: 13%;
+            
+            /* Active preset */
+            --inset-top: var(--inset-top-tight);
+            --inset-right: var(--inset-right-tight);
+            --inset-bottom: var(--inset-bottom-tight);
+            --inset-left: var(--inset-left-tight);
+        }
+        
         .tech-frame {
             position: relative;
+            background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
         }
-        .tech-frame::before {
-            content: '';
+        
+        .safe-box {
             position: absolute;
-            inset: 0;
-            background: url('/static/assets/frames/tech-frame.png');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            pointer-events: none;
-            z-index: 10;
+            top: var(--inset-top);
+            right: var(--inset-right);
+            bottom: var(--inset-bottom);
+            left: var(--inset-left);
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
         }
     </style>
     

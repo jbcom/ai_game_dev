@@ -6,14 +6,8 @@
 <!-- Compact Hero Section with Engine Selection -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Hero Content -->
-    <div class="lg:col-span-2 glass-panel tech-frame rounded-box p-8 relative overflow-hidden">
-        <div class="absolute inset-0 opacity-30">
-            <img src="/static/assets/banners/masthead.png" 
-                 alt="AI Game Development Banner" 
-                 class="w-full h-full object-cover rounded-box">
-        </div>
-        <div class="absolute inset-0 particle-glow opacity-20"></div>
-        <div class="relative z-20">
+    <div class="lg:col-span-2 tech-frame rounded-box relative overflow-hidden aspect-[3/2]">
+        <div class="safe-box">
             <div class="flex items-center gap-4 mb-4">
                 <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-16 h-16 object-contain glow drop-shadow-lg">
                 <div>
@@ -25,41 +19,31 @@
             </div>
             
             <!-- Engine Selection Gallery -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 flex-1">
                 {% for engine in engines %}
                 <a href="/web/new_project?engine={{ engine }}" 
-                   class="relative group cursor-pointer overflow-hidden rounded-xl hover:scale-105 transition-all duration-300 tech-frame">
-                    <!-- Engine Panel Image -->
+                   class="relative group cursor-pointer overflow-hidden rounded-lg hover:scale-105 transition-all duration-300 bg-black/30 backdrop-blur-sm border border-cyan-500/30">
                     <div class="aspect-[4/3] relative">
                         <img src="/static/assets/engine-panels/{{ engine }}.png" 
                              alt="{{ engine|title }} Engine" 
-                             class="w-full h-full object-cover rounded-xl">
-                        
-                        <!-- Overlay gradient for text readability -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent rounded-xl"></div>
+                             class="w-full h-full object-cover rounded-lg opacity-60">
                         
                         <!-- Content overlay -->
-                        <div class="absolute inset-0 flex flex-col justify-end p-4 text-white">
-                            <div class="flex items-center gap-3 mb-2">
+                        <div class="absolute inset-0 flex flex-col justify-end p-3 text-white">
+                            <div class="flex items-center gap-2 mb-1">
                                 {% if engine == 'pygame' %}
-                                <div class="w-8 h-8 rounded-lg bg-orange-500/90 backdrop-blur-sm flex items-center justify-center text-lg">🐍</div>
+                                <div class="w-6 h-6 rounded bg-orange-500/90 flex items-center justify-center text-sm">🐍</div>
                                 {% elif engine == 'bevy' %}
-                                <div class="w-8 h-8 rounded-lg bg-orange-600/90 backdrop-blur-sm flex items-center justify-center text-lg">🦀</div>
+                                <div class="w-6 h-6 rounded bg-orange-600/90 flex items-center justify-center text-sm">🦀</div>
                                 {% elif engine == 'godot' %}
-                                <div class="w-8 h-8 rounded-lg bg-blue-500/90 backdrop-blur-sm flex items-center justify-center text-lg">🎮</div>
+                                <div class="w-6 h-6 rounded bg-blue-500/90 flex items-center justify-center text-sm">🎮</div>
                                 {% endif %}
-                                <h3 class="font-bold text-lg drop-shadow-lg">{{ engine|title }}</h3>
+                                <h3 class="font-bold text-sm drop-shadow-lg">{{ engine|title }}</h3>
                             </div>
-                            <p class="text-sm opacity-90 drop-shadow mb-2">
-                                {% if engine == 'pygame' %}Python 2D Game Development{% elif engine == 'bevy' %}Rust ECS Engine{% elif engine == 'godot' %}Visual Scripting Platform{% endif %}
+                            <p class="text-xs opacity-90 drop-shadow">
+                                {% if engine == 'pygame' %}Python 2D{% elif engine == 'bevy' %}Rust ECS{% elif engine == 'godot' %}Visual Script{% endif %}
                             </p>
-                            <div class="group-hover:text-primary transition-colors text-sm font-medium drop-shadow">
-                                Start Creating →
-                            </div>
                         </div>
-                        
-                        <!-- Hover glow effect -->
-                        <div class="absolute inset-0 rounded-xl ring-2 ring-transparent group-hover:ring-primary/50 transition-all duration-300"></div>
                     </div>
                 </a>
                 {% endfor %}
@@ -77,72 +61,84 @@
     <!-- Stats & Activity Sidebar -->
     <div class="space-y-4">
         <!-- Compact Stats -->
-        <div class="glass-panel tech-frame p-4 rounded-box">
-            <h3 class="font-bold mb-3 text-center">📊 Platform Stats</h3>
-            <div class="grid grid-cols-1 gap-3">
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-primary">{{ engines|length }}</div>
-                    <div class="text-xs opacity-70">Engines</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-secondary">{{ stats.projects_generated or 0 }}</div>
-                    <div class="text-xs opacity-70">Projects</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-accent">{{ stats.assets_created or 0 }}</div>
-                    <div class="text-xs opacity-70">Assets</div>
+        <div class="tech-frame rounded-box aspect-square">
+            <div class="safe-box">
+                <h3 class="font-bold mb-3 text-center">📊 Platform Stats</h3>
+                <div class="grid grid-cols-1 gap-3 flex-1 place-content-center">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary">{{ engines|length }}</div>
+                        <div class="text-xs opacity-70">Engines</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-secondary">{{ stats.projects_generated or 0 }}</div>
+                        <div class="text-xs opacity-70">Projects</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-accent">{{ stats.assets_created or 0 }}</div>
+                        <div class="text-xs opacity-70">Assets</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Recent Activity -->
-        <div class="glass-panel tech-frame p-4 rounded-box">
-            <h3 class="font-bold mb-3">📈 Recent Activity</h3>
-            {% if recent_projects %}
-                <div class="space-y-2">
-                    {% for project in recent_projects[:3] %}
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="truncate">{{ project.name }}</span>
-                        <span class="text-xs opacity-70">{{ project.engine }}</span>
+        <div class="tech-frame rounded-box aspect-square">
+            <div class="safe-box">
+                <h3 class="font-bold mb-3">📈 Recent Activity</h3>
+                {% if recent_projects %}
+                    <div class="space-y-2 flex-1">
+                        {% for project in recent_projects[:3] %}
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="truncate">{{ project.name }}</span>
+                            <span class="text-xs opacity-70">{{ project.engine }}</span>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
-                {% if recent_projects|length > 3 %}
-                <div class="text-center mt-2">
-                    <a href="/web/projects" class="text-xs opacity-70 hover:opacity-100">View all →</a>
-                </div>
+                    {% if recent_projects|length > 3 %}
+                    <div class="text-center">
+                        <a href="/web/projects" class="text-xs opacity-70 hover:opacity-100">View all →</a>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="flex-1 flex flex-col items-center justify-center">
+                        <div class="text-2xl mb-2">🎮</div>
+                        <p class="text-sm opacity-70">No projects yet</p>
+                    </div>
                 {% endif %}
-            {% else %}
-                <div class="text-center py-4">
-                    <div class="text-2xl mb-2">🎮</div>
-                    <p class="text-sm opacity-70">No projects yet</p>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Compact Feature Overview -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="glass-panel tech-frame p-4 text-center">
-        <div class="text-2xl mb-2">🤖</div>
-        <h3 class="font-bold text-sm">AI-Powered</h3>
-        <p class="text-xs opacity-70">Multi-LLM generation</p>
+    <div class="tech-frame rounded-box aspect-square">
+        <div class="safe-box text-center justify-center">
+            <div class="text-2xl mb-2">🤖</div>
+            <h3 class="font-bold text-sm">AI-Powered</h3>
+            <p class="text-xs opacity-70">Multi-LLM generation</p>
+        </div>
     </div>
-    <div class="glass-panel tech-frame p-4 text-center">
-        <div class="text-2xl mb-2">⚡</div>
-        <h3 class="font-bold text-sm">Real-time</h3>
-        <p class="text-xs opacity-70">Live generation feedback</p>
+    <div class="tech-frame rounded-box aspect-square">
+        <div class="safe-box text-center justify-center">
+            <div class="text-2xl mb-2">⚡</div>
+            <h3 class="font-bold text-sm">Real-time</h3>
+            <p class="text-xs opacity-70">Live generation feedback</p>
+        </div>
     </div>
-    <div class="glass-panel tech-frame p-4 text-center">
-        <div class="text-2xl mb-2">🎨</div>
-        <h3 class="font-bold text-sm">Asset Generation</h3>
-        <p class="text-xs opacity-70">Images, sounds, music</p>
+    <div class="tech-frame rounded-box aspect-square">
+        <div class="safe-box text-center justify-center">
+            <div class="text-2xl mb-2">🎨</div>
+            <h3 class="font-bold text-sm">Asset Generation</h3>
+            <p class="text-xs opacity-70">Images, sounds, music</p>
+        </div>
     </div>
-    <div class="glass-panel tech-frame p-4 text-center">
-        <div class="text-2xl mb-2">📱</div>
-        <h3 class="font-bold text-sm">Multi-Platform</h3>
-        <p class="text-xs opacity-70">Web, desktop, mobile</p>
+    <div class="tech-frame rounded-box aspect-square">
+        <div class="safe-box text-center justify-center">
+            <div class="text-2xl mb-2">📱</div>
+            <h3 class="font-bold text-sm">Multi-Platform</h3>
+            <p class="text-xs opacity-70">Web, desktop, mobile</p>
+        </div>
     </div>
 </div>
 {% endblock %}
