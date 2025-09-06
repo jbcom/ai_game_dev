@@ -3,142 +3,120 @@
 {% block title %}Dashboard - AI Game Development Portal{% endblock %}
 
 {% block content %}
-<!-- Compact Hero Section with Engine Selection -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Hero Content -->
-    <div class="lg:col-span-2 tech-frame rounded-box relative overflow-hidden aspect-[3/2]">
+<!-- Focused Single Panel Layout -->
+<div class="max-w-4xl mx-auto">
+    <!-- Main Content Panel -->
+    <div class="tech-frame rounded-box aspect-[16/10] mb-8">
         <div class="safe-box">
-            <div class="flex items-center gap-4 mb-4">
-                <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-16 h-16 object-contain glow drop-shadow-lg">
+            <!-- Header -->
+            <div class="flex items-center gap-4 mb-6">
+                <img src="/static/assets/logos/main-logo.svg" alt="AI Game Dev" class="w-20 h-20 object-contain glow drop-shadow-lg">
                 <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
                         AI Game Development
                     </h1>
-                    <p class="text-lg opacity-90 drop-shadow">Create games with AI assistance</p>
+                    <p class="text-xl opacity-90 drop-shadow">Choose your engine to begin creating</p>
                 </div>
             </div>
             
-            <!-- Engine Selection Gallery -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 flex-1">
-                {% for engine in engines %}
-                <a href="/web/new_project?engine={{ engine }}" 
-                   class="relative group cursor-pointer overflow-hidden rounded-lg hover:scale-105 transition-all duration-300 bg-black/30 backdrop-blur-sm border border-cyan-500/30">
-                    <div class="aspect-[4/3] relative">
-                        <img src="/static/assets/engine-panels/{{ engine }}.png" 
-                             alt="{{ engine|title }} Engine" 
-                             class="w-full h-full object-cover rounded-lg opacity-60">
-                        
-                        <!-- Content overlay -->
-                        <div class="absolute inset-0 flex flex-col justify-end p-3 text-white">
-                            <div class="flex items-center gap-2 mb-1">
-                                {% if engine == 'pygame' %}
-                                <div class="w-6 h-6 rounded bg-orange-500/90 flex items-center justify-center text-sm">🐍</div>
-                                {% elif engine == 'bevy' %}
-                                <div class="w-6 h-6 rounded bg-orange-600/90 flex items-center justify-center text-sm">🦀</div>
-                                {% elif engine == 'godot' %}
-                                <div class="w-6 h-6 rounded bg-blue-500/90 flex items-center justify-center text-sm">🎮</div>
-                                {% endif %}
-                                <h3 class="font-bold text-sm drop-shadow-lg">{{ engine|title }}</h3>
-                            </div>
-                            <p class="text-xs opacity-90 drop-shadow">
-                                {% if engine == 'pygame' %}Python 2D{% elif engine == 'bevy' %}Rust ECS{% elif engine == 'godot' %}Visual Script{% endif %}
-                            </p>
-                        </div>
+            <!-- Engine Selection with Navigation -->
+            <div class="flex-1 flex items-center justify-center">
+                <div class="flex items-center gap-8">
+                    <!-- Back Button -->
+                    <button onclick="previousEngine()" class="w-16 h-16 hover:scale-110 transition-transform opacity-60 hover:opacity-100">
+                        <img src="/static/assets/buttons/back.png" alt="Previous" class="w-full h-full object-contain">
+                    </button>
+                    
+                    <!-- Current Engine Display -->
+                    <div class="engine-showcase">
+                        {% for engine in engines %}
+                        <a href="/web/new_project?engine={{ engine }}" 
+                           class="engine-option {% if loop.first %}active{% endif %}"
+                           data-engine="{{ engine }}"
+                           style="{% if not loop.first %}display: none;{% endif %}">
+                            <img src="/static/assets/engine-panels/{{ engine }}.png" 
+                                 alt="{{ engine|title }} Engine" 
+                                 class="w-80 h-60 object-cover rounded-xl hover:scale-105 transition-all duration-300 shadow-2xl">
+                        </a>
+                        {% endfor %}
                     </div>
-                </a>
-                {% endfor %}
+                    
+                    <!-- Next Button -->
+                    <button onclick="nextEngine()" class="w-16 h-16 hover:scale-110 transition-transform opacity-60 hover:opacity-100">
+                        <img src="/static/assets/buttons/next.png" alt="Next" class="w-full h-full object-contain">
+                    </button>
+                </div>
             </div>
             
-            <!-- Quick Actions -->
-            <div class="flex flex-wrap gap-2">
-                <a href="/web/new_project" class="btn custom-button btn-sm">🚀 New Project</a>
-                <a href="/web/projects" class="btn btn-outline btn-sm">📁 My Projects</a>
-                <a href="/web/engines" class="btn btn-ghost btn-sm">⚙️ Learn More</a>
+            <!-- Engine Info & Actions -->
+            <div class="text-center">
+                <div class="engine-info">
+                    {% for engine in engines %}
+                    <div class="info-panel {% if loop.first %}active{% endif %}" data-engine="{{ engine }}" style="{% if not loop.first %}display: none;{% endif %}">
+                        <h2 class="text-2xl font-bold mb-2">{{ engine|title }}</h2>
+                        <p class="text-lg opacity-80 mb-4">
+                            {% if engine == 'pygame' %}Python 2D Game Development{% elif engine == 'bevy' %}Rust ECS Game Engine{% elif engine == 'godot' %}Visual Scripting Platform{% endif %}
+                        </p>
+                        <a href="/web/new_project?engine={{ engine }}" class="btn custom-button btn-lg">
+                            Start Creating with {{ engine|title }} →
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Stats & Activity Sidebar -->
-    <div class="space-y-4">
-        <!-- Compact Stats -->
-        <div class="tech-frame rounded-box aspect-square">
-            <div class="safe-box">
-                <h3 class="font-bold mb-3 text-center">📊 Platform Stats</h3>
-                <div class="grid grid-cols-1 gap-3 flex-1 place-content-center">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-primary">{{ engines|length }}</div>
-                        <div class="text-xs opacity-70">Engines</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-secondary">{{ stats.projects_generated or 0 }}</div>
-                        <div class="text-xs opacity-70">Projects</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-accent">{{ stats.assets_created or 0 }}</div>
-                        <div class="text-xs opacity-70">Assets</div>
-                    </div>
-                </div>
-            </div>
+    <!-- Quick Stats Row -->
+    <div class="grid grid-cols-3 gap-6">
+        <div class="glass-panel p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-primary mb-2">{{ engines|length }}</div>
+            <div class="text-sm opacity-70">Game Engines</div>
         </div>
-        
-        <!-- Recent Activity -->
-        <div class="tech-frame rounded-box aspect-square">
-            <div class="safe-box">
-                <h3 class="font-bold mb-3">📈 Recent Activity</h3>
-                {% if recent_projects %}
-                    <div class="space-y-2 flex-1">
-                        {% for project in recent_projects[:3] %}
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="truncate">{{ project.name }}</span>
-                            <span class="text-xs opacity-70">{{ project.engine }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% if recent_projects|length > 3 %}
-                    <div class="text-center">
-                        <a href="/web/projects" class="text-xs opacity-70 hover:opacity-100">View all →</a>
-                    </div>
-                    {% endif %}
-                {% else %}
-                    <div class="flex-1 flex flex-col items-center justify-center">
-                        <div class="text-2xl mb-2">🎮</div>
-                        <p class="text-sm opacity-70">No projects yet</p>
-                    </div>
-                {% endif %}
-            </div>
+        <div class="glass-panel p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-secondary mb-2">{{ stats.projects_generated or 0 }}</div>
+            <div class="text-sm opacity-70">Projects Created</div>
+        </div>
+        <div class="glass-panel p-6 rounded-xl text-center">
+            <div class="text-3xl font-bold text-accent mb-2">∞</div>
+            <div class="text-sm opacity-70">Possibilities</div>
         </div>
     </div>
 </div>
 
-<!-- Compact Feature Overview -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="tech-frame rounded-box aspect-square">
-        <div class="safe-box text-center justify-center">
-            <div class="text-2xl mb-2">🤖</div>
-            <h3 class="font-bold text-sm">AI-Powered</h3>
-            <p class="text-xs opacity-70">Multi-LLM generation</p>
-        </div>
-    </div>
-    <div class="tech-frame rounded-box aspect-square">
-        <div class="safe-box text-center justify-center">
-            <div class="text-2xl mb-2">⚡</div>
-            <h3 class="font-bold text-sm">Real-time</h3>
-            <p class="text-xs opacity-70">Live generation feedback</p>
-        </div>
-    </div>
-    <div class="tech-frame rounded-box aspect-square">
-        <div class="safe-box text-center justify-center">
-            <div class="text-2xl mb-2">🎨</div>
-            <h3 class="font-bold text-sm">Asset Generation</h3>
-            <p class="text-xs opacity-70">Images, sounds, music</p>
-        </div>
-    </div>
-    <div class="tech-frame rounded-box aspect-square">
-        <div class="safe-box text-center justify-center">
-            <div class="text-2xl mb-2">📱</div>
-            <h3 class="font-bold text-sm">Multi-Platform</h3>
-            <p class="text-xs opacity-70">Web, desktop, mobile</p>
-        </div>
-    </div>
-</div>
+<script>
+let currentEngine = 0;
+const engines = {{ engines|tojson }};
+
+function showEngine(index) {
+    // Hide all engine options and info panels
+    document.querySelectorAll('.engine-option, .info-panel').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active');
+    });
+    
+    // Show current engine option and info
+    const engineOption = document.querySelector(`[data-engine="${engines[index]}"]`);
+    const infoPanel = document.querySelector(`.info-panel[data-engine="${engines[index]}"]`);
+    
+    if (engineOption) {
+        engineOption.style.display = 'block';
+        engineOption.classList.add('active');
+    }
+    if (infoPanel) {
+        infoPanel.style.display = 'block';
+        infoPanel.classList.add('active');
+    }
+}
+
+function nextEngine() {
+    currentEngine = (currentEngine + 1) % engines.length;
+    showEngine(currentEngine);
+}
+
+function previousEngine() {
+    currentEngine = (currentEngine - 1 + engines.length) % engines.length;
+    showEngine(currentEngine);
+}
+</script>
 {% endblock %}
