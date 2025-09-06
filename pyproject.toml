@@ -167,6 +167,83 @@ build-backend = "hatchling.build"
 [tool.hatchling.build.targets.wheel]
 packages = ["src/ai_game_dev"]
 
+# Hatch environment configurations
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0", 
+    "pytest-mock>=3.10",
+    "pytest-benchmark>=4.0",
+]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.10", 
+    "pytest-benchmark>=4.0",
+    "pytest-xdist>=3.0",
+    "coverage[toml]>=7.0",
+]
+
+[tool.hatch.envs.test.scripts]
+cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/ai_game_dev --cov-report=html"
+no-cov = "pytest {args}"
+full = [
+    "cov",
+    "coverage xml",
+    "coverage json",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.11", "3.12"]
+
+[tool.hatch.envs.lint]
+detached = true
+dependencies = [
+    "mypy>=1.0",
+    "pylint>=2.15", 
+    "bandit[toml]>=1.7",
+    "ruff>=0.1.0",
+]
+
+[tool.hatch.envs.lint.scripts]
+typing = "mypy --install-types --non-interactive {args:src/ai_game_dev}"
+style = [
+    "ruff check {args:.}",
+    "ruff format --check --diff {args:.}",
+]
+security = "bandit -r {args:src/ai_game_dev}"
+all = [
+    "style",
+    "typing", 
+    "security",
+]
+
+[tool.hatch.envs.format]
+detached = true
+dependencies = [
+    "ruff>=0.1.0",
+]
+
+[tool.hatch.envs.format.scripts]
+format = [
+    "ruff format {args:.}",
+    "ruff check --fix {args:.}",
+]
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "sphinx-autodoc2>=0.5.0",
+    "myst-parser>=2.0",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "sphinx-build docs docs/_build"
+serve = "python -m http.server 8000 -d docs/_build"
+
 [tool.black]
 target-version = ['py311']
 include = '\.pyi?$'
@@ -277,3 +354,33 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+# Enhanced coverage configuration
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.json]
+output = "coverage.json"
+
+# Bandit security linting
+[tool.bandit]
+exclude_dirs = ["tests", "docs"]
+skips = ["B101", "B601"]  # Skip assert_used and shell_injection_process
+
+# Enhanced pylint configuration  
+[tool.pylint.main]
+load-plugins = ["pylint.extensions.docparams"]
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods", 
+    "too-many-arguments",
+    "too-many-locals",
+    "import-error",
+]
+
+[tool.pylint.format]
+max-line-length = 120

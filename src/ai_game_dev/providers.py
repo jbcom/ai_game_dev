@@ -10,16 +10,45 @@ from enum import Enum
 import os
 from abc import ABC, abstractmethod
 
-# LLM Provider imports
+# LLM Provider imports with graceful fallbacks
 try:
     from langchain_openai import ChatOpenAI
-    from langchain_anthropic import ChatAnthropic  
+    OPENAI_AVAILABLE = True
+except ImportError:
+    ChatOpenAI = None
+    OPENAI_AVAILABLE = False
+
+try:
+    from langchain_anthropic import ChatAnthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ChatAnthropic = None
+    ANTHROPIC_AVAILABLE = False
+
+try:
     from langchain_google_genai import ChatGoogleGenerativeAI
+    GOOGLE_AVAILABLE = True
+except ImportError:
+    ChatGoogleGenerativeAI = None
+    GOOGLE_AVAILABLE = False
+
+try:
     from langchain_community.llms import Ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    Ollama = None
+    OLLAMA_AVAILABLE = False
+
+try:
     from langchain_core.language_models import BaseLanguageModel
     from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-except ImportError as e:
-    raise ImportError(f"Required LangChain dependencies not installed: {e}")
+    LANGCHAIN_CORE_AVAILABLE = True
+except ImportError:
+    BaseLanguageModel = None
+    BaseMessage = None
+    HumanMessage = None
+    SystemMessage = None
+    LANGCHAIN_CORE_AVAILABLE = False
 
 
 class LLMProvider(Enum):

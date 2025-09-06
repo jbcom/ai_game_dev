@@ -24,8 +24,7 @@ from ai_game_dev.providers import (
 )
 
 # Asset management
-from ai_game_dev.assets.asset_tools import AssetTools
-from ai_game_dev.assets.audio.audio_tools import AudioTools
+from ai_game_dev.assets.ai_game_assets.audio.audio_tools import AudioTools
 
 # Version info
 __version__ = "1.0.0"
@@ -54,7 +53,6 @@ __all__ = [
     "create_default_manager",
     
     # Asset tools
-    "AssetTools",
     "AudioTools",
     
     # Version

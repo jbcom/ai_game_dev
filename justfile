@@ -344,3 +344,25 @@ for schema_file in os.listdir('src/ai_game_dev/schemas/'):
         except Exception as e:
             print(f'  ❌ {schema_file} has errors: {e}')
 "
+# Hatch-based development workflows
+hatch-test:
+	@echo "🧪 Running tests with hatch..."
+	hatch run test:cov
+
+hatch-lint:
+	@echo "🔍 Running linting with hatch..."
+	hatch run lint:all
+
+hatch-format:
+	@echo "✨ Formatting code with hatch..."
+	hatch run format:format
+
+hatch-docs:
+	@echo "📚 Building docs with hatch..."
+	hatch run docs:build
+
+hatch-full:
+	@echo "🚀 Running full hatch pipeline..."
+	hatch run format:format
+	hatch run lint:all
+	hatch run test:full
