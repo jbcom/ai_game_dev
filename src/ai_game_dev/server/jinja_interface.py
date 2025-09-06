@@ -108,9 +108,8 @@ def setup_jinja_routes(app: FastAPI) -> None:
     
     @app.get("/web")
     @app.get("/web/") 
-    @app.get("/web/dashboard")
-    async def web_dashboard(request: Request):
-        """Redirect to new project page - Dashboard is redundant."""
+    async def web_root(request: Request):
+        """Root web route redirects to new project page."""
         return RedirectResponse(url="/web/new_project", status_code=307)
     
     @app.get("/web/new_project", response_class=HTMLResponse)
