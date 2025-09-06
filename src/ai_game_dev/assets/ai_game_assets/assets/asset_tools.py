@@ -8,9 +8,9 @@ from typing import Any, Literal
 import json
 from dataclasses import dataclass
 
-from ai_game_assets.assets.cc0_libraries import CC0Libraries
-from ai_game_assets.assets.google_fonts import GoogleFonts
-from ai_game_assets.assets.archive_seeder import ArchiveSeeder
+from ai_game_dev.assets.ai_game_assets.assets.cc0_libraries import CC0Libraries
+from ai_game_dev.assets.ai_game_assets.assets.google_fonts import GoogleFonts
+from ai_game_dev.assets.ai_game_assets.assets.archive_seeder import ArchiveSeeder
 
 
 @dataclass
