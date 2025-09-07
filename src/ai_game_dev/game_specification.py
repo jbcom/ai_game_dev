@@ -157,8 +157,7 @@ class GameSpecificationParser:
         }
         
         return game_spec
-
-
+    
     def get_comprehensive_asset_requirements(self, game_spec: GameSpecification) -> Dict[str, List[str]]:
         """Convert game specification to asset requirements for verification."""
         
