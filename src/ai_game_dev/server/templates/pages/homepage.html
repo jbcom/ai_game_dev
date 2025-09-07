@@ -89,8 +89,21 @@
         cursor: pointer;
         transition: all 0.3s ease;
         overflow: hidden;
-        border-radius: 12px;
+        border-radius: 0;
         min-height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Add border radius only to outer edges */
+    .horizontal-panel:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    
+    .horizontal-panel:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
     }
     
     .horizontal-panel:hover {
