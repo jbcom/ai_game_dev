@@ -211,10 +211,14 @@ class TestVariantGenerator:
         square_choice = grid_variant.get_choice("a_square")
         hex_choice = grid_variant.get_choice("b_hexagonal")
         
-        assert square_choice.name == "Square Grid"
-        assert hex_choice.name == "Hexagonal Grid"
-        assert square_choice.difficulty_level == "easier"
-        assert hex_choice.difficulty_level == "harder"
+        assert square_choice is not None
+        assert hex_choice is not None
+        if square_choice:
+            assert square_choice.name == "Square Grid"
+            assert square_choice.difficulty_level == "easier"
+        if hex_choice:
+            assert hex_choice.name == "Hexagonal Grid"
+            assert hex_choice.difficulty_level == "harder"
     
     @pytest.mark.asyncio
     async def test_detect_variant_opportunities(self):

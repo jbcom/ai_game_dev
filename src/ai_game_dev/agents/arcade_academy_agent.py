@@ -24,9 +24,19 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
+    # Create stub classes to avoid NameError
+    class SystemMessage:
+        def __init__(self, content): self.content = content
+    class HumanMessage:
+        def __init__(self, content): self.content = content
 
 from .base_agent import GameDevelopmentAgent, AgentConfig
-from ..models.llm_manager import LLMManager
+try:
+    from ..models.llm_manager import LLMManager
+except ImportError:
+    # Fallback for development/testing
+    class LLMManager:
+        async def get_model(self, model_name): return None
 from ..variants.variant_system import InteractiveVariantSystem, create_variant_enabled_game
 
 
@@ -787,9 +797,9 @@ sys.exit()
 
 async def create_educational_context(
     target_audience: str = "beginner",
-    learning_objectives: List[str] = None,
-    programming_concepts: List[str] = None,
-    game_mechanics_focus: List[str] = None
+    learning_objectives: Optional[List[str]] = None,
+    programming_concepts: Optional[List[str]] = None,
+    game_mechanics_focus: Optional[List[str]] = None
 ) -> EducationalContext:
     """Factory function to create educational context for games."""
     
