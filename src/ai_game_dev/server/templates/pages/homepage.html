@@ -332,9 +332,11 @@
                 </div>
                 
                 <!-- Horizontal Panel Interface -->
-                <div class="horizontal-container flex-1 min-h-0">
+                <div style="display: flex; gap: 0; height: 100%; width: 100%;">
                     <!-- Game Workshop Panel -->
-                    <div class="horizontal-panel workshop-panel" 
+                    <div style="flex: 1; width: 50%; position: relative; cursor: pointer; overflow: hidden; 
+                                border-top-left-radius: 12px; border-bottom-left-radius: 12px; margin: 0; padding: 0;"
+                         class="workshop-panel" 
                          hx-get="/web/workshop-content" 
                          hx-target="#dynamic-content" 
                          hx-trigger="click"
@@ -346,7 +348,9 @@
                     </div>
                     
                     <!-- Arcade Academy Panel -->
-                    <div class="horizontal-panel academy-panel" 
+                    <div style="flex: 1; width: 50%; position: relative; cursor: pointer; overflow: hidden; 
+                                border-top-right-radius: 12px; border-bottom-right-radius: 12px; margin: 0; padding: 0;"
+                         class="academy-panel" 
                          hx-get="/web/academy-content" 
                          hx-target="#dynamic-content" 
                          hx-trigger="click"
