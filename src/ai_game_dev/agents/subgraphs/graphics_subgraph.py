@@ -58,7 +58,7 @@ def prepare_asset_requests(state: GraphicsState) -> GraphicsState:
 
 
 def generate_graphics_batch(state: GraphicsState) -> GraphicsState:
-    """Generate graphics using LangChain DALLE tool."""
+    """Generate graphics using LangChain DALLE tool and save to generated directory."""
     
     # Initialize LangChain DALLE tool
     dalle_wrapper = DallEAPIWrapper()
@@ -67,30 +67,43 @@ def generate_graphics_batch(state: GraphicsState) -> GraphicsState:
     generated_graphics = []
     failed_graphics = []
     
+    # Create generated assets directory
+    generated_dir = Path("src/ai_game_dev/server/static/assets/generated")
+    generated_dir.mkdir(parents=True, exist_ok=True)
+    
     asset_requests = state.get('asset_requests', [])
     
     # Generate each graphic using DALLE
-    for request in asset_requests:
+    for i, request in enumerate(asset_requests, 1):
         try:
-            print(f"Generating {request['type']}: {request['prompt']}")
+            print(f"🎨 Generating {request['type']} ({i}/{len(asset_requests)}): {request['prompt']}")
             image_url = dalle_tool.run(request['prompt'])
             
             # Download the image
             response = requests.get(image_url)
             if response.status_code == 200:
+                # Save to generated directory
+                filename = f"{request['type']}_{i}.png"
+                file_path = generated_dir / filename
+                
+                with open(file_path, "wb") as f:
+                    f.write(response.content)
+                
                 generated_graphics.append({
                     "type": request['type'],
                     "prompt": request['prompt'],
                     "url": image_url,
-                    "size": len(response.content),
-                    "data": response.content
+                    "file_path": str(file_path),
+                    "size": len(response.content)
                 })
+                print(f"✅ Saved: {filename}")
             else:
                 failed_graphics.append({
                     "type": request['type'],
                     "prompt": request['prompt'],
-                    "error": f"Failed to download from {image_url}"
+                    "error": f"Failed to download from {image_url} (HTTP {response.status_code})"
                 })
+                print(f"❌ Download failed: HTTP {response.status_code}")
                 
         except Exception as e:
             failed_graphics.append({
@@ -98,6 +111,7 @@ def generate_graphics_batch(state: GraphicsState) -> GraphicsState:
                 "prompt": request['prompt'],
                 "error": str(e)
             })
+            print(f"❌ Generation failed: {e}")
     
     return {
         "generated_graphics": generated_graphics,
