@@ -647,7 +647,7 @@ Respond with a JSON object for seeding coordination:
         }
         
         # Execute quest subgraph  
-        quest_results = await self.quest_subgraph.generate_quest(quest_context)
+        quest_results = await self.quest_subgraph.generate_quests(quest_context)
         
         state.subgraph_results["quest"] = quest_results
         return state
@@ -691,7 +691,7 @@ Respond with a JSON object for seeding coordination:
         }
         
         # Execute audio subgraph
-        audio_results = await self.audio_subgraph.generate_audio(audio_context)
+        audio_results = await self.audio_subgraph.generate_audio_specs(audio_context)
         
         state.subgraph_results["audio"] = audio_results
         return state
