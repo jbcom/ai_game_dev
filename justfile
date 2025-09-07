@@ -57,6 +57,11 @@ demo-frame-split:
     @echo "🖼️ Demonstrating frame splitting on tech-frame.png..."
     just split-frame "src/ai_game_dev/server/static/assets/frames/tech-frame.png"
 
+# Process homepage logos to remove excess transparency
+process-logos:
+    @echo "🖼️ Processing homepage logos to remove excess transparency..."
+    hatch run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('src/ai_game_dev/server/static/assets/logos/game-workshop-condensed.png'); process_image_cli('src/ai_game_dev/server/static/assets/logos/arcade-academy-condensed.png')"
+
 # =============================================================================
 # 🧪 TESTING COMMANDS
 # =============================================================================

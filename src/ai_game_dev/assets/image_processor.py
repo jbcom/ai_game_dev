@@ -11,8 +11,9 @@ This module provides intelligent image processing capabilities including:
 import logging
 from pathlib import Path
 from typing import Optional, Tuple, List, Dict, Any
-import numpy as np
 from PIL import Image, ImageFilter, ImageOps
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,7 @@ class ImageProcessor:
         Returns:
             Dict with frame detection results and metadata
         """
+            
         if not image.mode in ('RGBA', 'LA'):
             return {"is_frame": False, "reason": "No alpha channel"}
             
