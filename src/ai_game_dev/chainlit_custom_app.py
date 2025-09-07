@@ -10,12 +10,10 @@ from typing import Dict, Any, List, Optional
 # Import our components
 from ai_game_dev.agents.subgraphs import (
     DialogueSubgraph, QuestSubgraph, 
-    GraphicsSubgraph, AudioSubgraph
+    GraphicsSubgraph, AudioSubgraph,
+    GameSpecSubgraph, GameWorkshopSubgraph,
+    ArcadeAcademySubgraph
 )
-from ai_game_dev.agents.pygame_agent import PygameAgent
-from ai_game_dev.agents.godot_agent import GodotAgent
-from ai_game_dev.agents.bevy_agent import BevyAgent
-from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
 from ai_game_dev.project_manager import ProjectManager
 from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
 from ai_game_dev.startup_assets import StartupAssetGenerator
@@ -27,21 +25,10 @@ project_manager = ProjectManager()
 # Asset generator instance
 asset_generator = None
 
-# Agent instances
-agents = {
-    "pygame": None,
-    "godot": None,
-    "bevy": None,
-    "academy": None
-}
-
-# Subgraph instances  
-subgraphs = {
-    "dialogue": None,
-    "quest": None,
-    "graphics": None,
-    "audio": None
-}
+# Main orchestration subgraphs
+workshop_subgraph = None
+academy_subgraph = None
+spec_builder = None
 
 
 @cl.on_chat_start
@@ -119,9 +106,12 @@ async def handle_message(message: cl.Message):
 
 
 async def handle_create_game(user_input: str):
-    """Handle game creation workflow."""
-    # Initialize agents if needed
-    await ensure_agents_initialized()
+    """Handle game creation workflow using Workshop subgraph."""
+    global workshop_subgraph
+    
+    # Initialize workshop if needed
+    if not workshop_subgraph:
+        await ensure_subgraphs_initialized()
     
     # Parse command
     description = user_input[6:].strip()
@@ -133,86 +123,63 @@ async def handle_create_game(user_input: str):
             description = description.lower().replace(f"with {eng}", "").replace(eng, "").strip()
             break
     
-    if not engine:
-        engine = "pygame"  # default
-    
-    # Create game spec
-    game_spec = {
-        "title": f"AI Generated Game",
-        "description": description,
-        "engine": engine,
-        "features": detect_features(description),
-        "art_style": detect_art_style(description)
-    }
-    
-    cl.user_session.set("game_spec", game_spec)
-    
     # Send initial progress
     await send_ui_update({
         "type": "generation_start",
-        "spec": game_spec
+        "description": description,
+        "engine": engine or "pygame"
     })
     
-    # Initialize subgraphs
-    await ensure_subgraphs_initialized()
-    
-    # Execute generation workflow
+    # Use workshop subgraph for orchestration
     try:
-        # Stage 1: Requirements Analysis
-        await update_progress("Analyzing requirements...", 10)
+        # Create progress callback
+        async def progress_callback(stage: str, progress: float):
+            await update_progress(stage, int(progress * 100))
         
-        # Stage 2: Architecture
-        await update_progress("Designing game architecture...", 20)
-        
-        # Stage 3: Graphics Generation
-        if "graphics" in game_spec["features"] or True:  # Always generate graphics
-            await update_progress("Creating visual assets...", 40)
-            graphics_result = await subgraphs["graphics"].process({
-                "task": "generate_assets",
-                "context": game_spec
-            })
-            await send_ui_update({
-                "type": "assets_generated",
-                "assets": graphics_result.get("assets", [])
-            })
-        
-        # Stage 4: Audio Generation
-        if "audio" in game_spec["features"]:
-            await update_progress("Composing audio...", 60)
-            audio_result = await subgraphs["audio"].process({
-                "task": "generate_audio",
-                "context": game_spec
-            })
-        
-        # Stage 5: Code Generation
-        await update_progress("Writing game code...", 80)
-        agent = agents[engine]
-        game_result = await agent.generate_game(game_spec)
-        
-        # Stage 6: Finalization
-        await update_progress("Finalizing project...", 95)
-        
-        # Create project
-        project = project_manager.create_project(
-            name=game_spec["title"],
-            description=game_spec["description"],
-            engine=engine
-        )
-        
-        cl.user_session.set("current_project", project)
-        
-        # Complete
-        await update_progress("Complete!", 100)
-        await send_ui_update({
-            "type": "generation_complete",
-            "project": {
-                "id": project.id,
-                "name": project.name,
-                "path": str(project.project_path),
-                "description": project.description
-            }
+        # Process through workshop
+        result = await workshop_subgraph.process({
+            "description": description,
+            "engine": engine or "pygame",
+            "progress_callback": progress_callback
         })
         
+        if result["success"]:
+            # Extract project details
+            project_data = result["project"]
+            
+            # Create project record
+            project = project_manager.create_project(
+                name=project_data["metadata"]["title"],
+                description=description,
+                engine=project_data["metadata"]["engine"]
+            )
+            
+            # Save generated files
+            for filename, content in project_data["code"].items():
+                file_path = Path(project.project_path) / filename
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(content)
+            
+            cl.user_session.set("current_project", project)
+            
+            # Send completion
+            await send_ui_update({
+                "type": "generation_complete",
+                "project": {
+                    "id": project.id,
+                    "name": project.name,
+                    "path": str(project.project_path),
+                    "description": project.description,
+                    "files": list(project_data["code"].keys()),
+                    "assets": project_data.get("assets", {})
+                }
+            })
+        else:
+            await send_ui_update({
+                "type": "generation_error",
+                "errors": result["errors"]
+            })
+            
     except Exception as e:
         await send_ui_update({
             "type": "generation_error",
@@ -221,23 +188,41 @@ async def handle_create_game(user_input: str):
 
 
 async def handle_academy_start():
-    """Start academy lesson."""
-    if not agents["academy"]:
-        agents["academy"] = ArcadeAcademyAgent()
-        await agents["academy"].initialize()
+    """Start academy lesson using Academy subgraph."""
+    global academy_subgraph
     
-    result = await agents["academy"].start_lesson()
+    # Initialize academy if needed
+    if not academy_subgraph:
+        await ensure_subgraphs_initialized()
     
-    await send_ui_update({
-        "type": "dialogue",
-        "speaker": "Professor Pixel",
-        "avatar": "/public/static/assets/characters/professor-pixel.png",
-        "text": result.get("dialogue", "Welcome to the Academy!"),
-        "choices": result.get("choices", [])
-    })
+    # Start academy mode
+    result = await academy_subgraph.start_academy_mode()
     
-    if result.get("show_code_editor"):
-        await send_ui_update({"type": "show_code_editor"})
+    if result["success"]:
+        # Send initial dialogue
+        await send_ui_update({
+            "type": "dialogue",
+            "speaker": "Professor Pixel",
+            "avatar": "/public/static/assets/characters/professor-pixel.png",
+            "text": "Welcome to NeoTokyo Code Academy! Ready to learn programming through our RPG adventure?",
+            "choices": [
+                {"text": "Start with Variables", "action": "start_lesson:variables"},
+                {"text": "Continue my journey", "action": "continue_game"},
+                {"text": "View my progress", "action": "show_progress"}
+            ]
+        })
+        
+        # Show educational content
+        educational_content = result.get("educational_content", {})
+        await send_ui_update({
+            "type": "show_educational_overlay",
+            "content": educational_content
+        })
+    else:
+        await send_ui_update({
+            "type": "error",
+            "message": "Failed to initialize Academy mode"
+        })
 
 
 async def handle_code_execution(code: str):
@@ -304,73 +289,26 @@ async def send_ui_update(data: Dict[str, Any]):
     ).send()
 
 
-async def ensure_agents_initialized():
-    """Initialize agents if not already done."""
-    if not agents["pygame"]:
-        agents["pygame"] = PygameAgent()
-        agents["godot"] = GodotAgent()
-        agents["bevy"] = BevyAgent()
-        
-        for agent in agents.values():
-            if agent:
-                await agent.initialize()
-
-
 async def ensure_subgraphs_initialized():
-    """Initialize subgraphs if not already done."""
-    if not subgraphs["dialogue"]:
-        subgraphs["dialogue"] = DialogueSubgraph()
-        subgraphs["quest"] = QuestSubgraph()
-        subgraphs["graphics"] = GraphicsSubgraph()
-        subgraphs["audio"] = AudioSubgraph()
+    """Initialize orchestration subgraphs if not already done."""
+    global workshop_subgraph, academy_subgraph, spec_builder
+    
+    if not workshop_subgraph:
+        print("🔧 Initializing orchestration subgraphs...")
         
-        for subgraph in subgraphs.values():
-            await subgraph.initialize()
+        # Initialize main subgraphs
+        spec_builder = GameSpecSubgraph()
+        workshop_subgraph = GameWorkshopSubgraph()
+        academy_subgraph = ArcadeAcademySubgraph()
+        
+        # Initialize them
+        await spec_builder.initialize()
+        await workshop_subgraph.initialize()
+        await academy_subgraph.initialize()
+        
+        print("✅ Orchestration subgraphs initialized")
 
 
-def detect_features(description: str) -> List[str]:
-    """Detect game features from description."""
-    features = []
-    desc_lower = description.lower()
-    
-    feature_map = {
-        "dialogue": ["dialogue", "conversation", "talk", "story"],
-        "combat": ["fight", "battle", "combat", "shooter"],
-        "puzzles": ["puzzle", "riddle", "solve"],
-        "rpg": ["rpg", "role", "quest", "adventure"],
-        "audio": ["music", "sound"],
-        "graphics": ["visual", "art", "sprite"]
-    }
-    
-    for feature, keywords in feature_map.items():
-        if any(kw in desc_lower for kw in keywords):
-            features.append(feature)
-    
-    # Always include basic features
-    if "graphics" not in features:
-        features.append("graphics")
-    if "audio" not in features:
-        features.append("audio")
-    
-    return features
-
-
-def detect_art_style(description: str) -> str:
-    """Detect art style preference."""
-    desc_lower = description.lower()
-    
-    styles = {
-        "pixel": ["pixel", "8-bit", "retro"],
-        "cyberpunk": ["cyberpunk", "cyber", "neon"],
-        "cartoon": ["cartoon", "toon"],
-        "realistic": ["realistic", "real"]
-    }
-    
-    for style, keywords in styles.items():
-        if any(kw in desc_lower for kw in keywords):
-            return style
-    
-    return "modern"
 
 
 async def handle_workshop_chat(message: str):
@@ -381,10 +319,30 @@ async def handle_workshop_chat(message: str):
 
 async def handle_academy_chat(message: str):
     """Handle academy interactions."""
-    if agents["academy"]:
-        result = await agents["academy"].process_input(message)
-        if result:
-            await send_ui_update(result)
+    global academy_subgraph
+    
+    if academy_subgraph:
+        # Handle lesson-specific commands
+        if message.startswith("start_lesson:"):
+            lesson = message.split(":")[1]
+            result = await academy_subgraph.process_with_education({
+                "uploaded_spec": academy_subgraph.rpg_spec,
+                "lesson_focus": lesson,
+                "educational_mode": True
+            })
+            
+            if result["success"]:
+                await send_ui_update({
+                    "type": "lesson_started",
+                    "lesson": lesson,
+                    "educational": result.get("educational", {})
+                })
+        else:
+            # General academy chat
+            await send_ui_update({
+                "type": "professor_response",
+                "text": "Let me help you with that!"
+            })
 
 
 async def run_asset_generation():
