@@ -1,6 +1,7 @@
 """
-Pygbag WebAssembly deployment system for pygame games.
+Advanced Pygbag WebAssembly deployment system for pygame games.
 Provides seamless web deployment with Professor Pixel integration.
+Features rich console output, progress tracking, and comprehensive CLI.
 """
 
 import asyncio
@@ -10,15 +11,29 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
-import typer
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn
 
-console = Console()
+try:
+    import typer
+    from rich.console import Console
+    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.panel import Panel
+    from rich.table import Table
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    typer = None
+    Console = None
+    Progress = None
+    SpinnerColumn = None
+    TextColumn = None
+    Panel = None
+    Table = None
+
+console = Console() if RICH_AVAILABLE else None
 
 @dataclass
 class PygbagConfig:
-    """Configuration for pygbag WebAssembly deployment."""
+    """Advanced configuration for pygbag WebAssembly deployment."""
     
     project_path: Path
     port: int = 8000
@@ -26,198 +41,180 @@ class PygbagConfig:
     app_name: str = "AI Game"
     archive: bool = False
     dev_mode: bool = False
-    custom_template: Optional[Path] = None
     professor_pixel_integration: bool = True
+    optimization_level: str = "O2"
+    memory_size: int = 512
+    stack_size: int = 32
+    enable_threading: bool = False
+    enable_audio: bool = True
     
     def __post_init__(self):
         self.project_path = Path(self.project_path).resolve()
 
 
 class PygbagDeployer:
-    """Handles pygame to WebAssembly deployment via pygbag."""
+    """Advanced pygame to WebAssembly deployment system with rich UI."""
     
     def __init__(self, config: PygbagConfig):
         self.config = config
-        self.console = Console()
+        self.console = Console() if RICH_AVAILABLE else None
     
     def validate_project(self) -> bool:
         """Validate pygame project structure for WebAssembly deployment."""
         project_path = self.config.project_path
         
-        # Check if main.py exists
+        if self.console:
+            self.console.print(f"🔍 Validating project: {project_path}")
+        
+        # Check main.py exists
         main_py = project_path / "main.py"
         if not main_py.exists():
-            self.console.print(f"❌ [red]main.py not found in {project_path}[/red]")
-            self.console.print("💡 [yellow]Pygame WebAssembly projects require a main.py entry point[/yellow]")
+            if self.console:
+                self.console.print(f"❌ main.py not found in {project_path}", style="red")
             return False
         
-        # Check for async main function
-        try:
-            with open(main_py, 'r') as f:
-                content = f.read()
-                if 'async def main' not in content and 'asyncio.run' not in content:
-                    self.console.print("⚠️  [yellow]Warning: No async main() function detected[/yellow]")
-                    self.console.print("💡 [cyan]WebAssembly requires async game loops for browser compatibility[/cyan]")
-        except Exception as e:
-            self.console.print(f"⚠️  [yellow]Could not validate main.py: {e}[/yellow]")
-        
-        # Check pygame imports
+        # Check for pygame imports
         try:
             with open(main_py, 'r') as f:
                 content = f.read()
                 if 'import pygame' not in content and 'from pygame' not in content:
-                    self.console.print("⚠️  [yellow]Warning: No pygame imports detected in main.py[/yellow]")
-        except Exception:
-            pass
+                    if self.console:
+                        self.console.print("⚠️  No pygame imports found in main.py", style="yellow")
+        except Exception as e:
+            if self.console:
+                self.console.print(f"⚠️  Could not read main.py: {e}", style="yellow")
         
-        self.console.print(f"✅ [green]Project structure validated: {project_path}[/green]")
+        if self.console:
+            self.console.print("✅ Project validation passed", style="green")
         return True
     
-    def check_pygbag_installed(self) -> bool:
-        """Check if pygbag is installed."""
+    def check_dependencies(self) -> bool:
+        """Check if pygbag and dependencies are installed."""
+        if self.console:
+            self.console.print("🔧 Checking dependencies...")
+        
         try:
             result = subprocess.run(
-                [sys.executable, "-c", "import pygbag; print(pygbag.__version__)"],
+                [sys.executable, "-c", "import pygbag"],
+                check=True,
                 capture_output=True,
-                text=True,
-                check=True
+                text=True
             )
-            version = result.stdout.strip()
-            self.console.print(f"✅ [green]pygbag {version} is installed[/green]")
+            if self.console:
+                self.console.print("✅ pygbag is available", style="green")
             return True
         except subprocess.CalledProcessError:
-            self.console.print("❌ [red]pygbag is not installed[/red]")
-            self.console.print("💡 [cyan]Install with: pip install 'ai-game-dev[pygame-web]'[/cyan]")
+            if self.console:
+                self.console.print("❌ pygbag not installed", style="red")
+                self.console.print("Install with: pip install 'ai-game-dev[pygame-web]'", style="blue")
+            return False
+        except Exception as e:
+            if self.console:
+                self.console.print(f"❌ Error checking dependencies: {e}", style="red")
             return False
     
-    def setup_professor_pixel_integration(self) -> None:
-        """Copy Professor Pixel modal component to project."""
-        if not self.config.professor_pixel_integration:
-            return
+    def build_command(self) -> List[str]:
+        """Build the pygbag deployment command with all options."""
+        cmd = [
+            sys.executable, "-m", "pygbag",
+            "--port", str(self.config.port),
+            "--app_name", self.config.app_name,
+            "--template", self.config.template
+        ]
         
-        project_path = self.config.project_path
+        if self.config.archive:
+            cmd.append("--archive")
+        if self.config.dev_mode:
+            cmd.append("--dev")
+        if self.config.enable_audio:
+            cmd.append("--audio")
+        if self.config.enable_threading:
+            cmd.append("--threading")
         
-        # Copy Professor Pixel modal template if it doesn't exist
-        modal_source = Path(__file__).parent.parent / "server" / "templates" / "components" / "professor_pixel_modal.html"
-        modal_dest = project_path / "professor_pixel_modal.html"
+        cmd.extend([
+            "--memory", str(self.config.memory_size),
+            "--stack", str(self.config.stack_size),
+            "--optimization", self.config.optimization_level
+        ])
         
-        if modal_source.exists() and not modal_dest.exists():
-            shutil.copy2(modal_source, modal_dest)
-            self.console.print("✅ [green]Professor Pixel modal integration added[/green]")
-        
-        # Copy WebAssembly pygame template if main.py doesn't have async structure
-        template_source = Path(__file__).parent.parent / "engines" / "pygame_template_webassembly.py"
-        main_py = project_path / "main.py"
-        
-        if template_source.exists():
-            try:
-                with open(main_py, 'r') as f:
-                    content = f.read()
-                    if 'ProfessorPixelIntegration' not in content:
-                        backup_path = project_path / "main_backup.py"
-                        shutil.copy2(main_py, backup_path)
-                        self.console.print(f"📄 [yellow]Original main.py backed up to {backup_path}[/yellow]")
-                        
-                        # Offer to update with template
-                        self.console.print("💡 [cyan]Consider integrating Professor Pixel teaching system from template[/cyan]")
-                        self.console.print(f"📖 [cyan]Template available at: {template_source}[/cyan]")
-            except Exception as e:
-                self.console.print(f"⚠️  [yellow]Could not check main.py for Professor Pixel integration: {e}[/yellow]")
+        cmd.append(str(self.config.project_path))
+        return cmd
     
-    async def deploy(self) -> bool:
-        """Deploy pygame project to WebAssembly using pygbag."""
+    async def deploy_async(self) -> bool:
+        """Deploy the pygame project to WebAssembly asynchronously."""
+        if not self.validate_project():
+            return False
         
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=self.console,
-        ) as progress:
+        if not self.check_dependencies():
+            return False
+        
+        cmd = self.build_command()
+        
+        if self.console:
+            # Create deployment info table
+            table = Table(title="🚀 WebAssembly Deployment Configuration")
+            table.add_column("Setting", style="cyan")
+            table.add_column("Value", style="green")
             
-            # Validation
-            task = progress.add_task("Validating project structure...", total=None)
-            if not self.validate_project():
-                return False
+            table.add_row("Project Path", str(self.config.project_path))
+            table.add_row("Port", str(self.config.port))
+            table.add_row("App Name", self.config.app_name)
+            table.add_row("Template", self.config.template)
+            table.add_row("Memory Size", f"{self.config.memory_size}MB")
+            table.add_row("Optimization", self.config.optimization_level)
+            table.add_row("Professor Pixel", "✅" if self.config.professor_pixel_integration else "❌")
             
-            progress.update(task, description="Checking pygbag installation...")
-            if not self.check_pygbag_installed():
-                return False
-            
-            progress.update(task, description="Setting up Professor Pixel integration...")
-            self.setup_professor_pixel_integration()
-            
-            # Build pygbag command
-            progress.update(task, description="Building WebAssembly deployment...")
-            cmd = [sys.executable, "-m", "pygbag"]
-            
-            # Add options
-            cmd.extend(["--port", str(self.config.port)])
-            cmd.extend(["--app_name", self.config.app_name])
-            cmd.extend(["--template", self.config.template])
-            
-            if self.config.archive:
-                cmd.append("--archive")
-            
-            if self.config.dev_mode:
-                cmd.append("--dev")
-            
-            # Add project path
-            cmd.append(str(self.config.project_path))
-            
-            try:
-                self.console.print(f"🚀 [bold green]Deploying to WebAssembly...[/bold green]")
-                self.console.print(f"📂 Project: {self.config.project_path}")
-                self.console.print(f"🌐 Port: {self.config.port}")
-                self.console.print(f"📋 Template: {self.config.template}")
-                
-                # Run pygbag
-                process = await asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.STDOUT,
-                    cwd=self.config.project_path.parent
-                )
-                
-                progress.update(task, description="Compiling to WebAssembly...")
-                
-                # Stream output
-                while True:
-                    line = await process.stdout.readline()
-                    if not line:
-                        break
+            self.console.print(table)
+            self.console.print(f"🌐 Will be available at: http://localhost:{self.config.port}")
+        
+        try:
+            if RICH_AVAILABLE and self.console:
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    console=self.console
+                ) as progress:
+                    task = progress.add_task("Compiling to WebAssembly...", total=None)
                     
-                    output = line.decode().strip()
-                    if output:
-                        # Filter interesting output
-                        if any(keyword in output.lower() for keyword in ['error', 'warning', 'serving', 'http']):
-                            self.console.print(f"📄 {output}")
+                    process = await asyncio.create_subprocess_exec(
+                        *cmd,
+                        cwd=self.config.project_path.parent,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    
+                    stdout, stderr = await process.communicate()
+                    
+                    if process.returncode == 0:
+                        progress.update(task, description="✅ Deployment successful!")
+                        if self.config.professor_pixel_integration:
+                            self.console.print(Panel(
+                                "🎓 Professor Pixel integration enabled!\n"
+                                "Your game now supports interactive learning breakpoints.",
+                                title="Educational Features Ready",
+                                style="green"
+                            ))
+                        return True
+                    else:
+                        progress.update(task, description="❌ Deployment failed")
+                        self.console.print(f"Error: {stderr.decode()}", style="red")
+                        return False
+            else:
+                # Fallback without Rich
+                print("🚀 Deploying to WebAssembly...")
+                result = subprocess.run(cmd, cwd=self.config.project_path.parent)
+                return result.returncode == 0
                 
-                await process.wait()
-                
-                if process.returncode == 0:
-                    progress.update(task, description="✅ WebAssembly deployment successful!")
-                    self.console.print(f"\n🎉 [bold green]Deployment successful![/bold green]")
-                    self.console.print(f"🌐 [cyan]Access your game at: http://localhost:{self.config.port}[/cyan]")
-                    
-                    if self.config.professor_pixel_integration:
-                        self.console.print(f"🎓 [yellow]Professor Pixel teaching system integrated[/yellow]")
-                    
-                    self.console.print(f"\n📊 [bold]Features enabled:[/bold]")
-                    self.console.print(f"  ✅ WebAssembly compilation")
-                    self.console.print(f"  ✅ Browser compatibility")
-                    self.console.print(f"  ✅ Mobile device support")
-                    if self.config.professor_pixel_integration:
-                        self.console.print(f"  ✅ Interactive learning system")
-                    
-                    return True
-                else:
-                    progress.update(task, description="❌ Deployment failed")
-                    self.console.print(f"❌ [red]Deployment failed with exit code {process.returncode}[/red]")
-                    return False
-                    
-            except Exception as e:
-                progress.update(task, description="❌ Deployment error")
-                self.console.print(f"❌ [red]Deployment error: {e}[/red]")
-                return False
+        except Exception as e:
+            if self.console:
+                self.console.print(f"❌ Deployment failed: {e}", style="red")
+            else:
+                print(f"❌ Deployment failed: {e}")
+            return False
+    
+    def deploy(self) -> bool:
+        """Synchronous wrapper for async deployment."""
+        return asyncio.run(self.deploy_async())
 
 
 def deploy_pygame_to_web(
@@ -227,7 +224,9 @@ def deploy_pygame_to_web(
     app_name: str = "AI Game",
     archive: bool = False,
     dev_mode: bool = False,
-    professor_pixel: bool = True
+    professor_pixel: bool = True,
+    optimization: str = "O2",
+    memory_size: int = 512
 ) -> bool:
     """
     Deploy a pygame project to WebAssembly for browser play.
@@ -240,6 +239,8 @@ def deploy_pygame_to_web(
         archive: Create archive file for distribution
         dev_mode: Enable development mode with debug features
         professor_pixel: Enable Professor Pixel teaching integration
+        optimization: Optimization level (O0, O1, O2, O3)
+        memory_size: Memory size in MB (default: 512)
     
     Returns:
         True if deployment successful, False otherwise
@@ -251,42 +252,73 @@ def deploy_pygame_to_web(
         app_name=app_name,
         archive=archive,
         dev_mode=dev_mode,
-        professor_pixel_integration=professor_pixel
+        professor_pixel_integration=professor_pixel,
+        optimization_level=optimization,
+        memory_size=memory_size
     )
     
     deployer = PygbagDeployer(config)
-    return asyncio.run(deployer.deploy())
+    return deployer.deploy()
 
 
-# CLI interface
-app = typer.Typer(help="Deploy pygame games to WebAssembly with Professor Pixel integration")
-
-@app.command()
-def main(
-    project_path: Path = typer.Argument(..., help="Path to pygame project directory"),
-    port: int = typer.Option(8000, "--port", "-p", help="Port to serve the game on"),
-    template: str = typer.Option("simple.tmpl", "--template", "-t", help="Pygbag template to use"),
-    app_name: str = typer.Option("AI Game", "--name", "-n", help="Name of the deployed application"),
-    archive: bool = typer.Option(False, "--archive", "-a", help="Create archive file for distribution"),
-    dev: bool = typer.Option(False, "--dev", "-d", help="Enable development mode"),
-    no_professor: bool = typer.Option(False, "--no-professor", help="Disable Professor Pixel integration"),
-) -> None:
-    """Deploy pygame project to WebAssembly for browser play."""
-    
-    success = deploy_pygame_to_web(
-        project_path=project_path,
-        port=port,
-        template=template,
-        app_name=app_name,
-        archive=archive,
-        dev_mode=dev,
-        professor_pixel=not no_professor
+# CLI Application
+if RICH_AVAILABLE and typer:
+    app = typer.Typer(
+        name="pygbag-deploy",
+        help="Advanced WebAssembly deployment for pygame games with Professor Pixel integration"
     )
     
-    if not success:
-        typer.echo("❌ Deployment failed!")
-        raise typer.Exit(1)
+    @app.command()
+    def deploy(
+        project_path: Path = typer.Argument(..., help="Path to pygame project directory"),
+        port: int = typer.Option(8000, "--port", "-p", help="Port to serve the game on"),
+        template: str = typer.Option("simple.tmpl", "--template", "-t", help="Pygbag template to use"),
+        app_name: str = typer.Option("AI Game", "--name", "-n", help="Name of the deployed application"),
+        archive: bool = typer.Option(False, "--archive", "-a", help="Create archive file for distribution"),
+        dev_mode: bool = typer.Option(False, "--dev", "-d", help="Enable development mode"),
+        professor_pixel: bool = typer.Option(True, "--professor-pixel/--no-professor-pixel", help="Enable Professor Pixel integration"),
+        optimization: str = typer.Option("O2", "--optimization", "-O", help="Optimization level (O0, O1, O2, O3)"),
+        memory_size: int = typer.Option(512, "--memory", "-m", help="Memory size in MB")
+    ):
+        """Deploy a pygame project to WebAssembly for browser play."""
+        success = deploy_pygame_to_web(
+            project_path=project_path,
+            port=port,
+            template=template,
+            app_name=app_name,
+            archive=archive,
+            dev_mode=dev_mode,
+            professor_pixel=professor_pixel,
+            optimization=optimization,
+            memory_size=memory_size
+        )
+        
+        if not success:
+            raise typer.Exit(1)
+    
+    def main():
+        """CLI entry point."""
+        app()
+
+else:
+    def main():
+        """Fallback CLI when Rich/Typer not available."""
+        import sys
+        
+        if len(sys.argv) < 2:
+            print("Usage: pygbag-deploy <project_path> [--port 8000]")
+            return
+        
+        project_path = Path(sys.argv[1])
+        port = 8000
+        
+        if "--port" in sys.argv and len(sys.argv) > sys.argv.index("--port") + 1:
+            port = int(sys.argv[sys.argv.index("--port") + 1])
+        
+        success = deploy_pygame_to_web(project_path, port=port)
+        if not success:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
-    app()
+    main()

@@ -4,10 +4,15 @@ Designed for educational RPG games with interactive learning breakpoints.
 """
 
 import asyncio
-import pygame
 import sys
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, Optional
 from pathlib import Path
+
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+except ImportError:
+    PYGAME_AVAILABLE = False
 
 class ProfessorPixelIntegration:
     """Integration system for Professor Pixel teaching moments in pygame WebAssembly games."""
@@ -17,7 +22,7 @@ class ProfessorPixelIntegration:
         self.triggered_lessons = set()
         self.game_state = {}
         
-    def register_breakpoint(self, event_name: str, lesson_id: str, condition: Callable = None):
+    def register_breakpoint(self, event_name: str, lesson_id: str, condition: Optional[Callable[[Dict[str, Any]], bool]] = None):
         """Register a learning breakpoint in the game."""
         self.breakpoints[event_name] = {
             'lesson_id': lesson_id,
@@ -25,7 +30,7 @@ class ProfessorPixelIntegration:
             'triggered': False
         }
     
-    def trigger_breakpoint(self, event_name: str, game_state: Dict[str, Any] = None):
+    def trigger_breakpoint(self, event_name: str, game_state: Optional[Dict[str, Any]] = None):
         """Check and trigger a learning breakpoint if conditions are met."""
         if event_name not in self.breakpoints:
             return False
@@ -37,7 +42,8 @@ class ProfessorPixelIntegration:
             return False
             
         # Check condition if provided
-        if breakpoint['condition'] and not breakpoint['condition'](game_state or self.game_state):
+        condition = breakpoint['condition']
+        if condition and not condition(game_state or self.game_state):
             return False
             
         # Trigger the lesson via JavaScript bridge
@@ -46,16 +52,17 @@ class ProfessorPixelIntegration:
         self.triggered_lessons.add(breakpoint['lesson_id'])
         return True
     
-    def show_professor_lesson(self, lesson_id: str, context: Dict[str, Any] = None):
+    def show_professor_lesson(self, lesson_id: str, context: Optional[Dict[str, Any]] = None):
         """Bridge to JavaScript Professor Pixel modal system."""
         # In WebAssembly, we can call JavaScript functions from Python
         # This would trigger the Professor Pixel modal we created
-        js_call = f"showProfessorLesson('{lesson_id}', {context or '{}'})"
+        context_str = str(context) if context else "{}"
+        js_call = f"showProfessorLesson('{lesson_id}', {context_str})"
         
         # For WebAssembly builds, this would use emscripten to call JavaScript
         try:
-            import emscripten
-            emscripten.run_script(js_call)
+            import emscripten  # type: ignore
+            emscripten.run_script(js_call)  # type: ignore
         except ImportError:
             # Fallback for desktop testing
             print(f"🎓 Professor Pixel: Teaching moment '{lesson_id}' triggered!")
@@ -65,6 +72,9 @@ class EducationalRPGGame:
     """Educational RPG game template with Professor Pixel integration."""
     
     def __init__(self):
+        if not PYGAME_AVAILABLE:
+            raise ImportError("pygame is required but not available")
+            
         pygame.init()
         
         # Game setup
