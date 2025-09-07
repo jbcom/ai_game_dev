@@ -45,12 +45,12 @@ clean:
 # Process image with automatic transparency removal and frame detection
 process-image INPUT_PATH OUTPUT_PATH="":
     @echo "🖼️ Processing image with automatic optimizations..."
-    uv run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', '{{OUTPUT_PATH}}' if '{{OUTPUT_PATH}}' else None)"
+    hatch run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', '{{OUTPUT_PATH}}' if '{{OUTPUT_PATH}}' else None)"
 
 # Split frame image into components if detected as frame
 split-frame INPUT_PATH:
     @echo "🖼️ Analyzing and splitting frame image..."
-    uv run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', detect_frames=True, remove_transparency=False)"
+    hatch run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', detect_frames=True, remove_transparency=False)"
 
 # Process current tech frame to demonstrate capabilities
 demo-frame-split:
@@ -60,7 +60,7 @@ demo-frame-split:
 # Process homepage logos to remove excess transparency
 process-logos:
     @echo "🖼️ Processing homepage logos to remove excess transparency..."
-    hatch run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('src/ai_game_dev/server/static/assets/logos/game-workshop-condensed.png'); process_image_cli('src/ai_game_dev/server/static/assets/logos/arcade-academy-condensed.png')"
+    hatch run python src/ai_game_dev/assets/process_logos.py
 
 # =============================================================================
 # 🧪 TESTING COMMANDS
