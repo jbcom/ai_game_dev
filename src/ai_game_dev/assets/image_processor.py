@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Optional, Tuple, List, Dict, Any
 import numpy as np
 from PIL import Image, ImageFilter, ImageOps
-import cv2
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +261,7 @@ class ImageProcessor:
         return results
 
 
-def process_image_cli(input_path: str, output_path: str = None, **kwargs) -> None:
+def process_image_cli(input_path: str, output_path: Optional[str] = None, **kwargs) -> None:
     """CLI wrapper for image processing."""
     processor = ImageProcessor()
     input_p = Path(input_path)

@@ -39,6 +39,25 @@ clean:
     rm -rf docs/_build/ docs/doctrees/ coverage.xml
 
 # =============================================================================
+# 🖼️ IMAGE PROCESSING COMMANDS
+# =============================================================================
+
+# Process image with automatic transparency removal and frame detection
+process-image INPUT_PATH OUTPUT_PATH="":
+    @echo "🖼️ Processing image with automatic optimizations..."
+    uv run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', '{{OUTPUT_PATH}}' if '{{OUTPUT_PATH}}' else None)"
+
+# Split frame image into components if detected as frame
+split-frame INPUT_PATH:
+    @echo "🖼️ Analyzing and splitting frame image..."
+    uv run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', detect_frames=True, remove_transparency=False)"
+
+# Process current tech frame to demonstrate capabilities
+demo-frame-split:
+    @echo "🖼️ Demonstrating frame splitting on tech-frame.png..."
+    just split-frame "src/ai_game_dev/server/static/assets/frames/tech-frame.png"
+
+# =============================================================================
 # 🧪 TESTING COMMANDS
 # =============================================================================
 
@@ -346,23 +365,23 @@ for schema_file in os.listdir('src/ai_game_dev/schemas/'):
 "
 # Hatch-based development workflows
 hatch-test:
-	@echo "🧪 Running tests with hatch..."
-	hatch run test:cov
+        @echo "🧪 Running tests with hatch..."
+        hatch run test:cov
 
 hatch-lint:
-	@echo "🔍 Running linting with hatch..."
-	hatch run lint:all
+        @echo "🔍 Running linting with hatch..."
+        hatch run lint:all
 
 hatch-format:
-	@echo "✨ Formatting code with hatch..."
-	hatch run format:format
+        @echo "✨ Formatting code with hatch..."
+        hatch run format:format
 
 hatch-docs:
-	@echo "📚 Building docs with hatch..."
-	hatch run docs:build
+        @echo "📚 Building docs with hatch..."
+        hatch run docs:build
 
 hatch-full:
-	@echo "🚀 Running full hatch pipeline..."
-	hatch run format:format
-	hatch run lint:all
-	hatch run test:full
+        @echo "🚀 Running full hatch pipeline..."
+        hatch run format:format
+        hatch run lint:all
+        hatch run test:full

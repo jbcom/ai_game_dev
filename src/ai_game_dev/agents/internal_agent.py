@@ -20,6 +20,9 @@ from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_community.tools.openai_dalle_image_generation import OpenAIDALLEImageGenerationTool
 import requests
 
+# Image post-processing
+from ai_game_dev.assets.image_processor import ImageProcessor
+
 
 @dataclass
 class InternalAssetTask:
@@ -50,6 +53,7 @@ class InternalAssetAgent(PygameAgent):
         self.dalle_wrapper = None
         self.dalle_tool = None
         self.tasks: List[InternalAssetTask] = []
+        self.image_processor = ImageProcessor()
         
     async def initialize(self):
         """Initialize the internal agent with LangChain DALLE."""
@@ -172,6 +176,20 @@ class InternalAssetAgent(PygameAgent):
                         asset_path = ui_dir / asset["filename"]
                         with open(asset_path, "wb") as f:
                             f.write(image_data)
+                        
+                        # Post-process with automatic optimizations
+                        try:
+                            processed_path = asset_path.parent / f"{asset_path.stem}_processed{asset_path.suffix}"
+                            process_results = self.image_processor.process_asset(
+                                asset_path, processed_path,
+                                remove_transparency=True, detect_frames=True
+                            )
+                            # Replace original with processed if successful
+                            if process_results.get("output_path"):
+                                processed_path.replace(asset_path)
+                        except Exception as proc_e:
+                            # Log processing error but don't fail entire generation
+                            print(f"Warning: Image post-processing failed for {asset_path}: {proc_e}")
                         
                         results["generated"].append({
                             "type": "ui_asset",
@@ -303,6 +321,16 @@ class InternalAssetAgent(PygameAgent):
                         char_path = char_dir / char["filename"]
                         with open(char_path, "wb") as f:
                             f.write(response.content)
+                        
+                        # Post-process character sprite
+                        try:
+                            process_results = self.image_processor.process_asset(
+                                char_path, char_path,
+                                remove_transparency=True, detect_frames=False
+                            )
+                        except Exception as proc_e:
+                            print(f"Warning: Character sprite processing failed for {char_path}: {proc_e}")
+                            
                         results["characters"].append(str(char_path))
                     else:
                         results["failed"].append({
