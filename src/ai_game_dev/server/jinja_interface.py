@@ -145,51 +145,8 @@ def setup_jinja_routes(app: FastAPI) -> None:
         context = get_template_context(request, "homepage")
         return templates.TemplateResponse("partials/homepage-content.html", context)
     
-    @app.get("/web/new_project", response_class=HTMLResponse)
-    async def web_new_project(request: Request, engine: Optional[str] = None):
-        """New project creation page with form."""
-        context = get_template_context(request, "new_project")
-        
-        # Pre-select engine if provided in query params
-        if engine and engine in context["engines"]:
-            context["selected_engine"] = engine
-            
-        return templates.TemplateResponse("pages/new_project.html", context)
-    
-    @app.get("/web/engines", response_class=HTMLResponse)
-    async def web_engines(request: Request):
-        """Engines overview and comparison page."""
-        context = get_template_context(request, "engines")
-        return templates.TemplateResponse("pages/engines.html", context)
-    
-    
-    @app.get("/web/projects", response_class=HTMLResponse)
-    async def web_projects(request: Request, page: int = 1, limit: int = 12):
-        """Projects management page."""
-        project_manager = ProjectManager()
-        
-        offset = (page - 1) * limit
-        projects = project_manager.list_projects(limit=limit, offset=offset)
-        stats = project_manager.get_stats()
-        
-        total_projects = stats.get("total_projects", 0)
-        total_pages = (total_projects + limit - 1) // limit
-        
-        # Get most popular engine
-        engine_counts = stats.get("projects_by_engine", {})
-        most_popular_engine = max(engine_counts.keys(), key=engine_counts.get) if engine_counts else "None"
-        
-        context = get_template_context(request, "projects")
-        context.update({
-            "projects": projects,
-            "project_stats": stats,
-            "most_popular_engine": most_popular_engine,
-            "current_page": page,
-            "total_pages": total_pages,
-            "total_projects": total_projects
-        })
-        
-        return templates.TemplateResponse("pages/projects.html", context)
+    # All other routes now serve content into the single frame via HTMX
+    # Remove separate page routes - everything loads as partials
     
     @app.post("/api/apply-feature-flags", response_class=JSONResponse)
     async def apply_feature_flags(request: Request):

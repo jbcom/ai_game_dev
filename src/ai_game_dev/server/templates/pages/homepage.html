@@ -32,15 +32,27 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        height: calc(100% - var(--inset-top) - var(--inset-bottom));
+        width: calc(100% - var(--inset-left) - var(--inset-right));
     }
     
-    /* Content area for dynamic loading */
+    /* Content area for dynamic loading - auto-fills available space */
     #dynamic-content {
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
         display: flex;
         flex-direction: column;
+        height: 100%;
+        min-height: 0; /* Allow flex child to shrink */
+    }
+    
+    /* Ensure all dynamically loaded content fills available space */
+    #dynamic-content > * {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
     
     /* Custom scrollbar */
@@ -292,13 +304,13 @@
             <!-- Initial Split Panel Content -->
             <div id="split-panel-home">
                 <!-- Header -->
-                <div class="glass-panel text-center py-4 mb-4">
+                <div class="glass-panel text-center py-4 mb-4 flex-shrink-0">
                     <h1 class="text-3xl font-bold mb-2">🎮 AI Game Development Platform</h1>
                     <p class="text-base opacity-90">Choose your path: Create games or master programming</p>
                 </div>
                 
                 <!-- Vertical Panel Interface -->
-                <div class="vertical-container flex-1">
+                <div class="vertical-container flex-1 min-h-0">
                     <!-- Game Workshop Panel -->
                     <div class="vertical-panel workshop-panel" 
                          hx-get="/web/workshop-content" 
