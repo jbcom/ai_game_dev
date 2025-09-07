@@ -73,7 +73,7 @@ def main():
     port = 8000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
-            s.bind(('', port))
+            s.bind(('127.0.0.1', port))
         except OSError:
             print(f"❌ Error: Port {port} is already in use!")
             print("Please stop any other services running on this port")
