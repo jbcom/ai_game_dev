@@ -14,7 +14,13 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 
 from ai_game_dev.agents.base_agent import BaseAgent, AgentState, AgentConfig
-# Import will be done dynamically to avoid circular imports
+from ai_game_dev.agents.subgraphs import (
+    DialogueSubgraph,
+    QuestSubgraph, 
+    GraphicsSubgraph,
+    AudioSubgraph
+)
+# Engine imports will be done dynamically to avoid circular imports
 
 
 @dataclass
@@ -73,6 +79,12 @@ class MasterGameDevOrchestrator(BaseAgent):
         self.godot_agent = None
         self.bevy_agent = None
         
+        # Initialize specialized subgraphs
+        self.dialogue_subgraph = None
+        self.quest_subgraph = None
+        self.graphics_subgraph = None
+        self.audio_subgraph = None
+        
     async def initialize(self):
         """Initialize the orchestrator and all engine subagents."""
         await super().initialize()
@@ -98,6 +110,19 @@ class MasterGameDevOrchestrator(BaseAgent):
             await self.bevy_agent.initialize()
         except ImportError:
             self.bevy_agent = None
+            
+        # Initialize specialized subgraphs
+        self.dialogue_subgraph = DialogueSubgraph()
+        await self.dialogue_subgraph.initialize()
+        
+        self.quest_subgraph = QuestSubgraph()
+        await self.quest_subgraph.initialize()
+        
+        self.graphics_subgraph = GraphicsSubgraph()
+        await self.graphics_subgraph.initialize()
+        
+        self.audio_subgraph = AudioSubgraph()
+        await self.audio_subgraph.initialize()
         
     async def _setup_instructions(self):
         """Set up orchestrator-specific instructions."""
@@ -130,6 +155,12 @@ class MasterGameDevOrchestrator(BaseAgent):
         graph.add_node("pygame_subgraph", self._pygame_subgraph_node)
         graph.add_node("godot_subgraph", self._godot_subgraph_node)
         graph.add_node("bevy_subgraph", self._bevy_subgraph_node)
+        
+        # Specialized generation subgraph nodes
+        graph.add_node("dialogue_subgraph", self._dialogue_subgraph_node)
+        graph.add_node("quest_subgraph", self._quest_subgraph_node)
+        graph.add_node("graphics_subgraph", self._graphics_subgraph_node)
+        graph.add_node("audio_subgraph", self._audio_subgraph_node)
         
         # Output processing
         graph.add_node("result_compilation", self._result_compilation_node)
@@ -165,7 +196,11 @@ class MasterGameDevOrchestrator(BaseAgent):
             {
                 "pygame": "pygame_subgraph",
                 "godot": "godot_subgraph", 
-                "bevy": "bevy_subgraph"
+                "bevy": "bevy_subgraph",
+                "dialogue": "dialogue_subgraph",
+                "quest": "quest_subgraph",
+                "graphics": "graphics_subgraph",
+                "audio": "audio_subgraph"
             }
         )
         
@@ -173,6 +208,10 @@ class MasterGameDevOrchestrator(BaseAgent):
         graph.add_edge("pygame_subgraph", "result_compilation")
         graph.add_edge("godot_subgraph", "result_compilation")
         graph.add_edge("bevy_subgraph", "result_compilation")
+        graph.add_edge("dialogue_subgraph", "result_compilation")
+        graph.add_edge("quest_subgraph", "result_compilation")
+        graph.add_edge("graphics_subgraph", "result_compilation")
+        graph.add_edge("audio_subgraph", "result_compilation")
         
         graph.add_edge("result_compilation", END)
         
