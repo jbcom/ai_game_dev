@@ -137,9 +137,11 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 }
                 
                 .main-container {
+                    width: calc(100vw - 40px);
+                    height: calc(100vh - 40px);
                     max-width: 1400px;
+                    max-height: 900px;
                     margin: 0 auto;
-                    min-height: calc(100vh - 40px);
                     position: relative;
                 }
                 
@@ -168,6 +170,7 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     left: var(--inset-left);
                     display: flex;
                     flex-direction: column;
+                    overflow: hidden; /* Prevent content from breaking out */
                 }
                 
                 .header {
@@ -199,7 +202,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 
                 .split-container {
                     display: flex;
-                    min-height: 600px;
+                    flex: 1;
+                    min-height: 0; /* Allow flexbox to shrink */
                 }
                 
                 .panel {
@@ -307,9 +311,11 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 
                 .dynamic-content {
                     display: none;
-                    padding: 40px;
-                    background: white;
-                    min-height: 600px;
+                    padding: 20px;
+                    background: transparent;
+                    flex: 1;
+                    overflow-y: auto;
+                    overflow-x: hidden;
                 }
                 
                 /* Video Overlay System */
@@ -464,7 +470,36 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     50% { transform: translateY(-10px); }
                 }
                 
+                /* Custom scrollbar for dark theme */
+                .dynamic-content::-webkit-scrollbar {
+                    width: 8px;
+                }
+                
+                .dynamic-content::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.1);
+                    border-radius: 4px;
+                }
+                
+                .dynamic-content::-webkit-scrollbar-thumb {
+                    background: rgba(100, 255, 218, 0.3);
+                    border-radius: 4px;
+                }
+                
+                .dynamic-content::-webkit-scrollbar-thumb:hover {
+                    background: rgba(100, 255, 218, 0.5);
+                }
+                
+                /* Responsive design */
                 @media (max-width: 768px) {
+                    .main-container {
+                        width: calc(100vw - 20px);
+                        height: calc(100vh - 20px);
+                    }
+                    
+                    body {
+                        padding: 10px;
+                    }
+                    
                     .split-container {
                         flex-direction: column;
                     }
@@ -476,6 +511,23 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     
                     .panel:hover {
                         transform: none;
+                    }
+                    
+                    .dynamic-content {
+                        padding: 15px;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    :root {
+                        --inset-top: 8%;
+                        --inset-right: 6%;
+                        --inset-bottom: 9%;
+                        --inset-left: 8%;
+                    }
+                    
+                    .dynamic-content {
+                        padding: 10px;
                     }
                 }
             </style>
@@ -730,7 +782,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 🛠️ Game Workshop
             </h1>
             
-            <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
+            <div style="background: rgba(248, 249, 250, 0.9); backdrop-filter: blur(10px); 
+                        border: 1px solid rgba(100, 255, 218, 0.2); padding: 30px; border-radius: 10px; margin-bottom: 30px;">
                 <h2 style="color: #2d3748; margin-bottom: 20px;">Create Your Game</h2>
                 
                 <form onsubmit="generateGame(event)">
@@ -783,7 +836,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 </form>
             </div>
             
-            <div style="background: #e8f4fd; padding: 20px; border-radius: 10px;">
+            <div style="background: rgba(232, 244, 253, 0.9); backdrop-filter: blur(10px); 
+                        border: 1px solid rgba(100, 255, 218, 0.2); padding: 20px; border-radius: 10px;">
                 <h3 style="color: #2d3748; margin-bottom: 15px;">🎯 Workshop Features</h3>
                 <ul style="color: #4a5568; line-height: 1.8;">
                     <li>🤖 AI-powered game generation</li>
@@ -861,12 +915,14 @@ class GameDevHandler(BaseHTTPRequestHandler):
             </div>
             
             <!-- Learning Path -->
-            <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
+            <div style="background: rgba(248, 249, 250, 0.9); backdrop-filter: blur(10px); 
+                        border: 1px solid rgba(100, 255, 218, 0.2); padding: 30px; border-radius: 10px; margin-bottom: 30px;">
                 <h2 style="color: #2d3748; margin-bottom: 20px;">🚀 Your Learning Journey</h2>
                 
                 <div id="learning-modules" style="space-y: 15px;">
                     <div class="module" onclick="startModule('variables')" 
-                         style="background: white; padding: 20px; border-radius: 8px; cursor: pointer; 
+                         style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
+                                border: 1px solid rgba(100, 255, 218, 0.1); padding: 20px; border-radius: 8px; cursor: pointer; 
                                 border-left: 4px solid #ff6b6b; margin-bottom: 15px;
                                 transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                          onmouseover="this.style.transform='translateX(5px)'" 
@@ -879,7 +935,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     </div>
                     
                     <div class="module" onclick="startModule('loops')" 
-                         style="background: white; padding: 20px; border-radius: 8px; cursor: pointer; 
+                         style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
+                                border: 1px solid rgba(100, 255, 218, 0.1); padding: 20px; border-radius: 8px; cursor: pointer; 
                                 border-left: 4px solid #4ecdc4; margin-bottom: 15px;
                                 transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                          onmouseover="this.style.transform='translateX(5px)'" 
@@ -892,7 +949,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     </div>
                     
                     <div class="module" onclick="startModule('functions')" 
-                         style="background: white; padding: 20px; border-radius: 8px; cursor: pointer; 
+                         style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
+                                border: 1px solid rgba(100, 255, 218, 0.1); padding: 20px; border-radius: 8px; cursor: pointer; 
                                 border-left: 4px solid #a55eea; margin-bottom: 15px;
                                 transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                          onmouseover="this.style.transform='translateX(5px)'" 
@@ -905,7 +963,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     </div>
                     
                     <div class="module" onclick="startModule('data-structures')" 
-                         style="background: white; padding: 20px; border-radius: 8px; cursor: pointer; 
+                         style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
+                                border: 1px solid rgba(100, 255, 218, 0.1); padding: 20px; border-radius: 8px; cursor: pointer; 
                                 border-left: 4px solid #ffa726; margin-bottom: 15px;
                                 transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                          onmouseover="this.style.transform='translateX(5px)'" 
@@ -918,7 +977,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     </div>
                     
                     <div class="module" onclick="startModule('game-dev')" 
-                         style="background: white; padding: 20px; border-radius: 8px; cursor: pointer; 
+                         style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
+                                border: 1px solid rgba(100, 255, 218, 0.1); padding: 20px; border-radius: 8px; cursor: pointer; 
                                 border-left: 4px solid #26de81; margin-bottom: 15px;
                                 transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                          onmouseover="this.style.transform='translateX(5px)'" 
