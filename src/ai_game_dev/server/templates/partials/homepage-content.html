@@ -1,15 +1,24 @@
-<!-- Homepage Vertical Panel Content -->
+<!-- Homepage Horizontal Panel Content -->
 <div id="split-panel-home" class="flex flex-col h-full">
     <!-- Header -->
-    <div class="glass-panel text-center py-4 mb-4 flex-shrink-0">
-        <h1 class="text-3xl font-bold mb-2">🎮 AI Game Development Platform</h1>
-        <p class="text-base opacity-90">Choose your path: Create games or master programming</p>
+    <div class="text-center py-3 mb-4 flex-shrink-0" 
+         style="background: url('/static/assets/textures/circuit-pattern.png') center / cover, 
+                linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 50, 50, 0.9)); 
+                border-radius: 8px; 
+                border: 1px solid rgba(100, 255, 218, 0.3);
+                backdrop-filter: blur(10px);
+                display: inline-block;
+                margin: 0 auto;
+                padding: 1rem 2rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+        <h1 class="text-2xl font-bold mb-1 text-white">🎮 AI Game Development Platform</h1>
+        <p class="text-sm opacity-90 text-cyan-300">Choose your path: Create games or master programming</p>
     </div>
     
-    <!-- Vertical Panel Interface -->
-    <div class="vertical-container flex-1 min-h-0">
+    <!-- Horizontal Panel Interface -->
+    <div class="horizontal-container flex-1 min-h-0">
         <!-- Game Workshop Panel -->
-        <div class="vertical-panel workshop-panel" 
+        <div class="horizontal-panel workshop-panel" 
              hx-get="/web/workshop-content" 
              hx-target="#dynamic-content" 
              hx-trigger="click"
@@ -21,7 +30,7 @@
         </div>
         
         <!-- Arcade Academy Panel -->
-        <div class="vertical-panel academy-panel" 
+        <div class="horizontal-panel academy-panel" 
              hx-get="/web/academy-content" 
              hx-target="#dynamic-content" 
              hx-trigger="click"
