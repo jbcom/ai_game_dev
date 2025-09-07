@@ -53,6 +53,10 @@ class UnifiedGameDevServer:
         print("🚀 Initializing SQLite caching and memory...")
         self._initialize_sqlite_cache()
         
+        # Verify asset availability on startup
+        print("🎨 Verifying asset availability...")
+        asyncio.create_task(self._verify_asset_availability())
+        
         # Initialize FastMCP server for SSE connections
         self.mcp = FastMCP("AI Game Development Server")
         self.setup_mcp_tools()
@@ -67,6 +71,85 @@ class UnifiedGameDevServer:
         except ImportError as e:
             print(f"⚠️ SQLite caching unavailable: {e}")
             print("ℹ️ Running without persistent caching")
+    
+    async def _verify_asset_availability(self):
+        """Verify all required assets are available, generate missing ones."""
+        try:
+            from ai_game_dev.agents.internal_agent import InternalAssetAgent
+            
+            # Define required asset directories and files
+            required_assets = self._get_required_assets()
+            missing_assets = self._check_missing_assets(required_assets)
+            
+            if missing_assets:
+                print(f"🔧 Found {len(missing_assets)} missing assets, generating...")
+                
+                # Initialize Internal agent for asset generation
+                async with InternalAssetAgent() as agent:
+                    for asset_category, assets in missing_assets.items():
+                        print(f"📦 Generating {asset_category} assets...")
+                        
+                        result = await agent.execute_task(
+                            task=f"generate_{asset_category}_assets",
+                            context={
+                                "asset_type": asset_category,
+                                "missing_assets": assets,
+                                "output_dir": "src/ai_game_dev/server/static/assets"
+                            }
+                        )
+                        
+                        if result["success"]:
+                            print(f"✅ Generated {result['assets_created']} {asset_category} assets")
+                        else:
+                            print(f"❌ Failed to generate {asset_category} assets: {result.get('message', 'Unknown error')}")
+            else:
+                print("✅ All required assets are available")
+                
+        except Exception as e:
+            print(f"⚠️ Asset verification failed: {e}")
+            print("ℹ️ Continuing server startup without asset verification")
+    
+    def _get_required_assets(self) -> Dict[str, List[str]]:
+        """Get list of all required assets by category."""
+        return {
+            "logos": [
+                "src/ai_game_dev/server/static/assets/logos/main-logo.svg",
+                "src/ai_game_dev/server/static/assets/logos/game-workshop-condensed.png",
+                "src/ai_game_dev/server/static/assets/logos/arcade-academy-condensed.png"
+            ],
+            "frames": [
+                "src/ai_game_dev/server/static/assets/frames/tech-frame.png",
+                "src/ai_game_dev/server/static/assets/frames/tech-frame_components"
+            ],
+            "textures": [
+                "src/ai_game_dev/server/static/assets/textures/circuit-pattern.png"
+            ],
+            "audio": [
+                "src/ai_game_dev/server/static/assets/audio/button_click_futuristic.wav",
+                "src/ai_game_dev/server/static/assets/audio/hover_beep_cyberpunk.wav",
+                "src/ai_game_dev/server/static/assets/audio/success_ding_pleasant.wav",
+                "src/ai_game_dev/server/static/assets/audio/error_buzz_warning.wav",
+                "src/ai_game_dev/server/static/assets/audio/notification_chime_tech.wav",
+                "src/ai_game_dev/server/static/assets/audio/typing_mechanical_keyboard.wav"
+            ]
+        }
+    
+    def _check_missing_assets(self, required_assets: Dict[str, List[str]]) -> Dict[str, List[str]]:
+        """Check which required assets are missing."""
+        missing = {}
+        
+        for category, asset_paths in required_assets.items():
+            missing_in_category = []
+            
+            for asset_path in asset_paths:
+                path = Path(asset_path)
+                if not path.exists():
+                    missing_in_category.append(asset_path)
+            
+            if missing_in_category:
+                missing[category] = missing_in_category
+        
+        return missing
     
     def setup_middleware(self):
         """Setup CORS and other middleware."""
