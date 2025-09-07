@@ -10,8 +10,12 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
-from ai_game_dev.agents.base_agent import PygameAgent, AgentConfig
-from ai_game_dev.assets.generator import AssetGenerator, AssetRequest
+try:
+    from ai_game_dev.agents.base_agent import PygameAgent, AgentConfig
+    from ai_game_dev.assets.generator import AssetGenerator, AssetRequest
+except ImportError:
+    from .base_agent import PygameAgent, AgentConfig
+    from ..assets.generator import AssetGenerator, AssetRequest
 
 
 @dataclass

@@ -14,15 +14,17 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
 from rich.table import Table
 
-# Internal commands - fail fast if environment isn't set up correctly
-if os.getenv("AI_GAME_DEV_INTERNAL", "false").lower() != "true":
-    raise RuntimeError("Internal CLI requires AI_GAME_DEV_INTERNAL=true environment variable")
+# Internal CLI - separate from main CLI
 
 from ai_game_dev.agents.internal_agent import InternalAssetAgent
 from ai_game_dev.agents.master_orchestrator import MasterGameDevOrchestrator
 
 internal_app = typer.Typer(help="Internal Development Commands - Not included in release builds")
 console = Console()
+
+def internal_main():
+    """Entry point for ai-game-dev-internal hatch script."""
+    internal_app()
 
 
 @internal_app.command(name="build-static-assets")
@@ -196,13 +198,22 @@ def build_all_internal_assets(
     
     # Run all build commands in sequence
     console.print("\n[bold]Step 1: Building static platform assets...[/bold]")
-    build_static_assets(force_rebuild=force_rebuild, dry_run=dry_run)
+    try:
+        build_static_assets(force_rebuild=force_rebuild, dry_run=dry_run)
+    except Exception as e:
+        console.print(f"[red]Step 1 failed: {e}[/red]")
     
     console.print("\n[bold]Step 2: Building educational game code...[/bold]")
-    build_educational_game_code(force_rebuild=force_rebuild, dry_run=dry_run)
+    try:
+        build_educational_game_code(force_rebuild=force_rebuild, dry_run=dry_run)
+    except Exception as e:
+        console.print(f"[red]Step 2 failed: {e}[/red]")
     
     console.print("\n[bold]Step 3: Building educational game assets...[/bold]")
-    build_educational_game_assets(force_rebuild=force_rebuild, dry_run=dry_run)
+    try:
+        build_educational_game_assets(force_rebuild=force_rebuild, dry_run=dry_run)
+    except Exception as e:
+        console.print(f"[red]Step 3 failed: {e}[/red]")
     
     console.print("\n🎉 [bold green]All internal builds complete![/bold green]")
 
