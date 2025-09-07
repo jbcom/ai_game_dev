@@ -12,6 +12,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**September 7, 2025**: Added pygbag WebAssembly deployment as first-class feature with Professor Pixel integration:
+
+- **WebAssembly Deployment**: Integrated pygbag 0.9.2 as optional dependency `pygame-web` for browser deployment
+- **Professor Pixel Teaching System**: Complete modal-based learning system with interactive code examples and challenges
+- **Breakpoint Learning**: Revolutionary play-through education where teaching moments trigger during natural gameplay
+- **Educational RPG Template**: "NeoTokyo Code Academy: The Binary Rebellion" with WebAssembly-ready async architecture
+- **CLI Deployment Tool**: `pygbag-deploy` command for seamless pygame→WebAssembly compilation
+- **Competitive Advantage**: Offering WebAssembly for pygame when Godot/Bevy have native support but pygame doesn't
+
 **September 6, 2025**: Completed revolutionary agent-based asset generation system with real OpenAI integration and comprehensive master orchestrator:
 
 - **Master Orchestrator Architecture**: Created comprehensive MasterGameDevOrchestrator with routing logic, spec generation subgraphs, and human-in-the-loop review workflows

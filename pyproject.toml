@@ -67,6 +67,10 @@ dependencies = [
 [project.optional-dependencies]
 # Game engine integrations
 pygame = ["pygame>=2.5.0"]
+pygame-web = [
+    "pygame>=2.5.0",
+    "pygbag>=0.9.2",
+]
 bevy = []  # Rust compilation handled separately
 godot = []  # GDScript integration via project files
 arcade = ["arcade>=3.0.0"]
@@ -106,7 +110,7 @@ dev = [
 
 # All optional dependencies
 all = [
-    "ai-game-dev[pygame,arcade,audio,ui,web,dev]"
+    "ai-game-dev[pygame,pygame-web,arcade,audio,ui,web,dev]"
 ]
 
 [project.urls]
@@ -120,6 +124,7 @@ ai-game-dev = "ai_game_dev.cli:app"
 ai-game-dev-server = "ai_game_dev.server.unified_server:run_server"
 ai-game-education = "ai_game_dev.education.run_education:main"
 ai-game-dev-internal = "ai_game_dev.internal_cli:internal_app"
+pygbag-deploy = "ai_game_dev.deployment.pygbag_deploy:main"
 
 # Hatch testing environment with UV backend - includes E2E dependencies
 [tool.hatch.envs.hatch-test]
