@@ -19,7 +19,7 @@ from .sse_transport import create_sse_server
 
 # Import our core functionality
 from ai_game_dev.engines import engine_manager, generate_for_engine, get_supported_engines
-from ai_game_dev.assets import AssetTools
+# Asset generation now handled by LangChain DALLE in subgraphs
 
 # Try to import HTMY for web UI, fallback to simple web interface
 try:
@@ -131,7 +131,7 @@ class UnifiedGameDevServer:
             """Generate game assets like images, sounds, and music."""
             try:
                 # Use asset generation tools
-                asset_tools = AssetTools()
+                # Asset generation now handled by LangChain DALLE in subgraphs
                 
                 return json.dumps({
                     "success": True,
