@@ -54,8 +54,10 @@ class InternalAssetAgent(PygameAgent):
         
         # Import and initialize subgraphs for delegation
         from ai_game_dev.agents.subgraphs import GraphicsSubgraph, AudioSubgraph
+        from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
         self.graphics_subgraph = GraphicsSubgraph()
         self.audio_subgraph = AudioSubgraph()
+        self.arcade_academy_agent = ArcadeAcademyAgent()
         
     async def initialize(self):
         """Initialize the internal agent and its subgraphs."""
@@ -63,9 +65,10 @@ class InternalAssetAgent(PygameAgent):
         # Initialize parent pygame agent
         await super().initialize()
         
-        # Initialize delegated subgraphs
+        # Initialize delegated subgraphs and agents
         await self.graphics_subgraph.initialize()
         await self.audio_subgraph.initialize()
+        await self.arcade_academy_agent.initialize()
         
     async def __aenter__(self):
         await self.initialize()
@@ -226,6 +229,30 @@ class InternalAssetAgent(PygameAgent):
                     results["assets_created"] += 1
                 else:
                     results["failed"].append({"type": "audio_specs", "error": "Audio spec generation failed"})
+            
+            # Delegate educational content to Arcade Academy Agent
+            elif "educational" in asset_type or "professor_pixel" in asset_type:
+                print("🎓 Delegating educational content to Arcade Academy Agent...")
+                
+                # Prepare educational context for arcade academy
+                academy_context = {
+                    "task_type": "educational_asset_generation",
+                    "game_title": context.get("game_title", "NeoTokyo Code Academy"),
+                    "educational_features": ["professor_pixel", "interactive_learning", "coding_challenges"],
+                    "cyberpunk_theme": True
+                }
+                
+                academy_results = await self.arcade_academy_agent.execute_task(
+                    "generate_educational_assets", 
+                    academy_context
+                )
+                results["subgraph_results"]["arcade_academy"] = academy_results
+                
+                if academy_results.get("success"):
+                    results["generated"].extend(academy_results.get("generated", []))
+                    results["assets_created"] += academy_results.get("assets_created", 0)
+                else:
+                    results["failed"].extend(academy_results.get("failed", []))
             
             # Handle game code generation (keep this internal for now)
             elif "game_code" in asset_type or "yarn_spinner" in asset_type:
