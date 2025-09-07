@@ -4,7 +4,7 @@
 
 {% block extra_head %}
 <style>
-    /* Split Panel Homepage Styles */
+    /* Single Frame Application Styles */
     .main-container {
         width: calc(100vw - 40px);
         height: calc(100vh - 40px);
@@ -14,7 +14,7 @@
         position: relative;
     }
     
-    .tech-frame-homepage {
+    .tech-frame {
         position: absolute;
         top: 0;
         left: 0;
@@ -23,7 +23,7 @@
         background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
     }
     
-    .safe-box-homepage {
+    .safe-box {
         position: absolute;
         top: var(--inset-top);
         right: var(--inset-right);
@@ -34,6 +34,35 @@
         overflow: hidden;
     }
     
+    /* Content area for dynamic loading */
+    #dynamic-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Custom scrollbar */
+    #dynamic-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #dynamic-content::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    #dynamic-content::-webkit-scrollbar-thumb {
+        background: rgba(100, 255, 218, 0.3);
+        border-radius: 4px;
+    }
+    
+    #dynamic-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 255, 218, 0.5);
+    }
+    
+    /* Split Panel Styles */
     .split-container {
         display: flex;
         flex: 1;
@@ -174,6 +203,35 @@
         border-color: rgba(100, 255, 218, 0.8);
     }
     
+    /* Back button for content pages */
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: rgba(100, 255, 218, 0.9);
+        border: 2px solid rgba(100, 255, 218, 0.5);
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        z-index: 10;
+        text-decoration: none;
+        display: none; /* Hidden by default */
+    }
+    
+    .back-button:hover {
+        background: rgba(100, 255, 218, 0.2);
+        border-color: rgba(100, 255, 218, 0.8);
+        color: white;
+    }
+    
+    /* Show back button when not on homepage */
+    .content-loaded .back-button {
+        display: block;
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
         .main-container {
@@ -209,53 +267,70 @@
 {% block content %}
 <div class="main-container">
     <!-- Tech Frame Background -->
-    <div class="tech-frame-homepage"></div>
+    <div class="tech-frame"></div>
     
     <!-- Safe Content Area -->
-    <div class="safe-box-homepage">
-        <!-- Header -->
-        <div class="glass-panel text-center py-6 mb-6">
-            <h1 class="text-4xl font-bold mb-2">🎮 AI Game Development Platform</h1>
-            <p class="text-lg opacity-90">Choose your path: Create games or master programming</p>
-        </div>
+    <div class="safe-box">
+        <!-- Back Button (shown when content is loaded) -->
+        <a href="#" class="back-button" onclick="goHome()">← Back to Home</a>
         
-        <!-- Split Panel Interface -->
-        <div class="split-container">
-            <!-- Game Workshop Panel -->
-            <div class="split-panel workshop-panel" onclick="loadContent('workshop')">
-                <div class="panel-overlay"></div>
-                <div class="panel-content">
-                    <div class="panel-icon">🛠️</div>
-                    <h2 class="panel-title">Game Workshop</h2>
-                    <p class="panel-description">
-                        Create revolutionary games with AI-powered tools and multi-engine support
-                    </p>
-                    <ul class="panel-features">
-                        <li>🎯 Multi-Engine Support (Pygame, Godot, Bevy)</li>
-                        <li>🤖 AI-Powered Asset Generation</li>
-                        <li>⚡ Instant Game Prototyping</li>
-                        <li>🎨 Dynamic Art & Audio Creation</li>
-                        <li>🚀 One-Click Deployment</li>
-                    </ul>
+        <!-- Dynamic Content Area -->
+        <div id="dynamic-content">
+            <!-- Initial Split Panel Content -->
+            <div id="split-panel-home">
+                <!-- Header -->
+                <div class="glass-panel text-center py-6 mb-6">
+                    <h1 class="text-4xl font-bold mb-2">🎮 AI Game Development Platform</h1>
+                    <p class="text-lg opacity-90">Choose your path: Create games or master programming</p>
                 </div>
-            </div>
-            
-            <!-- Arcade Academy Panel -->
-            <div class="split-panel academy-panel" onclick="loadContent('academy')">
-                <div class="panel-overlay"></div>
-                <div class="panel-content">
-                    <div class="panel-icon">🎓</div>
-                    <h2 class="panel-title">Arcade Academy</h2>
-                    <p class="panel-description">
-                        Master programming through cyberpunk adventures with Professor Pixel
-                    </p>
-                    <ul class="panel-features">
-                        <li>🌃 Cyberpunk Learning Environment</li>
-                        <li>👨‍🏫 Professor Pixel as Your Guide</li>
-                        <li>🎮 Interactive Coding Challenges</li>
-                        <li>🏆 Achievement & Progress System</li>
-                        <li>📚 Real-World Project Building</li>
-                    </ul>
+                
+                <!-- Split Panel Interface -->
+                <div class="split-container">
+                    <!-- Game Workshop Panel -->
+                    <div class="split-panel workshop-panel" 
+                         hx-get="/web/workshop-content" 
+                         hx-target="#dynamic-content" 
+                         hx-trigger="click"
+                         onclick="playVideo('workshop')">
+                        <div class="panel-overlay"></div>
+                        <div class="panel-content">
+                            <div class="panel-icon">🛠️</div>
+                            <h2 class="panel-title">Game Workshop</h2>
+                            <p class="panel-description">
+                                Create revolutionary games with AI-powered tools and multi-engine support
+                            </p>
+                            <ul class="panel-features">
+                                <li>🎯 Multi-Engine Support (Pygame, Godot, Bevy)</li>
+                                <li>🤖 AI-Powered Asset Generation</li>
+                                <li>⚡ Instant Game Prototyping</li>
+                                <li>🎨 Dynamic Art & Audio Creation</li>
+                                <li>🚀 One-Click Deployment</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Arcade Academy Panel -->
+                    <div class="split-panel academy-panel" 
+                         hx-get="/web/academy-content" 
+                         hx-target="#dynamic-content" 
+                         hx-trigger="click"
+                         onclick="playVideo('academy')">
+                        <div class="panel-overlay"></div>
+                        <div class="panel-content">
+                            <div class="panel-icon">🎓</div>
+                            <h2 class="panel-title">Arcade Academy</h2>
+                            <p class="panel-description">
+                                Master programming through cyberpunk adventures with Professor Pixel
+                            </p>
+                            <ul class="panel-features">
+                                <li>🌃 Cyberpunk Learning Environment</li>
+                                <li>👨‍🏫 Professor Pixel as Your Guide</li>
+                                <li>🎮 Interactive Coding Challenges</li>
+                                <li>🏆 Achievement & Progress System</li>
+                                <li>📚 Real-World Project Building</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -276,8 +351,12 @@
 
 {% block extra_js %}
 <script>
+    let currentVideoType = null;
+    
     // Video transition system
-    function loadContent(type) {
+    function playVideo(type) {
+        currentVideoType = type;
+        
         // Determine which video to play
         const videoSrc = type === 'workshop' 
             ? '/static/assets/videos/game-workshop-intro.mp4'
@@ -288,7 +367,6 @@
         const videoOverlay = document.getElementById('video-overlay');
         
         video.src = videoSrc;
-        video.currentType = type; // Store type for after video
         
         // Show video
         videoOverlay.style.display = 'flex';
@@ -297,31 +375,44 @@
         audioManager.play('success');
     }
     
-    // Handle video end
-    async function onVideoEnd() {
-        const video = document.getElementById('intro-video');
-        const type = video.currentType;
-        await transitionToContent(type);
+    // Handle video end - let HTMX load the content
+    function onVideoEnd() {
+        document.getElementById('video-overlay').style.display = 'none';
+        audioManager.play('notification');
+        
+        // Mark that content is loaded for styling
+        document.body.classList.add('content-loaded');
     }
     
     // Skip video button
-    async function skipVideo() {
+    function skipVideo() {
         const video = document.getElementById('intro-video');
-        const type = video.currentType;
         video.pause();
+        document.getElementById('video-overlay').style.display = 'none';
         audioManager.play('click');
-        await transitionToContent(type);
+        
+        // Mark that content is loaded for styling
+        document.body.classList.add('content-loaded');
     }
     
-    // Transition from video to content
-    async function transitionToContent(type) {
-        // Hide video overlay
-        document.getElementById('video-overlay').style.display = 'none';
+    // Go back to home
+    function goHome() {
+        // Reload the homepage content
+        htmx.ajax('GET', '/web/homepage-content', {target: '#dynamic-content'});
         
-        // Navigate to content page
-        const url = type === 'workshop' ? '/web/workshop' : '/web/academy';
-        audioManager.play('notification');
-        window.location.href = url;
+        // Remove content loaded class
+        document.body.classList.remove('content-loaded');
+        
+        audioManager.play('click');
     }
+    
+    // HTMX event listeners
+    document.addEventListener('htmx:afterRequest', function(event) {
+        // After HTMX loads content, mark as loaded if not homepage
+        if (event.detail.xhr.responseURL.includes('-content') && 
+            !event.detail.xhr.responseURL.includes('homepage-content')) {
+            document.body.classList.add('content-loaded');
+        }
+    });
 </script>
 {% endblock %}

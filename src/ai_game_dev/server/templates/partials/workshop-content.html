@@ -1,0 +1,100 @@
+<!-- Workshop Content Partial -->
+<div class="flex flex-col h-full p-6">
+    <!-- AI Orb Mascot -->
+    <div class="w-24 h-24 mx-auto mb-6 bg-contain bg-no-repeat bg-center filter drop-shadow-lg"
+         style="background-image: url('/static/assets/mascots/ai-orb-transparent.png'); filter: drop-shadow(0 5px 15px rgba(100, 255, 218, 0.3));"></div>
+    
+    <h1 class="text-4xl font-bold text-center mb-8 text-red-400">
+        🛠️ Game Workshop
+    </h1>
+    
+    <!-- Game Creation Form -->
+    <div class="glass-panel p-8 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Create Your Game</h2>
+        
+        <form id="game-form" class="space-y-6"
+              hx-post="/api/generate" 
+              hx-target="#generation-result"
+              hx-indicator="#loading-indicator">
+            
+            <div class="form-group">
+                <label for="game-title" class="block mb-2 font-semibold text-gray-700">Game Title</label>
+                <input type="text" id="game-title" name="title" 
+                       class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-400 focus:outline-none"
+                       placeholder="My Awesome Game" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="game-engine" class="block mb-2 font-semibold text-gray-700">Game Engine</label>
+                <select id="game-engine" name="engine" 
+                        class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-400 focus:outline-none" required>
+                    <option value="">Select Engine</option>
+                    <option value="pygame">Pygame - Python 2D Games</option>
+                    <option value="godot">Godot - Versatile Game Engine</option>
+                    <option value="bevy">Bevy - Rust ECS Engine</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="game-description" class="block mb-2 font-semibold text-gray-700">Game Description</label>
+                <textarea id="game-description" name="description" rows="4" 
+                          class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-400 focus:outline-none"
+                          placeholder="Describe your game idea..." required></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-group">
+                    <label for="art-style" class="block mb-2 font-semibold text-gray-700">Art Style</label>
+                    <select id="art-style" name="art_style" 
+                            class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-400 focus:outline-none">
+                        <option value="modern">Modern</option>
+                        <option value="pixel">Pixel Art</option>
+                        <option value="cyberpunk">Cyberpunk</option>
+                        <option value="cartoon">Cartoon</option>
+                        <option value="minimalist">Minimalist</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="complexity" class="block mb-2 font-semibold text-gray-700">Complexity Level</label>
+                    <select id="complexity" name="complexity" 
+                            class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-400 focus:outline-none">
+                        <option value="simple">Simple - Basic gameplay</option>
+                        <option value="intermediate">Intermediate - Moderate features</option>
+                        <option value="complex">Complex - Advanced systems</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="custom-button px-8 py-3 text-lg rounded-lg">
+                    🚀 Generate Game
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Workshop Features -->
+    <div class="glass-panel p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 Workshop Features</h3>
+        <ul class="text-gray-600 space-y-2">
+            <li>🤖 AI-powered game generation</li>
+            <li>🎨 Automatic asset creation</li>
+            <li>🔧 Multi-engine support</li>
+            <li>⚡ Instant prototyping</li>
+            <li>📦 Ready-to-deploy packages</li>
+        </ul>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="htmx-indicator fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="glass-panel p-8 rounded-lg text-center">
+            <div class="animate-spin w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h3 class="text-xl font-bold mb-2">🎮 Generating Your Game...</h3>
+            <p class="text-gray-300">This may take a few moments</p>
+        </div>
+    </div>
+    
+    <!-- Generation Result Area -->
+    <div id="generation-result"></div>
+</div>

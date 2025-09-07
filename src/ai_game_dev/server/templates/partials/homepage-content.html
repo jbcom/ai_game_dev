@@ -1,0 +1,57 @@
+<!-- Homepage Split Panel Content -->
+<div id="split-panel-home">
+    <!-- Header -->
+    <div class="glass-panel text-center py-6 mb-6">
+        <h1 class="text-4xl font-bold mb-2">🎮 AI Game Development Platform</h1>
+        <p class="text-lg opacity-90">Choose your path: Create games or master programming</p>
+    </div>
+    
+    <!-- Split Panel Interface -->
+    <div class="split-container">
+        <!-- Game Workshop Panel -->
+        <div class="split-panel workshop-panel" 
+             hx-get="/web/workshop-content" 
+             hx-target="#dynamic-content" 
+             hx-trigger="click"
+             onclick="playVideo('workshop')">
+            <div class="panel-overlay"></div>
+            <div class="panel-content">
+                <div class="panel-icon">🛠️</div>
+                <h2 class="panel-title">Game Workshop</h2>
+                <p class="panel-description">
+                    Create revolutionary games with AI-powered tools and multi-engine support
+                </p>
+                <ul class="panel-features">
+                    <li>🎯 Multi-Engine Support (Pygame, Godot, Bevy)</li>
+                    <li>🤖 AI-Powered Asset Generation</li>
+                    <li>⚡ Instant Game Prototyping</li>
+                    <li>🎨 Dynamic Art & Audio Creation</li>
+                    <li>🚀 One-Click Deployment</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Arcade Academy Panel -->
+        <div class="split-panel academy-panel" 
+             hx-get="/web/academy-content" 
+             hx-target="#dynamic-content" 
+             hx-trigger="click"
+             onclick="playVideo('academy')">
+            <div class="panel-overlay"></div>
+            <div class="panel-content">
+                <div class="panel-icon">🎓</div>
+                <h2 class="panel-title">Arcade Academy</h2>
+                <p class="panel-description">
+                    Master programming through cyberpunk adventures with Professor Pixel
+                </p>
+                <ul class="panel-features">
+                    <li>🌃 Cyberpunk Learning Environment</li>
+                    <li>👨‍🏫 Professor Pixel as Your Guide</li>
+                    <li>🎮 Interactive Coding Challenges</li>
+                    <li>🏆 Achievement & Progress System</li>
+                    <li>📚 Real-World Project Building</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -127,17 +127,23 @@ def setup_jinja_routes(app: FastAPI) -> None:
         context = get_template_context(request, "homepage")
         return templates.TemplateResponse("pages/homepage.html", context)
     
-    @app.get("/web/workshop", response_class=HTMLResponse)
-    async def web_workshop(request: Request):
-        """Game Workshop - AI-powered game creation interface."""
+    @app.get("/web/workshop-content", response_class=HTMLResponse)
+    async def web_workshop_content(request: Request):
+        """Game Workshop content partial for HTMX loading."""
         context = get_template_context(request, "workshop")
-        return templates.TemplateResponse("pages/workshop.html", context)
+        return templates.TemplateResponse("partials/workshop-content.html", context)
     
-    @app.get("/web/academy", response_class=HTMLResponse)
-    async def web_academy(request: Request):
-        """Arcade Academy - Programming education with Professor Pixel."""
+    @app.get("/web/academy-content", response_class=HTMLResponse)
+    async def web_academy_content(request: Request):
+        """Arcade Academy content partial for HTMX loading."""
         context = get_template_context(request, "academy")
-        return templates.TemplateResponse("pages/academy.html", context)
+        return templates.TemplateResponse("partials/academy-content.html", context)
+    
+    @app.get("/web/homepage-content", response_class=HTMLResponse)
+    async def web_homepage_content(request: Request):
+        """Homepage split panel content for HTMX loading."""
+        context = get_template_context(request, "homepage")
+        return templates.TemplateResponse("partials/homepage-content.html", context)
     
     @app.get("/web/new_project", response_class=HTMLResponse)
     async def web_new_project(request: Request, engine: Optional[str] = None):
