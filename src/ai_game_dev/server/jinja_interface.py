@@ -118,8 +118,26 @@ def setup_jinja_routes(app: FastAPI) -> None:
     @app.get("/web/") 
     @app.get("/web/dashboard")
     async def web_root(request: Request):
-        """Root web route redirects to new project page."""
-        return RedirectResponse(url="/web/new_project", status_code=307)
+        """Root web route redirects to split-panel homepage."""
+        return RedirectResponse(url="/web/homepage", status_code=307)
+    
+    @app.get("/web/homepage", response_class=HTMLResponse)
+    async def web_homepage(request: Request):
+        """Split-panel homepage with Game Workshop and Arcade Academy."""
+        context = get_template_context(request, "homepage")
+        return templates.TemplateResponse("pages/homepage.html", context)
+    
+    @app.get("/web/workshop", response_class=HTMLResponse)
+    async def web_workshop(request: Request):
+        """Game Workshop - AI-powered game creation interface."""
+        context = get_template_context(request, "workshop")
+        return templates.TemplateResponse("pages/workshop.html", context)
+    
+    @app.get("/web/academy", response_class=HTMLResponse)
+    async def web_academy(request: Request):
+        """Arcade Academy - Programming education with Professor Pixel."""
+        context = get_template_context(request, "academy")
+        return templates.TemplateResponse("pages/academy.html", context)
     
     @app.get("/web/new_project", response_class=HTMLResponse)
     async def web_new_project(request: Request, engine: Optional[str] = None):

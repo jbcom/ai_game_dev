@@ -1,0 +1,345 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Arcade Academy - AI Game Development Platform{% endblock %}
+
+{% block extra_head %}
+<style>
+    .main-container {
+        width: calc(100vw - 40px);
+        height: calc(100vh - 40px);
+        max-width: 1400px;
+        max-height: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .tech-frame-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
+    }
+    
+    .safe-box-content {
+        position: absolute;
+        top: var(--inset-top);
+        right: var(--inset-right);
+        bottom: var(--inset-bottom);
+        left: var(--inset-left);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .content-area {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.5rem;
+    }
+    
+    /* Custom scrollbar */
+    .content-area::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .content-area::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    .content-area::-webkit-scrollbar-thumb {
+        background: rgba(100, 255, 218, 0.3);
+        border-radius: 4px;
+    }
+    
+    .content-area::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 255, 218, 0.5);
+    }
+    
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: url('/static/assets/buttons/back.png') center / contain no-repeat;
+        width: 60px;
+        height: 40px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-indent: -9999px;
+        z-index: 10;
+    }
+    
+    .back-button:hover {
+        transform: scale(1.1);
+        filter: brightness(1.2);
+    }
+    
+    .mascot-portrait {
+        width: 100px;
+        height: 100px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        margin: 0 auto 1.5rem;
+        filter: drop-shadow(0 5px 15px rgba(100, 255, 218, 0.3));
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .professor-mascot {
+        background-image: url('/static/assets/mascots/professor-pixel-transparent.png');
+    }
+    
+    .intro-panel {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .content-panel {
+        background: rgba(248, 249, 250, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .module {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(100, 255, 218, 0.1);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .module:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .module-variables { border-left: 4px solid #ff6b6b; }
+    .module-loops { border-left: 4px solid #4ecdc4; }
+    .module-functions { border-left: 4px solid #a55eea; }
+    .module-data { border-left: 4px solid #ffa726; }
+    .module-games { border-left: 4px solid #26de81; }
+    
+    .progress-bar {
+        background: #e2e8f0;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-panel {
+        background: linear-gradient(135deg, #a55eea 0%, #26de81 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .stat-label {
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Tech Frame Background -->
+    <div class="tech-frame-content"></div>
+    
+    <!-- Safe Content Area -->
+    <div class="safe-box-content">
+        <!-- Back Button -->
+        <button class="back-button" onclick="goBack()">← Back to Home</button>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Professor Pixel Mascot -->
+            <div class="mascot-portrait professor-mascot"></div>
+            
+            <h1 class="text-4xl font-bold text-center mb-8 text-purple-400">
+                🎓 Arcade Academy
+            </h1>
+            
+            <!-- Professor Pixel Introduction -->
+            <div class="intro-panel">
+                <h2 class="text-2xl font-bold mb-4">Welcome, Digital Rebels!</h2>
+                <p class="text-lg leading-relaxed">
+                    Welcome to 2087, where corporations control all information. I'm Professor Pixel, 
+                    and I need your help to teach coding to the digital resistance!
+                </p>
+            </div>
+            
+            <!-- Learning Path -->
+            <div class="content-panel">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">🚀 Your Learning Journey</h2>
+                
+                <div class="space-y-4">
+                    <div class="module module-variables" onclick="startModule('variables')">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">🔥 Chapter 1: Variables & Data</h3>
+                        <p class="text-gray-600 mb-3">Learn to store and manipulate information in the digital world.</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-red-400" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="module module-loops" onclick="startModule('loops')">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">🔄 Chapter 2: Loops & Logic</h3>
+                        <p class="text-gray-600 mb-3">Master the power of repetition and decision-making.</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-teal-400" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="module module-functions" onclick="startModule('functions')">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">🎯 Chapter 3: Functions & Classes</h3>
+                        <p class="text-gray-600 mb-3">Organize your code like a true cyber-architect.</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-purple-400" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="module module-data" onclick="startModule('data-structures')">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">📊 Chapter 4: Data Structures</h3>
+                        <p class="text-gray-600 mb-3">Handle complex information like a data-hacker.</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-orange-400" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="module module-games" onclick="startModule('game-dev')">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">🎮 Chapter 5: Game Programming</h3>
+                        <p class="text-gray-600 mb-3">Build games that liberate minds from corporate control.</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-green-400" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Student Progress -->
+            <div class="progress-panel">
+                <h3 class="text-2xl font-bold mb-4">🏆 Your Progress</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-number">0/5</div>
+                        <div class="stat-label">Chapters</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Stars Earned</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🎮</div>
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Games Built</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-number">0/20</div>
+                        <div class="stat-label">Achievements</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Module Modal -->
+<div id="module-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="glass-panel p-8 rounded-lg text-center max-w-md">
+        <h3 class="text-xl font-bold mb-4">🎓 Module Starting!</h3>
+        <p id="module-message" class="text-gray-300 mb-6"></p>
+        <button onclick="closeModal()" class="custom-button px-6 py-2 rounded-lg">Continue</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function goBack() {
+        audioManager.play('click');
+        window.location.href = '/web/homepage';
+    }
+    
+    function startModule(moduleId) {
+        const messages = {
+            'variables': 'Learn to store data and secrets in the digital underground!',
+            'loops': 'Master repetition to break through corporate firewalls!',
+            'functions': 'Organize your code arsenal like a true cyber-warrior!',
+            'data-structures': 'Handle massive data like a resistance hacker!',
+            'game-dev': 'Build games that inspire the digital revolution!'
+        };
+        
+        document.getElementById('module-message').textContent = 
+            `Professor Pixel: "${messages[moduleId] || 'Let\'s hack the system together, young coder!'}"`;
+        document.getElementById('module-modal').classList.remove('hidden');
+        
+        audioManager.play('notification');
+        
+        // Simulate progress update
+        setTimeout(() => {
+            updateModuleProgress(moduleId, 10);
+        }, 1000);
+    }
+    
+    function closeModal() {
+        document.getElementById('module-modal').classList.add('hidden');
+        audioManager.play('click');
+    }
+    
+    function updateModuleProgress(moduleId, percentage) {
+        console.log(`Module ${moduleId} progress: ${percentage}%`);
+        // This would update the progress bar for the specific module
+    }
+</script>
+{% endblock %}

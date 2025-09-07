@@ -1,0 +1,327 @@
+{% extends "base/layout.html" %}
+
+{% block title %}AI Game Development Platform{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Split Panel Homepage Styles */
+    .main-container {
+        width: calc(100vw - 40px);
+        height: calc(100vh - 40px);
+        max-width: 1400px;
+        max-height: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .tech-frame-homepage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
+    }
+    
+    .safe-box-homepage {
+        position: absolute;
+        top: var(--inset-top);
+        right: var(--inset-right);
+        bottom: var(--inset-bottom);
+        left: var(--inset-left);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .split-container {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+    }
+    
+    .split-panel {
+        flex: 1;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+    }
+    
+    .split-panel:last-child {
+        border-right: none;
+    }
+    
+    .split-panel:hover {
+        transform: scale(1.02);
+        z-index: 2;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .workshop-panel {
+        background: url('/static/assets/panels/game-workshop-panel.png') center / cover no-repeat;
+        color: white;
+    }
+    
+    .academy-panel {
+        background: url('/static/assets/panels/arcade-academy-panel.png') center / cover no-repeat;
+        color: white;
+    }
+    
+    .panel-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        transition: background 0.3s ease;
+    }
+    
+    .split-panel:hover .panel-overlay {
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .panel-content {
+        position: relative;
+        z-index: 2;
+        padding: 2rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .panel-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .panel-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .panel-description {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        opacity: 0.95;
+    }
+    
+    .panel-features {
+        list-style: none;
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    
+    .panel-features li {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Video Overlay System */
+    .video-overlay {
+        position: absolute;
+        top: var(--inset-top);
+        right: var(--inset-right);
+        bottom: var(--inset-bottom);
+        left: var(--inset-left);
+        background: rgba(0, 0, 0, 0.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .video-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .intro-video {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    .skip-video {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: 2px solid rgba(100, 255, 218, 0.5);
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        z-index: 1001;
+    }
+    
+    .skip-video:hover {
+        background: rgba(100, 255, 218, 0.2);
+        border-color: rgba(100, 255, 218, 0.8);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .main-container {
+            width: calc(100vw - 20px);
+            height: calc(100vh - 20px);
+        }
+        
+        .split-container {
+            flex-direction: column;
+        }
+        
+        .split-panel {
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .split-panel:hover {
+            transform: none;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        :root {
+            --inset-top: 8%;
+            --inset-right: 6%;
+            --inset-bottom: 9%;
+            --inset-left: 8%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Tech Frame Background -->
+    <div class="tech-frame-homepage"></div>
+    
+    <!-- Safe Content Area -->
+    <div class="safe-box-homepage">
+        <!-- Header -->
+        <div class="glass-panel text-center py-6 mb-6">
+            <h1 class="text-4xl font-bold mb-2">🎮 AI Game Development Platform</h1>
+            <p class="text-lg opacity-90">Choose your path: Create games or master programming</p>
+        </div>
+        
+        <!-- Split Panel Interface -->
+        <div class="split-container">
+            <!-- Game Workshop Panel -->
+            <div class="split-panel workshop-panel" onclick="loadContent('workshop')">
+                <div class="panel-overlay"></div>
+                <div class="panel-content">
+                    <div class="panel-icon">🛠️</div>
+                    <h2 class="panel-title">Game Workshop</h2>
+                    <p class="panel-description">
+                        Create revolutionary games with AI-powered tools and multi-engine support
+                    </p>
+                    <ul class="panel-features">
+                        <li>🎯 Multi-Engine Support (Pygame, Godot, Bevy)</li>
+                        <li>🤖 AI-Powered Asset Generation</li>
+                        <li>⚡ Instant Game Prototyping</li>
+                        <li>🎨 Dynamic Art & Audio Creation</li>
+                        <li>🚀 One-Click Deployment</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Arcade Academy Panel -->
+            <div class="split-panel academy-panel" onclick="loadContent('academy')">
+                <div class="panel-overlay"></div>
+                <div class="panel-content">
+                    <div class="panel-icon">🎓</div>
+                    <h2 class="panel-title">Arcade Academy</h2>
+                    <p class="panel-description">
+                        Master programming through cyberpunk adventures with Professor Pixel
+                    </p>
+                    <ul class="panel-features">
+                        <li>🌃 Cyberpunk Learning Environment</li>
+                        <li>👨‍🏫 Professor Pixel as Your Guide</li>
+                        <li>🎮 Interactive Coding Challenges</li>
+                        <li>🏆 Achievement & Progress System</li>
+                        <li>📚 Real-World Project Building</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Video Overlay -->
+    <div id="video-overlay" class="video-overlay">
+        <div class="video-container">
+            <button class="skip-video" onclick="skipVideo()">Skip Intro ⏭️</button>
+            <video id="intro-video" class="intro-video" autoplay muted onended="onVideoEnd()">
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Video transition system
+    function loadContent(type) {
+        // Determine which video to play
+        const videoSrc = type === 'workshop' 
+            ? '/static/assets/videos/game-workshop-intro.mp4'
+            : '/static/assets/videos/arcade-academy-intro.mp4';
+        
+        // Set up video and show overlay
+        const video = document.getElementById('intro-video');
+        const videoOverlay = document.getElementById('video-overlay');
+        
+        video.src = videoSrc;
+        video.currentType = type; // Store type for after video
+        
+        // Show video
+        videoOverlay.style.display = 'flex';
+        
+        // Play audio feedback
+        audioManager.play('success');
+    }
+    
+    // Handle video end
+    async function onVideoEnd() {
+        const video = document.getElementById('intro-video');
+        const type = video.currentType;
+        await transitionToContent(type);
+    }
+    
+    // Skip video button
+    async function skipVideo() {
+        const video = document.getElementById('intro-video');
+        const type = video.currentType;
+        video.pause();
+        audioManager.play('click');
+        await transitionToContent(type);
+    }
+    
+    // Transition from video to content
+    async function transitionToContent(type) {
+        // Hide video overlay
+        document.getElementById('video-overlay').style.display = 'none';
+        
+        // Navigate to content page
+        const url = type === 'workshop' ? '/web/workshop' : '/web/academy';
+        audioManager.play('notification');
+        window.location.href = url;
+    }
+</script>
+{% endblock %}

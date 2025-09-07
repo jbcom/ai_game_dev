@@ -182,14 +182,14 @@ class UnifiedGameDevServer:
         # Add redirect from root to web interface
         @self.app.get("/", response_class=HTMLResponse)
         async def root_redirect():
-            """Redirect root to web interface."""
+            """Redirect root to split-panel homepage."""
             return HTMLResponse("""
                 <html>
                     <head>
-                        <meta http-equiv="refresh" content="0; URL=/web/dashboard">
+                        <meta http-equiv="refresh" content="0; URL=/web/homepage">
                     </head>
                     <body>
-                        <p>Redirecting to <a href="/web/dashboard">AI Game Development Portal</a>...</p>
+                        <p>Redirecting to <a href="/web/homepage">AI Game Development Platform</a>...</p>
                     </body>
                 </html>
             """)

@@ -1,0 +1,283 @@
+{% extends "base/layout.html" %}
+
+{% block title %}Game Workshop - AI Game Development Platform{% endblock %}
+
+{% block extra_head %}
+<style>
+    .main-container {
+        width: calc(100vw - 40px);
+        height: calc(100vh - 40px);
+        max-width: 1400px;
+        max-height: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .tech-frame-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
+    }
+    
+    .safe-box-content {
+        position: absolute;
+        top: var(--inset-top);
+        right: var(--inset-right);
+        bottom: var(--inset-bottom);
+        left: var(--inset-left);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .content-area {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.5rem;
+    }
+    
+    /* Custom scrollbar */
+    .content-area::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .content-area::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    .content-area::-webkit-scrollbar-thumb {
+        background: rgba(100, 255, 218, 0.3);
+        border-radius: 4px;
+    }
+    
+    .content-area::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 255, 218, 0.5);
+    }
+    
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: url('/static/assets/buttons/back.png') center / contain no-repeat;
+        width: 60px;
+        height: 40px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-indent: -9999px;
+        z-index: 10;
+    }
+    
+    .back-button:hover {
+        transform: scale(1.1);
+        filter: brightness(1.2);
+    }
+    
+    .mascot-portrait {
+        width: 100px;
+        height: 100px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        margin: 0 auto 1.5rem;
+        filter: drop-shadow(0 5px 15px rgba(100, 255, 218, 0.3));
+    }
+    
+    .ai-orb-mascot {
+        background-image: url('/static/assets/mascots/ai-orb-transparent.png');
+    }
+    
+    .content-panel {
+        background: rgba(248, 249, 250, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .feature-panel {
+        background: rgba(232, 244, 253, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: rgba(100, 255, 218, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Tech Frame Background -->
+    <div class="tech-frame-content"></div>
+    
+    <!-- Safe Content Area -->
+    <div class="safe-box-content">
+        <!-- Back Button -->
+        <button class="back-button" onclick="goBack()">← Back to Home</button>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- AI Orb Mascot -->
+            <div class="mascot-portrait ai-orb-mascot"></div>
+            
+            <h1 class="text-4xl font-bold text-center mb-8 text-red-400">
+                🛠️ Game Workshop
+            </h1>
+            
+            <!-- Game Creation Form -->
+            <div class="content-panel">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Create Your Game</h2>
+                
+                <form id="game-form" class="space-y-6">
+                    <div class="form-group">
+                        <label for="game-title">Game Title</label>
+                        <input type="text" id="game-title" name="title" placeholder="My Awesome Game" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="game-engine">Game Engine</label>
+                        <select id="game-engine" name="engine" required>
+                            <option value="">Select Engine</option>
+                            <option value="pygame">Pygame - Python 2D Games</option>
+                            <option value="godot">Godot - Versatile Game Engine</option>
+                            <option value="bevy">Bevy - Rust ECS Engine</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="game-description">Game Description</label>
+                        <textarea id="game-description" name="description" rows="4" 
+                                placeholder="Describe your game idea..." required></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label for="art-style">Art Style</label>
+                            <select id="art-style" name="art_style">
+                                <option value="modern">Modern</option>
+                                <option value="pixel">Pixel Art</option>
+                                <option value="cyberpunk">Cyberpunk</option>
+                                <option value="cartoon">Cartoon</option>
+                                <option value="minimalist">Minimalist</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="complexity">Complexity Level</label>
+                            <select id="complexity" name="complexity">
+                                <option value="simple">Simple - Basic gameplay</option>
+                                <option value="intermediate">Intermediate - Moderate features</option>
+                                <option value="complex">Complex - Advanced systems</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="custom-button px-8 py-3 text-lg rounded-lg">
+                            🚀 Generate Game
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Workshop Features -->
+            <div class="feature-panel">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 Workshop Features</h3>
+                <ul class="text-gray-600 space-y-2">
+                    <li>🤖 AI-powered game generation</li>
+                    <li>🎨 Automatic asset creation</li>
+                    <li>🔧 Multi-engine support</li>
+                    <li>⚡ Instant prototyping</li>
+                    <li>📦 Ready-to-deploy packages</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="glass-panel p-8 rounded-lg text-center">
+        <div class="animate-spin w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <h3 class="text-xl font-bold mb-2">🎮 Generating Your Game...</h3>
+        <p class="text-gray-300">This may take a few moments</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function goBack() {
+        audioManager.play('click');
+        window.location.href = '/web/homepage';
+    }
+    
+    document.getElementById('game-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const gameData = Object.fromEntries(formData.entries());
+        
+        // Show loading modal
+        document.getElementById('loading-modal').classList.remove('hidden');
+        
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(gameData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                audioManager.play('success');
+                alert('🎉 Game generated successfully!\n\nCheck your projects for the generated game.');
+            } else {
+                audioManager.play('error');
+                alert('❌ Generation failed: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            audioManager.play('error');
+            alert('❌ Network error: ' + error.message);
+        } finally {
+            document.getElementById('loading-modal').classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}
