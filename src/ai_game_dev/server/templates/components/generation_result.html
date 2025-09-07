@@ -38,10 +38,33 @@
         </div>
         {% endif %}
         
+        <!-- Variant Detection Alert -->
+        {% if result.has_variants %}
+        <div class="alert alert-info mt-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h4 class="font-bold">🎯 Interactive Choices Detected!</h4>
+                <p class="text-sm">We found {{ result.interactive_variants|length }} decisions you can experiment with in your game.</p>
+            </div>
+            <div class="flex-none">
+                <button class="btn btn-sm btn-primary" onclick="startVariantExploration()">
+                    🚀 Explore Choices
+                </button>
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="flex gap-2 mt-4">
             {% if result.project_id %}
             <button class="btn btn-sm btn-success" onclick="openCodePreview('{{ result.project_id }}')">
                 💻 View Code
+            </button>
+            {% endif %}
+            {% if result.has_variants %}
+            <button class="btn btn-sm btn-secondary" onclick="showFeatureFlagsPanel(generatedVariants)">
+                ⚙️ Feature Flags
             </button>
             {% endif %}
             <button class="btn btn-sm btn-primary" onclick="location.reload()">

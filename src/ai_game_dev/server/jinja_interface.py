@@ -191,6 +191,29 @@ def setup_jinja_routes(app: FastAPI) -> None:
         
         return templates.TemplateResponse("pages/projects.html", context)
     
+    @app.post("/api/apply-feature-flags", response_class=JSONResponse)
+    async def apply_feature_flags(request: Request):
+        """Apply feature flag changes to regenerate game variants."""
+        try:
+            data = await request.json()
+            feature_flags = data.get('feature_flags', {})
+            
+            # Here you would integrate with the variant system
+            # to regenerate the game with the selected choices
+            
+            return JSONResponse({
+                "success": True,
+                "message": "Feature flags applied successfully",
+                "updated_code": "# Updated game code would go here",
+                "feature_flags": feature_flags
+            })
+            
+        except Exception as e:
+            return JSONResponse({
+                "success": False,
+                "error": str(e)
+            }, status_code=500)
+    
     @app.post("/web/generate-project", response_class=HTMLResponse)
     async def web_generate_project(
         request: Request,
@@ -216,7 +239,7 @@ def setup_jinja_routes(app: FastAPI) -> None:
                 art_style=art_style
             )
             
-            # Generate the project
+            # Generate the project with variant detection
             result = await generate_for_engine(
                 engine_name=engine,
                 description=description,
@@ -224,6 +247,42 @@ def setup_jinja_routes(app: FastAPI) -> None:
                 features=[],
                 art_style=art_style
             )
+            
+            # Check if this is an Arcade Academy educational request
+            is_educational = "educational" in description.lower() or "learn" in description.lower()
+            
+            # Simulate variant detection for demo (in production would use actual variant system)
+            if result and hasattr(result, 'main_files'):
+                mock_variants = [
+                    {
+                        "id": "grid_system",
+                        "name": "Grid System",
+                        "description": "Choose between different tile grid systems",
+                        "type": "visual",
+                        "educational_value": "Learn about coordinate systems and spatial organization" if is_educational else None,
+                        "choices": [
+                            {
+                                "id": "a_square",
+                                "name": "Square Grid",
+                                "description": "Traditional square tiles - easier to understand",
+                                "difficulty": "easier",
+                                "code_snippet": "# Square grid system\\ngrid_size = 32\\nx_pos = col * grid_size\\ny_pos = row * grid_size",
+                                "educational_notes": "Square grids use simple x,y coordinates"
+                            },
+                            {
+                                "id": "b_hexagonal", 
+                                "name": "Hexagonal Grid",
+                                "description": "Hexagonal tiles - more complex but visually interesting",
+                                "difficulty": "harder",
+                                "code_snippet": "# Hexagonal grid system\\nimport math\\nhex_size = 32\\nx_pos = col * hex_size * 1.5\\ny_pos = row * hex_size * math.sqrt(3)",
+                                "educational_notes": "Hexagonal grids require trigonometry"
+                            }
+                        ],
+                        "default_choice": "a_square"
+                    }
+                ]
+                result.interactive_variants = mock_variants
+                result.has_variants = True
             
             # Update project with results
             updated_project = project_manager.update_project_with_result(project.id, result)

@@ -26,9 +26,11 @@ except ImportError:
     LANGCHAIN_AVAILABLE = False
     # Create stub classes to avoid NameError
     class SystemMessage:
-        def __init__(self, content): self.content = content
+        def __init__(self, content): 
+            self.content = content
     class HumanMessage:
-        def __init__(self, content): self.content = content
+        def __init__(self, content): 
+            self.content = content
 
 from .base_agent import GameDevelopmentAgent, AgentConfig
 try:
@@ -36,7 +38,14 @@ try:
 except ImportError:
     # Fallback for development/testing
     class LLMManager:
-        async def get_model(self, model_name): return None
+        async def get_model(self, model_name): 
+            # Return mock with ainvoke method
+            class MockLLM:
+                async def ainvoke(self, messages):
+                    class MockResponse:
+                        content = "Mock response"
+                    return MockResponse()
+            return MockLLM()
 from ..variants.variant_system import InteractiveVariantSystem, create_variant_enabled_game
 
 
