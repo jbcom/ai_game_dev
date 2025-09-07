@@ -114,3 +114,24 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Pass variants data to JavaScript -->
+{% if success and result.has_variants %}
+<script>
+// Store the generated variants for the interactive system
+window.generatedVariants = {{ result.interactive_variants|tojson }};
+
+function startVariantExploration() {
+    if (window.generatedVariants && window.generatedVariants.length > 0) {
+        // Start the interactive variant exploration
+        showVariantAlert(window.generatedVariants);
+    }
+}
+
+// Auto-trigger variant exploration after generation (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    // Uncomment to auto-show variant choices after generation
+    // setTimeout(startVariantExploration, 1000);
+});
+</script>
+{% endif %}
