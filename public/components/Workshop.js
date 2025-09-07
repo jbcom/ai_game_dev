@@ -1,0 +1,187 @@
+// Workshop Component for Chainlit
+class Workshop {
+    constructor(sendMessage, element) {
+        this.sendMessage = sendMessage;
+        this.element = element;
+        this.selectedEngine = '';
+        this.isGenerating = false;
+        this.generatedAssets = [];
+        this.init();
+    }
+
+    init() {
+        this.render();
+        this.attachEventListeners();
+    }
+
+    render() {
+        this.element.innerHTML = `
+            <div class="workshop-content">
+                <!-- Header -->
+                <div class="glass-panel p-6 mb-6">
+                    <h1 class="text-3xl font-bold mb-2 text-cyan-300">🚀 Game Workshop</h1>
+                    <p class="text-gray-300">Transform your ideas into playable games with AI</p>
+                </div>
+
+                <!-- Engine Selection -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-white">Choose Your Engine</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="engine-card" data-engine="pygame">
+                            <div class="glass-panel p-4 cursor-pointer hover:border-cyan-500 transition-all">
+                                <img src="/static/assets/icons/pygame-icon.png" class="engine-icon mb-2">
+                                <h3 class="font-bold">Pygame</h3>
+                                <p class="text-sm text-gray-400">Perfect for 2D games</p>
+                            </div>
+                        </div>
+                        <div class="engine-card" data-engine="godot">
+                            <div class="glass-panel p-4 cursor-pointer hover:border-cyan-500 transition-all">
+                                <img src="/static/assets/icons/godot-icon.png" class="engine-icon mb-2">
+                                <h3 class="font-bold">Godot</h3>
+                                <p class="text-sm text-gray-400">Professional 2D/3D</p>
+                            </div>
+                        </div>
+                        <div class="engine-card" data-engine="bevy">
+                            <div class="glass-panel p-4 cursor-pointer hover:border-cyan-500 transition-all">
+                                <img src="/static/assets/icons/bevy-icon.png" class="engine-icon mb-2">
+                                <h3 class="font-bold">Bevy</h3>
+                                <p class="text-sm text-gray-400">Rust-based ECS</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Description -->
+                <div class="glass-panel p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-white">Describe Your Game</h2>
+                    <textarea
+                        id="gameDescription"
+                        class="w-full h-32 bg-gray-800 text-white p-4 rounded-lg border border-cyan-500/30 focus:border-cyan-500 focus:outline-none resize-none"
+                        placeholder="Example: A cyberpunk platformer with hacking mechanics..."
+                    ></textarea>
+                    <button
+                        id="generateBtn"
+                        class="custom-button mt-4 px-6 py-3 rounded-lg font-semibold"
+                    >
+                        Generate Game
+                    </button>
+                </div>
+
+                <!-- Progress Section -->
+                <div id="progressSection" class="hidden">
+                    <div class="glass-panel p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-2">Generation Progress</h3>
+                        <div class="progress progress-primary w-full">
+                            <div class="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <p id="progressStage" class="mt-2 text-sm text-gray-400">Initializing...</p>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="resultsSection" class="hidden">
+                    <!-- Generated assets and code will appear here -->
+                </div>
+            </div>
+        `;
+    }
+
+    attachEventListeners() {
+        // Engine selection
+        this.element.querySelectorAll('.engine-card').forEach(card => {
+            card.addEventListener('click', () => {
+                this.selectedEngine = card.dataset.engine;
+                this.updateEngineSelection();
+            });
+        });
+
+        // Generate button
+        const generateBtn = this.element.querySelector('#generateBtn');
+        generateBtn.addEventListener('click', () => this.handleGenerate());
+    }
+
+    updateEngineSelection() {
+        this.element.querySelectorAll('.engine-card').forEach(card => {
+            const panel = card.querySelector('.glass-panel');
+            if (card.dataset.engine === this.selectedEngine) {
+                panel.classList.add('border-cyan-500', 'glow');
+            } else {
+                panel.classList.remove('border-cyan-500', 'glow');
+            }
+        });
+    }
+
+    handleGenerate() {
+        const description = this.element.querySelector('#gameDescription').value.trim();
+        if (!description) return;
+
+        this.isGenerating = true;
+        this.showProgress();
+
+        const command = this.selectedEngine 
+            ? `create ${description} with ${this.selectedEngine}`
+            : `create ${description}`;
+
+        this.sendMessage(command);
+    }
+
+    showProgress() {
+        const progressSection = this.element.querySelector('#progressSection');
+        progressSection.classList.remove('hidden');
+        
+        // Simulate progress updates
+        let progress = 0;
+        const progressBar = progressSection.querySelector('.progress-bar');
+        const progressStage = progressSection.querySelector('#progressStage');
+        
+        const stages = [
+            'Analyzing requirements...',
+            'Generating game architecture...',
+            'Creating visual assets...',
+            'Composing audio...',
+            'Writing game code...',
+            'Finalizing project...'
+        ];
+        
+        let stageIndex = 0;
+        const interval = setInterval(() => {
+            progress += 16.66;
+            progressBar.style.width = `${Math.min(progress, 100)}%`;
+            
+            if (stageIndex < stages.length) {
+                progressStage.textContent = stages[stageIndex];
+                stageIndex++;
+            }
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                this.isGenerating = false;
+            }
+        }, 1000);
+    }
+
+    handleMessage(message) {
+        // Handle incoming messages from Chainlit
+        if (message.type === 'generation_complete') {
+            this.showResults(message.data);
+        }
+    }
+
+    showResults(data) {
+        const resultsSection = this.element.querySelector('#resultsSection');
+        resultsSection.classList.remove('hidden');
+        resultsSection.innerHTML = `
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-bold mb-4 text-cyan-300">✅ Game Generated!</h3>
+                <p class="mb-4">${data.description}</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="btn btn-primary">Download Project</button>
+                    <button class="btn btn-secondary">View Code</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Export for use in Chainlit
+window.Workshop = Workshop;
