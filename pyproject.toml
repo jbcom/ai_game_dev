@@ -194,6 +194,10 @@ type = "virtual"
 installer = "uv"
 path = ".venv"
 
+[tool.hatch.envs.default.scripts]
+# Image processing command with automatic frame detection
+process-image = "python scripts/process_image.py {args}"
+
 [tool.hatch.envs.test]
 type = "virtual"
 installer = "uv"

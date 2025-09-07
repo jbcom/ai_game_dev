@@ -177,16 +177,10 @@ class InternalAssetAgent(PygameAgent):
                         with open(asset_path, "wb") as f:
                             f.write(image_data)
                         
-                        # Post-process with automatic optimizations
+                        # Automatic post-processing (detects frames vs sprites automatically)
                         try:
-                            processed_path = asset_path.parent / f"{asset_path.stem}_processed{asset_path.suffix}"
-                            process_results = self.image_processor.process_asset(
-                                asset_path, processed_path,
-                                remove_transparency=True, detect_frames=True
-                            )
-                            # Replace original with processed if successful
-                            if process_results.get("output_path"):
-                                processed_path.replace(asset_path)
+                            process_results = self.image_processor.process_asset(asset_path, asset_path)
+                            print(f"✅ Auto-processed {asset_path}: {process_results.get('processing_type', 'unknown')}")
                         except Exception as proc_e:
                             # Log processing error but don't fail entire generation
                             print(f"Warning: Image post-processing failed for {asset_path}: {proc_e}")
@@ -322,14 +316,12 @@ class InternalAssetAgent(PygameAgent):
                         with open(char_path, "wb") as f:
                             f.write(response.content)
                         
-                        # Post-process character sprite
+                        # Automatic post-processing (will detect if sprite or frame)
                         try:
-                            process_results = self.image_processor.process_asset(
-                                char_path, char_path,
-                                remove_transparency=True, detect_frames=False
-                            )
+                            process_results = self.image_processor.process_asset(char_path, char_path)
+                            print(f"✅ Auto-processed character: {process_results.get('processing_type', 'unknown')}")
                         except Exception as proc_e:
-                            print(f"Warning: Character sprite processing failed for {char_path}: {proc_e}")
+                            print(f"Warning: Character processing failed for {char_path}: {proc_e}")
                             
                         results["characters"].append(str(char_path))
                     else:

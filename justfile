@@ -45,22 +45,13 @@ clean:
 # Process image with automatic transparency removal and frame detection
 process-image INPUT_PATH OUTPUT_PATH="":
     @echo "🖼️ Processing image with automatic optimizations..."
-    hatch run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', '{{OUTPUT_PATH}}' if '{{OUTPUT_PATH}}' else None)"
+    hatch run python scripts/process_image.py "{{INPUT_PATH}}" {{if OUTPUT_PATH != "" { "\"" + OUTPUT_PATH + "\"" } else { "" } }}
 
-# Split frame image into components if detected as frame
-split-frame INPUT_PATH:
-    @echo "🖼️ Analyzing and splitting frame image..."
-    hatch run python -c "from ai_game_dev.assets.image_processor import process_image_cli; process_image_cli('{{INPUT_PATH}}', detect_frames=True, remove_transparency=False)"
+# Test automatic processing on tech frame
+demo-process:
+    @echo "🖼️ Demonstrating automatic processing on tech-frame.png..."
+    hatch run python scripts/process_image.py "src/ai_game_dev/server/static/assets/frames/tech-frame.png"
 
-# Process current tech frame to demonstrate capabilities
-demo-frame-split:
-    @echo "🖼️ Demonstrating frame splitting on tech-frame.png..."
-    just split-frame "src/ai_game_dev/server/static/assets/frames/tech-frame.png"
-
-# Process homepage logos to remove excess transparency
-process-logos:
-    @echo "🖼️ Processing homepage logos to remove excess transparency..."
-    hatch run python src/ai_game_dev/assets/process_logos.py
 
 # =============================================================================
 # 🧪 TESTING COMMANDS
@@ -328,46 +319,17 @@ uninstall:
 # Generate engine-specific templates
 templates:
     @echo "🎯 Generating engine templates..."
-    uv run python -c "
-import toml
-import os
-for spec_file in os.listdir('src/ai_game_dev/engine_specs/'):
-    if spec_file.endswith('.toml'):
-        engine = spec_file[:-5]
-        print(f'  ✅ {engine.title()} template available')
-"
+    uv run python -c "import toml; import os; [print(f'  ✅ {f[:-5].title()} template available') for f in os.listdir('src/ai_game_dev/engine_specs/') if f.endswith('.toml')]"
 
 # Validate TOML specifications
 validate-specs:
     @echo "🔍 Validating engine specifications..."
-    uv run python -c "
-import toml
-import os
-import json
-for spec_file in os.listdir('src/ai_game_dev/engine_specs/'):
-    if spec_file.endswith('.toml'):
-        try:
-            toml.load(f'src/ai_game_dev/engine_specs/{spec_file}')
-            print(f'  ✅ {spec_file} is valid')
-        except Exception as e:
-            print(f'  ❌ {spec_file} has errors: {e}')
-"
+    uv run python -c "import toml; import os; [print(f'  ✅ {f} is valid') if toml.load(f'src/ai_game_dev/engine_specs/{f}') else print(f'  ❌ {f} has errors') for f in os.listdir('src/ai_game_dev/engine_specs/') if f.endswith('.toml')]"
 
 # Validate JSON schemas
 validate-schemas:
     @echo "🔍 Validating JSON schemas..."
-    uv run python -c "
-import json
-import os
-for schema_file in os.listdir('src/ai_game_dev/schemas/'):
-    if schema_file.endswith('.json'):
-        try:
-            with open(f'src/ai_game_dev/schemas/{schema_file}') as f:
-                json.load(f)
-            print(f'  ✅ {schema_file} is valid')
-        except Exception as e:
-            print(f'  ❌ {schema_file} has errors: {e}')
-"
+    uv run python -c "import json; import os; [print(f'  ✅ {f} is valid') if json.load(open(f'src/ai_game_dev/schemas/{f}')) else print(f'  ❌ {f} has errors') for f in os.listdir('src/ai_game_dev/schemas/') if f.endswith('.json')]"
 # Hatch-based development workflows
 hatch-test:
         @echo "🧪 Running tests with hatch..."

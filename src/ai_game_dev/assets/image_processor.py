@@ -13,7 +13,12 @@ from pathlib import Path
 from typing import Optional, Tuple, List, Dict, Any
 from PIL import Image, ImageFilter, ImageOps
 
-import numpy as np
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +82,9 @@ class ImageProcessor:
         Returns:
             Dict with frame detection results and metadata
         """
+            
+        if not NUMPY_AVAILABLE:
+            return {"is_frame": False, "reason": "NumPy not available for advanced frame detection"}
             
         if not image.mode in ('RGBA', 'LA'):
             return {"is_frame": False, "reason": "No alpha channel"}
@@ -234,22 +242,27 @@ class ImageProcessor:
             "processed_files": []
         }
         
-        # Frame detection and splitting
-        if detect_frames:
-            frame_info = self.detect_frame_pattern(image)
-            results["frame_analysis"] = frame_info
-            
-            if frame_info["is_frame"]:
-                split_dir = input_path.parent / f"{input_path.stem}_components"
-                split_files = self.split_frame_image(image, split_dir)
-                results["split_files"] = split_files
-                logger.info(f"Split frame into {len(split_files)} components")
-        
-        # Standard processing
-        if remove_transparency and image.mode in ('RGBA', 'LA'):
+        # ALWAYS remove excess transparency first if present
+        if image.mode in ('RGBA', 'LA'):
+            original_image = image.copy()
             image = self.remove_excess_transparency(image)
             results["transparency_removed"] = True
             results["processed_size"] = image.size
+            logger.info(f"Removed excess transparency: {original_size} -> {image.size}")
+        
+        # AUTOMATIC frame detection and splitting (in addition to transparency removal)
+        frame_info = self.detect_frame_pattern(original_image if 'original_image' in locals() else image)
+        results["frame_analysis"] = frame_info
+        
+        if frame_info["is_frame"]:
+            # This is a frame - automatically split the ORIGINAL into components
+            split_dir = input_path.parent / f"{input_path.stem}_components"
+            split_files = self.split_frame_image(original_image if 'original_image' in locals() else image, split_dir)
+            results["split_files"] = split_files
+            results["processing_type"] = "frame_split_and_transparency"
+            logger.info(f"Detected frame - split into {len(split_files)} components")
+        else:
+            results["processing_type"] = "transparency_removal" if results.get("transparency_removed") else "no_processing_needed"
             
         # Save processed image
         if output_path:
@@ -263,19 +276,23 @@ class ImageProcessor:
         return results
 
 
-def process_image_cli(input_path: str, output_path: Optional[str] = None, **kwargs) -> None:
+def process_image_cli(input_path: str, output_path: Optional[str] = None) -> None:
     """CLI wrapper for image processing."""
     processor = ImageProcessor()
     input_p = Path(input_path)
     output_p = Path(output_path) if output_path else None
     
-    results = processor.process_asset(input_p, output_p, **kwargs)
+    results = processor.process_asset(input_p, output_p)
     
     print(f"✅ Processing complete!")
     print(f"Original size: {results['original_size']}")
+    print(f"Processing type: {results.get('processing_type', 'unknown')}")
+    
     if 'processed_size' in results:
         print(f"Processed size: {results['processed_size']}")
     if 'split_files' in results:
         print(f"Frame components: {len(results['split_files'])}")
-    if results['processed_files']:
+        for component in results['split_files']:
+            print(f"  - {component}")
+    if results.get('processed_files'):
         print(f"Output files: {results['processed_files']}")
