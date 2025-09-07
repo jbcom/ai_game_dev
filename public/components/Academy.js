@@ -19,7 +19,7 @@ class Academy {
                 <!-- Header with Professor Pixel -->
                 <div class="glass-panel p-6 mb-6 relative overflow-hidden">
                     <div class="flex items-center gap-4">
-                        <img src="/static/assets/characters/professor-pixel.png" 
+                        <img src="/public/static/assets/characters/professor-pixel.png" 
                              class="w-24 h-24 rounded-full border-4 border-purple-500 glow">
                         <div>
                             <h1 class="text-3xl font-bold mb-2 text-purple-300">🎓 Arcade Academy</h1>
@@ -201,7 +201,7 @@ class Academy {
         // Show Professor Pixel dialogue
         this.showDialogue(
             'Professor Pixel',
-            '/static/assets/characters/professor-pixel.png',
+            '/public/static/assets/characters/professor-pixel.png',
             'Welcome to the Academy! Ready to begin your coding journey?'
         );
     }

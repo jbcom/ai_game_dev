@@ -90,8 +90,9 @@ def main():
     try:
         result = subprocess.run([
             sys.executable, "-m", "chainlit", "run", 
-            "src/ai_game_dev/chainlit_app.py",
-            "--port", str(port)
+            "src/ai_game_dev/chainlit_custom_app.py",
+            "--port", str(port),
+            "--custom-frontend"
         ], check=True)
     except subprocess.CalledProcessError as e:
         print(f"❌ Error: Failed to start Chainlit server!")

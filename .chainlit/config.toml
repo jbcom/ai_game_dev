@@ -56,11 +56,9 @@ github = "https://github.com/yourusername/ai-game-dev"
 # Specify a CSS file that can be used to customize the user interface
 custom_css = "/public/style.css"
 
-# Custom HTML template
-custom_html = "/public/custom.html"
-
-# Enable custom frontend
-enable_custom_frontend = true
+# Mount public directory for static assets
+[mount]
+public = "public/"
 
 # Override default MUI light theme
 [UI.theme.light]
