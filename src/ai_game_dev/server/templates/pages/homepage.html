@@ -4,49 +4,69 @@
 
 {% block extra_head %}
 <style>
-    /* True Modal Frame Container */
-    .frame-modal {
+    /* Window Frame System */
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+    }
+    
+    .window-frame {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
         box-sizing: border-box;
-        background: rgba(0, 0, 0, 0.1);
+        
+        /* Scalable frame using 9-slice with components */
+        border: 40px solid transparent;
+        border-image: url('/static/assets/frames/tech-frame.png') 128 fill;
+        
+        /* Fallback: individual frame components for better control */
+        background: 
+            /* Corners */
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-top-left.png') 
+            0 0 / 40px 40px no-repeat,
+            
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-top-right.png') 
+            100% 0 / 40px 40px no-repeat,
+            
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-bottom-left.png') 
+            0 100% / 40px 40px no-repeat,
+            
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-bottom-right.png') 
+            100% 100% / 40px 40px no-repeat,
+            
+            /* Edges - stretch to fill */
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-top.png') 
+            40px 0 / calc(100% - 80px) 40px repeat-x,
+            
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-bottom.png') 
+            40px 100% / calc(100% - 80px) 40px repeat-x,
+            
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-left.png') 
+            0 40px / 40px calc(100% - 80px) repeat-y,
+            
+            url('/static/assets/frames/tech-frame_components/tech-frame_components-right.png') 
+            100% 40px / 40px calc(100% - 80px) repeat-y;
     }
     
-    .frame-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        max-width: 1400px;
-        max-height: 900px;
-        background: url('/static/assets/frames/tech-frame.png') center / contain no-repeat;
-        background-size: 100% 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /* Frame defines actual boundaries */
-        padding: 8% 6% 9% 8%;
-        box-sizing: border-box;
-    }
-    
-    .content-area {
-        width: 100%;
-        height: 100%;
+    .inner-content-frame {
+        position: absolute;
+        top: 40px;
+        left: 40px;
+        right: 40px;
+        bottom: 40px;
         background: rgba(0, 0, 0, 0.05);
         backdrop-filter: blur(2px);
         border-radius: 8px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        position: relative;
-        /* Content is bounded by frame padding */
         box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(100, 255, 218, 0.2);
     }
     
     /* Content dynamically fills frame-defined space */
@@ -218,16 +238,17 @@
     
     /* Video Overlay System */
     .video-overlay {
-        position: absolute;
-        top: var(--inset-top);
-        right: var(--inset-right);
-        bottom: var(--inset-bottom);
-        left: var(--inset-left);
+        position: fixed;
+        top: 40px;
+        right: 40px;
+        bottom: 40px;
+        left: 40px;
         background: rgba(0, 0, 0, 0.95);
         display: none;
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        border-radius: 8px;
     }
     
     .video-container {
@@ -295,38 +316,81 @@
         display: block;
     }
     
-    /* Responsive */
+    /* Responsive frame scaling */
     @media (max-width: 768px) {
-        .main-container {
-            width: calc(100vw - 20px);
-            height: calc(100vh - 20px);
+        .window-frame {
+            border-width: 30px;
         }
         
-        .vertical-panel {
-            min-height: 150px;
+        .inner-content-frame {
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
         }
         
-        .vertical-panel:hover {
-            transform: none;
+        .video-overlay {
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+        }
+        
+        /* Update background positions for smaller frame */
+        .window-frame {
+            background: 
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-top-left.png') 
+                0 0 / 30px 30px no-repeat,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-top-right.png') 
+                100% 0 / 30px 30px no-repeat,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-bottom-left.png') 
+                0 100% / 30px 30px no-repeat,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-bottom-right.png') 
+                100% 100% / 30px 30px no-repeat,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-top.png') 
+                30px 0 / calc(100% - 60px) 30px repeat-x,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-bottom.png') 
+                30px 100% / calc(100% - 60px) 30px repeat-x,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-left.png') 
+                0 30px / 30px calc(100% - 60px) repeat-y,
+                
+                url('/static/assets/frames/tech-frame_components/tech-frame_components-right.png') 
+                100% 30px / 30px calc(100% - 60px) repeat-y;
         }
     }
     
     @media (max-width: 480px) {
-        :root {
-            --inset-top: 8%;
-            --inset-right: 6%;
-            --inset-bottom: 9%;
-            --inset-left: 8%;
+        .window-frame {
+            border-width: 20px;
+        }
+        
+        .inner-content-frame {
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+        }
+        
+        .video-overlay {
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="frame-modal">
-    <div class="frame-container">
-        <!-- Content Area - properly bounded by frame -->
-        <div class="content-area">
+<div class="window-frame">
+    <!-- Inner Content Frame - bounded by window frame -->
+    <div class="inner-content-frame">
             <!-- Back Button (shown when content is loaded) -->
             <a href="#" class="back-button" onclick="goHome()">← Back to Home</a>
             
@@ -380,9 +444,7 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
-</div>
     
     <!-- Video Overlay -->
     <div id="video-overlay" class="video-overlay">
