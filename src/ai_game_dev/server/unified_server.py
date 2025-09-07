@@ -25,10 +25,11 @@ from ai_game_dev.engines import engine_manager, generate_for_engine, get_support
 # Try to import HTMY for web UI, fallback to simple web interface
 try:
     import htmy
-    from .htmy_interface import setup_htmy_routes
     HTMY_AVAILABLE = True
 except ImportError:
     HTMY_AVAILABLE = False
+
+from .htmy_interface import setup_htmy_routes
 
 # Always import simple web interface as fallback
 # Removed simple_web - using Jinja2 interface
@@ -90,7 +91,10 @@ class UnifiedGameDevServer:
             }
             
             # Route through master orchestrator instead of direct agent call
-            result = await self.master_orchestrator.route_internal_request(verification_request)
+            if self.master_orchestrator is not None:
+                result = await self.master_orchestrator.route_internal_request(verification_request)
+            else:
+                result = {"success": False, "message": "Master orchestrator not available"}
             
             if result.get("success"):
                 print("✅ Asset verification completed through Master Orchestrator")

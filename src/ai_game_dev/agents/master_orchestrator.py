@@ -21,7 +21,16 @@ from ai_game_dev.agents.subgraphs import (
     AudioSubgraph
 )
 from ai_game_dev.variants import InteractiveVariantSystem
-# Engine imports will be done dynamically to avoid circular imports
+from ai_game_dev.game_specification import GameSpecificationParser
+
+# Required imports - will raise ImportError if missing
+from ai_game_dev.agents.pygame_agent import PygameAgent
+from ai_game_dev.agents.godot_agent import GodotAgent
+from ai_game_dev.agents.bevy_agent import BevyAgent
+from ai_game_dev.agents.internal_agent import InternalAssetAgent
+from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
+from ai_game_dev.models.llm_manager import LLMManager
+from ai_game_dev.seeding.literary_seeder import LiterarySeeder, SeedingRequest
 
 
 @dataclass
@@ -93,27 +102,15 @@ class MasterGameDevOrchestrator(BaseAgent):
         """Initialize the orchestrator and all engine subagents."""
         await super().initialize()
         
-        # Initialize engine agents dynamically to avoid circular imports
-        try:
-            from ai_game_dev.agents.pygame_agent import PygameAgent  # type: ignore
-            self.pygame_agent = PygameAgent()
-            await self.pygame_agent.initialize()
-        except (ImportError, FileNotFoundError, ModuleNotFoundError):
-            self.pygame_agent = None
-            
-        try:
-            from ai_game_dev.agents.godot_agent import GodotAgent
-            self.godot_agent = GodotAgent() 
-            await self.godot_agent.initialize()
-        except (ImportError, FileNotFoundError):
-            self.godot_agent = None
-            
-        try:
-            from ai_game_dev.agents.bevy_agent import BevyAgent
-            self.bevy_agent = BevyAgent()
-            await self.bevy_agent.initialize()
-        except (ImportError, FileNotFoundError):
-            self.bevy_agent = None
+        # Initialize engine agents
+        self.pygame_agent = PygameAgent()
+        await self.pygame_agent.initialize()
+        
+        self.godot_agent = GodotAgent() 
+        await self.godot_agent.initialize()
+        
+        self.bevy_agent = BevyAgent()
+        await self.bevy_agent.initialize()
             
         # Initialize specialized subgraphs
         self.dialogue_subgraph = DialogueSubgraph()
@@ -129,32 +126,18 @@ class MasterGameDevOrchestrator(BaseAgent):
         await self.audio_subgraph.initialize()
         
         # Initialize internal asset generation subgraph
-        try:
-            from ai_game_dev.agents.internal_agent import InternalAssetAgent
-            self.internal_asset_agent = InternalAssetAgent()
-            await self.internal_asset_agent.initialize()
-        except (ImportError, FileNotFoundError):
-            self.internal_asset_agent = None
-            
+        self.internal_asset_agent = InternalAssetAgent()
+        await self.internal_asset_agent.initialize()
+        
         # Initialize arcade academy agent as subgraph
-        try:
-            from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
-            self.arcade_academy_agent = ArcadeAcademyAgent()
-            await self.arcade_academy_agent.initialize()
-        except (ImportError, FileNotFoundError):
-            self.arcade_academy_agent = None
+        self.arcade_academy_agent = ArcadeAcademyAgent()
+        await self.arcade_academy_agent.initialize()
         
         # Initialize variant system for interactive A/B choices  
-        try:
-            from ai_game_dev.models.llm_manager import LLMManager  # type: ignore
-            llm_manager = LLMManager()
-            self.variant_system = InteractiveVariantSystem(llm_manager)
-        except (ImportError, ModuleNotFoundError):
-            # Fallback if LLMManager not available
-            self.variant_system = InteractiveVariantSystem(self.llm)
+        llm_manager = LLMManager()
+        self.variant_system = InteractiveVariantSystem(llm_manager)
         
         # Initialize game specification system
-        from ai_game_dev.game_specification import GameSpecificationParser
         self.game_spec_parser = GameSpecificationParser()
         
         # Build the workflow graph
@@ -465,9 +448,7 @@ Respond with a JSON object for seeding coordination:
         try:
             seeding_info = json.loads(response.content if isinstance(response.content, str) else str(response.content))
             
-            # Use the real seeding system
-            from ai_game_dev.seeding.literary_seeder import LiterarySeeder, SeedingRequest
-            
+            # Use the seeding system
             seeder = LiterarySeeder()
             seeding_request = SeedingRequest(
                 themes=seeding_info.get("narrative_themes", []),
@@ -492,9 +473,9 @@ Respond with a JSON object for seeding coordination:
                 "source_materials": ["Internet Archive literary collection", "PyTorch embeddings"]
             }
             
-        except (json.JSONDecodeError, KeyError, ImportError) as e:
-            # Fallback if seeding system fails
-            state.seeding_data = {"status": "seeding_failed", "error": str(e)}
+        except (json.JSONDecodeError, KeyError) as e:
+            # If seeding fails, raise proper error
+            raise RuntimeError(f"Seeding coordination failed: {e}") from e
             
         return state
         
@@ -528,12 +509,9 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute pygame agent if available
-        if self.pygame_agent:
-            pygame_task = f"Generate a complete {spec.genre} game: {spec.description}"
-            pygame_results = await self.pygame_agent.execute_task(pygame_task, pygame_context)
-        else:
-            pygame_results = {"status": "pygame_agent_unavailable"}
+        # Execute pygame agent
+        pygame_task = f"Generate a complete {spec.genre} game: {spec.description}"
+        pygame_results = await self.pygame_agent.execute_task(pygame_task, pygame_context)
         
         state.subgraph_results["pygame"] = pygame_results
         return state
@@ -554,11 +532,8 @@ Respond with a JSON object for seeding coordination:
             "analyzed_task": {"task_type": "godot_game_generation"}
         }
         
-        if self.godot_agent:
-            godot_task = f"Generate a complete {spec.genre} game: {spec.description}"
-            godot_results = await self.godot_agent.execute_task(godot_task, godot_context)
-        else:
-            godot_results = {"status": "godot_agent_unavailable"}
+        godot_task = f"Generate a complete {spec.genre} game: {spec.description}"
+        godot_results = await self.godot_agent.execute_task(godot_task, godot_context)
         
         state.subgraph_results["godot"] = godot_results
         return state
@@ -579,11 +554,8 @@ Respond with a JSON object for seeding coordination:
             "analyzed_task": {"task_type": "bevy_game_generation"}
         }
         
-        if self.bevy_agent:
-            bevy_task = f"Generate a complete {spec.genre} game: {spec.description}"
-            bevy_results = await self.bevy_agent.execute_task(bevy_task, bevy_context)
-        else:
-            bevy_results = {"status": "bevy_agent_unavailable"}
+        bevy_task = f"Generate a complete {spec.genre} game: {spec.description}"
+        bevy_results = await self.bevy_agent.execute_task(bevy_task, bevy_context)
         
         state.subgraph_results["bevy"] = bevy_results
         return state
@@ -605,12 +577,9 @@ Respond with a JSON object for seeding coordination:
             "output_directory": "src/ai_game_dev/server/static/assets"
         }
         
-        # Execute internal asset agent if available
-        if self.internal_asset_agent:
-            asset_task = f"Generate comprehensive game assets for {spec.genre} game: {spec.description}"
-            asset_results = await self.internal_asset_agent.execute_task(asset_task, asset_context)
-        else:
-            asset_results = {"status": "internal_asset_agent_unavailable"}
+        # Execute internal asset agent
+        asset_task = f"Generate comprehensive game assets for {spec.genre} game: {spec.description}"
+        asset_results = await self.internal_asset_agent.execute_task(asset_task, asset_context)
         
         state.subgraph_results["internal_assets"] = asset_results
         return state
@@ -632,12 +601,9 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute arcade academy agent if available
-        if self.arcade_academy_agent:
-            academy_task = f"Generate educational content for {spec.genre} game: {spec.description}"
-            academy_results = await self.arcade_academy_agent.execute_task(academy_task, academy_context)
-        else:
-            academy_results = {"status": "arcade_academy_agent_unavailable"}
+        # Execute arcade academy agent
+        academy_task = f"Generate educational content for {spec.genre} game: {spec.description}"
+        academy_results = await self.arcade_academy_agent.execute_task(academy_task, academy_context)
         
         state.subgraph_results["arcade_academy"] = academy_results
         return state
@@ -658,18 +624,8 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute dialogue subgraph if available
-        if self.dialogue_subgraph:
-            dialogue_task = f"Generate dialogue system for {spec.genre} game: {spec.description}"
-            # Use available methods for dialogue generation
-            if hasattr(self.dialogue_subgraph, 'generate'):
-                dialogue_results = await self.dialogue_subgraph.generate(dialogue_context)  # type: ignore
-            elif hasattr(self.dialogue_subgraph, 'execute'):
-                dialogue_results = await self.dialogue_subgraph.execute(dialogue_context)  # type: ignore
-            else:
-                dialogue_results = {"status": "dialogue_generation_complete", "context": dialogue_context, "task": dialogue_task}
-        else:
-            dialogue_results = {"status": "dialogue_subgraph_unavailable"}
+        # Execute dialogue subgraph
+        dialogue_results = await self.dialogue_subgraph.generate_dialogue(dialogue_context)
         
         state.subgraph_results["dialogue"] = dialogue_results
         return state
@@ -690,18 +646,8 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute quest subgraph if available
-        if self.quest_subgraph:
-            quest_task = f"Generate quest system for {spec.genre} game: {spec.description}"
-            # Use available methods for quest generation
-            if hasattr(self.quest_subgraph, 'generate'):
-                quest_results = await self.quest_subgraph.generate(quest_context)  # type: ignore
-            elif hasattr(self.quest_subgraph, 'execute'):
-                quest_results = await self.quest_subgraph.execute(quest_context)  # type: ignore
-            else:
-                quest_results = {"status": "quest_generation_complete", "context": quest_context, "task": quest_task}
-        else:
-            quest_results = {"status": "quest_subgraph_unavailable"}
+        # Execute quest subgraph  
+        quest_results = await self.quest_subgraph.generate_quest(quest_context)
         
         state.subgraph_results["quest"] = quest_results
         return state
@@ -722,18 +668,8 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute graphics subgraph if available
-        if self.graphics_subgraph:
-            graphics_task = f"Generate graphics assets for {spec.genre} game: {spec.description}"
-            # Use available methods for graphics generation
-            if hasattr(self.graphics_subgraph, 'generate'):
-                graphics_results = await self.graphics_subgraph.generate(graphics_context)  # type: ignore
-            elif hasattr(self.graphics_subgraph, 'execute'):
-                graphics_results = await self.graphics_subgraph.execute(graphics_context)  # type: ignore
-            else:
-                graphics_results = {"status": "graphics_generation_complete", "context": graphics_context, "task": graphics_task}
-        else:
-            graphics_results = {"status": "graphics_subgraph_unavailable"}
+        # Execute graphics subgraph
+        graphics_results = await self.graphics_subgraph.generate_graphics(graphics_context)
         
         state.subgraph_results["graphics"] = graphics_results
         return state
@@ -754,18 +690,8 @@ Respond with a JSON object for seeding coordination:
             "project_name": spec.title.lower().replace(" ", "_")
         }
         
-        # Execute audio subgraph if available
-        if self.audio_subgraph:
-            audio_task = f"Generate audio assets for {spec.genre} game: {spec.description}"
-            # Use available methods for audio generation
-            if hasattr(self.audio_subgraph, 'generate'):
-                audio_results = await self.audio_subgraph.generate(audio_context)  # type: ignore
-            elif hasattr(self.audio_subgraph, 'execute'):
-                audio_results = await self.audio_subgraph.execute(audio_context)  # type: ignore
-            else:
-                audio_results = {"status": "audio_generation_complete", "context": audio_context, "task": audio_task}
-        else:
-            audio_results = {"status": "audio_subgraph_unavailable"}
+        # Execute audio subgraph
+        audio_results = await self.audio_subgraph.generate_audio(audio_context)
         
         state.subgraph_results["audio"] = audio_results
         return state
@@ -837,22 +763,10 @@ Respond with a JSON object for seeding coordination:
         try:
             if isinstance(spec_data, str):
                 # File path - load TOML specification
-                if hasattr(self.game_spec_parser, 'parse_toml_file'):
-                    parsed_spec = self.game_spec_parser.parse_toml_file(spec_data)  # type: ignore
-                elif hasattr(self.game_spec_parser, 'parse_comprehensive_spec'):
-                    parsed_spec = self.game_spec_parser.parse_comprehensive_spec(spec_data)  # type: ignore
-                else:
-                    # Fallback parsing
-                    parsed_spec = {"file_path": spec_data, "parsed": False, "error": "No parser method available"}
+                parsed_spec = self.game_spec_parser.parse_platform_assets_spec()
             elif isinstance(spec_data, dict):
-                # Dictionary specification
-                if hasattr(self.game_spec_parser, 'parse_dict_specification'):
-                    parsed_spec = self.game_spec_parser.parse_dict_specification(spec_data)  # type: ignore
-                elif hasattr(self.game_spec_parser, 'parse_comprehensive_spec'):
-                    parsed_spec = self.game_spec_parser.parse_comprehensive_spec(spec_data)  # type: ignore
-                else:
-                    # Fallback parsing
-                    parsed_spec = {"spec_data": spec_data, "parsed": True}
+                # Dictionary specification - convert to platform assets spec format
+                parsed_spec = self.game_spec_parser.parse_platform_assets_spec()
             else:
                 raise ValueError(f"Unsupported specification type: {type(spec_data)}")
             
