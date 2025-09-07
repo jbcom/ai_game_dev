@@ -16,15 +16,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "AI Game Dev Server"
+args = "AI Game Dev Streamlit Server"
 
 [[workflows.workflow]]
-name = "AI Game Dev Server"
+name = "AI Game Dev Streamlit Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uv run python src/ai_game_dev/run_server.py"
+args = "python __main__.py"
 waitForPort = 5000
 
 [workflows.workflow.metadata]

@@ -614,3 +614,41 @@ Your responsibilities include:
    - Coordinate with Internet Archive and other repositories
 
 Always ensure that the final output is a complete, functional game that meets the user's requirements and follows best practices for the chosen engine."""
+    
+    async def generate_complete_game(self, game_spec: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a complete game using all subgraphs - main entry point for Streamlit."""
+        
+        try:
+            # Convert to proper state format
+            initial_state = OrchestratorState(
+                user_input=game_spec.get("description", ""),
+                generated_spec=GameSpec(
+                    title=game_spec.get("title", "Game"),
+                    description=game_spec.get("description", "A game"),
+                    genre=game_spec.get("genre", "adventure"),
+                    engine=game_spec.get("engine", "pygame"),
+                    complexity=game_spec.get("complexity", "intermediate"),
+                    art_style=game_spec.get("art_style", "modern"),
+                    target_audience=game_spec.get("target_audience", "general"),
+                    features=game_spec.get("features", [])
+                ),
+                subgraph_results={},
+                final_output={}
+            )
+            
+            # Run the complete workflow
+            result = self.workflow.invoke(initial_state)
+            
+            return {
+                "success": True,
+                "game_spec": result.generated_spec.__dict__ if result.generated_spec else {},
+                "subgraph_results": result.subgraph_results,
+                "final_output": result.final_output
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "type": "complete_game_generation"
+            }

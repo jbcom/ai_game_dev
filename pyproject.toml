@@ -22,6 +22,8 @@ classifiers = [
 ]
 
 dependencies = [
+    # Streamlit web interface
+    "streamlit>=1.30.0",
     # Core AI and LLM frameworks
     "langchain>=0.3.27",
     "langchain-core>=0.1,<0.4",

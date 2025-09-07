@@ -11,6 +11,7 @@ from xdg_base_dirs import xdg_cache_home, xdg_data_home
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
 from langchain_community.memory import SQLChatMessageHistory
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain.memory import ConversationBufferMemory
 
 
