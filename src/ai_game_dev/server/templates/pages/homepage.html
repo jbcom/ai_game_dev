@@ -4,55 +4,75 @@
 
 {% block extra_head %}
 <style>
-    /* Single Frame Application Styles */
-    .main-container {
-        width: calc(100vw - 40px);
-        height: calc(100vh - 40px);
-        max-width: 1400px;
-        max-height: 900px;
-        margin: 0 auto;
-        position: relative;
-    }
-    
-    .tech-frame {
-        position: absolute;
+    /* True Modal Frame Container */
+    .frame-modal {
+        position: fixed;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
-        background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+        background: rgba(0, 0, 0, 0.1);
     }
     
-    .safe-box {
-        position: absolute;
-        top: var(--inset-top);
-        right: var(--inset-right);
-        bottom: var(--inset-bottom);
-        left: var(--inset-left);
+    .frame-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        max-width: 1400px;
+        max-height: 900px;
+        background: url('/static/assets/frames/tech-frame.png') center / contain no-repeat;
+        background-size: 100% 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Frame defines actual boundaries */
+        padding: 8% 6% 9% 8%;
+        box-sizing: border-box;
+    }
+    
+    .content-area {
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(2px);
+        border-radius: 8px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        height: calc(100% - var(--inset-top) - var(--inset-bottom));
-        width: calc(100% - var(--inset-left) - var(--inset-right));
+        position: relative;
+        /* Content is bounded by frame padding */
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
     }
     
-    /* Content area for dynamic loading - auto-fills available space */
+    /* Content dynamically fills frame-defined space */
     #dynamic-content {
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
         display: flex;
         flex-direction: column;
+        min-height: 0;
+        padding: 1.5rem;
+        box-sizing: border-box;
+        /* Truly responsive within frame boundaries */
+        width: 100%;
         height: 100%;
-        min-height: 0; /* Allow flex child to shrink */
     }
     
-    /* Ensure all dynamically loaded content fills available space */
+    /* All content adapts to frame boundaries */
     #dynamic-content > * {
         flex: 1;
         display: flex;
         flex-direction: column;
         min-height: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
     }
     
     /* Custom scrollbar */
@@ -303,17 +323,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="main-container">
-    <!-- Tech Frame Background -->
-    <div class="tech-frame"></div>
-    
-    <!-- Safe Content Area -->
-    <div class="safe-box">
-        <!-- Back Button (shown when content is loaded) -->
-        <a href="#" class="back-button" onclick="goHome()">← Back to Home</a>
-        
-        <!-- Dynamic Content Area -->
-        <div id="dynamic-content">
+<div class="frame-modal">
+    <div class="frame-container">
+        <!-- Content Area - properly bounded by frame -->
+        <div class="content-area">
+            <!-- Back Button (shown when content is loaded) -->
+            <a href="#" class="back-button" onclick="goHome()">← Back to Home</a>
+            
+            <!-- Dynamic Content Area -->
+            <div id="dynamic-content">
             <!-- Initial Split Panel Content -->
             <div id="split-panel-home">
                 <!-- Header -->
@@ -364,6 +382,7 @@
             </div>
         </div>
     </div>
+</div>
     
     <!-- Video Overlay -->
     <div id="video-overlay" class="video-overlay">
