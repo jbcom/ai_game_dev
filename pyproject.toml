@@ -197,6 +197,10 @@ installer = "uv"
 path = ".venv"
 
 [tool.hatch.envs.default.scripts]
+# Main platform commands
+run = "python -m __main__"
+run-dev = "python -m __main__"
+server = "python -m __main__"
 # Image processing command with automatic frame detection
 process-image = "python scripts/process_image.py {args}"
 

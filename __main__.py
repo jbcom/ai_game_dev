@@ -45,29 +45,25 @@ def init_player_db():
     conn.close()
     print(f"📊 Player database initialized at {db_path}")
 
-async def main():
-    """Main entry point using proper FastAPI architecture with master orchestrator integration."""
+def main():
+    """Main entry point using Chainlit for direct subgraph orchestration."""
     # Initialize player database
     init_player_db()
     
-    print("🚀 Starting AI Game Development Platform with split-panel interface...")
-    print("✅ Using FastAPI + Jinja2 template architecture")
+    print("🚀 Starting AI Game Development Platform with Chainlit...")
+    print("✅ Direct LangGraph subgraph orchestration")
     print("🎮 Game Workshop | 🎓 Arcade Academy")
     print("📊 SQLite persistence enabled")
-    print("🎼 Initializing Master Orchestrator...")
+    print("🌐 Opening http://localhost:8000")
     
-    # Initialize master orchestrator
-    from ai_game_dev.agents.master_orchestrator import MasterGameDevOrchestrator
-    master_orchestrator = MasterGameDevOrchestrator()
-    await master_orchestrator.initialize()
-    
-    print("✅ Master Orchestrator initialized successfully")
-    
-    # Use the proper unified server with FastAPI + Jinja2
-    from ai_game_dev.server.unified_server import UnifiedGameDevServer
-    server = UnifiedGameDevServer(master_orchestrator)
-    await server.start()
+    # Run Chainlit app
+    import subprocess
+    import sys
+    subprocess.run([
+        sys.executable, "-m", "chainlit", "run", 
+        "src/ai_game_dev/chainlit_app.py",
+        "--port", "8000"
+    ])
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    main()
