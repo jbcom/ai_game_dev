@@ -68,33 +68,40 @@ class UnifiedGameDevServer:
             print(f"⚠️ SQLite caching unavailable: {e}")
             print("ℹ️ Running without persistent caching")
     
-    async def _verify_asset_availability(self):
-        """Verify all required assets are available, generate missing ones."""
+    async def _setup_master_orchestrator_integration(self):
+        """Setup integration with master orchestrator for asset management."""
         try:
-            from ai_game_dev.agents.internal_agent import InternalAssetAgent
+            from ai_game_dev.agents.master_orchestrator import MasterGameDevOrchestrator
             
-            # Get required asset list
-            required_assets = self._get_required_assets()
+            print("🎼 Setting up Master Orchestrator integration...")
             
-            # Initialize Internal agent for comprehensive verification
-            async with InternalAssetAgent() as agent:
-                verification_result = await agent.verify_asset_availability(required_assets)
-                
-                # Report verification results
-                if verification_result["all_available"]:
-                    print("✅ All required assets are available")
-                else:
-                    print(f"🔧 Asset verification complete:")
-                    print(f"   📊 Total checked: {verification_result['total_checked']}")
-                    print(f"   ❌ Missing: {verification_result['total_missing']}")
-                    print(f"   ✅ Generated: {verification_result['total_generated']}")
-                    
-                    if verification_result["failed_assets"]:
-                        print(f"   ⚠️ Failed categories: {list(verification_result['failed_assets'].keys())}")
+            # Initialize master orchestrator
+            self.master_orchestrator = MasterGameDevOrchestrator()
+            await self.master_orchestrator.initialize()
+            
+            # Setup internal asset verification through orchestrator
+            print("🎨 Requesting asset verification through Master Orchestrator...")
+            
+            verification_request = {
+                "task_type": "asset_verification",
+                "user_input": "Verify all required game assets are available and generate missing ones",
+                "context": {
+                    "asset_categories": ["rpg_characters", "educational_environments", "professor_pixel", "game_code", "yarn_spinner"],
+                    "output_directory": "src/ai_game_dev/server/static/assets"
+                }
+            }
+            
+            # Route through master orchestrator instead of direct agent call
+            result = await self.master_orchestrator.route_internal_request(verification_request)
+            
+            if result.get("success"):
+                print("✅ Asset verification completed through Master Orchestrator")
+            else:
+                print(f"⚠️ Asset verification had issues: {result.get('message', 'Unknown error')}")
                 
         except Exception as e:
-            print(f"⚠️ Asset verification failed: {e}")
-            print("ℹ️ Continuing server startup without asset verification")
+            print(f"⚠️ Master Orchestrator integration failed: {e}")
+            print("ℹ️ Continuing server startup without orchestrator integration")
     
     def _get_required_assets(self) -> Dict[str, List[str]]:
         """Get comprehensive game asset requirements from TOML specifications."""
