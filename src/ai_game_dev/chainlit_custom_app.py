@@ -4,6 +4,7 @@ Enhanced Chainlit app with full HTMX-style UI
 import chainlit as cl
 from pathlib import Path
 import json
+import asyncio
 from typing import Dict, Any, List, Optional
 
 # Import our components
@@ -17,10 +18,14 @@ from ai_game_dev.agents.bevy_agent import BevyAgent
 from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
 from ai_game_dev.project_manager import ProjectManager
 from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
+from ai_game_dev.startup_assets import StartupAssetGenerator
 
 # Initialize components
 initialize_sqlite_cache_and_memory()
 project_manager = ProjectManager()
+
+# Asset generator instance
+asset_generator = None
 
 # Agent instances
 agents = {
@@ -42,6 +47,16 @@ subgraphs = {
 @cl.on_chat_start
 async def start():
     """Initialize session when user connects."""
+    global asset_generator
+    
+    # Run startup asset generation if not done
+    if asset_generator is None:
+        print("🚀 Running startup asset generation...")
+        asset_generator = StartupAssetGenerator()
+        
+        # Run in background to not block UI
+        asyncio.create_task(run_asset_generation())
+    
     # Set up custom UI
     await cl.Message(
         content="",
@@ -370,3 +385,15 @@ async def handle_academy_chat(message: str):
         result = await agents["academy"].process_input(message)
         if result:
             await send_ui_update(result)
+
+
+async def run_asset_generation():
+    """Run asset generation in background."""
+    global asset_generator
+    try:
+        await asset_generator.initialize()
+        await asset_generator.generate_all_assets()
+        print("✅ Startup asset generation complete!")
+    except Exception as e:
+        print(f"⚠️ Asset generation error: {e}")
+        # Continue running even if some assets fail
