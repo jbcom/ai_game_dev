@@ -45,6 +45,21 @@ def init_player_db():
     conn.close()
     print(f"📊 Player database initialized at {db_path}")
 
+async def main():
+    """Main entry point using proper FastAPI architecture with master orchestrator integration."""
+    # Initialize player database
+    init_player_db()
+    
+    print("🚀 Starting AI Game Development Platform with split-panel interface...")
+    print("✅ Using FastAPI + Jinja2 template architecture")
+    print("🎮 Game Workshop | 🎓 Arcade Academy")
+    print("📊 SQLite persistence enabled")
+    print("🎼 Master Orchestrator coordination enabled")
+    
+    # Use the proper unified server with FastAPI + Jinja2
+    from ai_game_dev.server.unified_server import run_server
+    run_server(host="0.0.0.0", port=5000)
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())

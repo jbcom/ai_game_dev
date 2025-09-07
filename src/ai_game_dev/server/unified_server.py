@@ -99,6 +99,9 @@ class UnifiedGameDevServer:
             else:
                 print(f"⚠️ Asset verification had issues: {result.get('message', 'Unknown error')}")
                 
+            # Store orchestrator for later use
+            self.master_orchestrator_initialized = True
+                
         except Exception as e:
             print(f"⚠️ Master Orchestrator integration failed: {e}")
             print("ℹ️ Continuing server startup without orchestrator integration")

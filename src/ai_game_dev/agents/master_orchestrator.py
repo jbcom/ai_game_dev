@@ -128,10 +128,30 @@ class MasterGameDevOrchestrator(BaseAgent):
         self.audio_subgraph = AudioSubgraph()
         await self.audio_subgraph.initialize()
         
+        # Initialize internal asset generation subgraph
+        try:
+            from ai_game_dev.agents.internal_agent import InternalAssetAgent
+            self.internal_asset_agent = InternalAssetAgent()
+            await self.internal_asset_agent.initialize()
+        except ImportError:
+            self.internal_asset_agent = None
+            
+        # Initialize arcade academy agent as subgraph
+        try:
+            from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
+            self.arcade_academy_agent = ArcadeAcademyAgent()
+            await self.arcade_academy_agent.initialize()
+        except ImportError:
+            self.arcade_academy_agent = None
+        
         # Initialize variant system for interactive A/B choices
         from ai_game_dev.models.llm_manager import LLMManager
         llm_manager = LLMManager()
         self.variant_system = InteractiveVariantSystem(llm_manager)
+        
+        # Initialize game specification system
+        from ai_game_dev.game_specification import GameSpecificationParser
+        self.game_spec_parser = GameSpecificationParser()
         
     async def _setup_instructions(self):
         """Set up orchestrator-specific instructions."""
@@ -170,6 +190,8 @@ class MasterGameDevOrchestrator(BaseAgent):
         graph.add_node("quest_subgraph", self._quest_subgraph_node)
         graph.add_node("graphics_subgraph", self._graphics_subgraph_node)
         graph.add_node("audio_subgraph", self._audio_subgraph_node)
+        graph.add_node("internal_asset_subgraph", self._internal_asset_subgraph_node)
+        graph.add_node("arcade_academy_subgraph", self._arcade_academy_subgraph_node)
         
         # Output processing
         graph.add_node("result_compilation", self._result_compilation_node)
@@ -209,7 +231,9 @@ class MasterGameDevOrchestrator(BaseAgent):
                 "dialogue": "dialogue_subgraph",
                 "quest": "quest_subgraph",
                 "graphics": "graphics_subgraph",
-                "audio": "audio_subgraph"
+                "audio": "audio_subgraph",
+                "internal_assets": "internal_asset_subgraph",
+                "arcade_academy": "arcade_academy_subgraph"
             }
         )
         
@@ -221,6 +245,8 @@ class MasterGameDevOrchestrator(BaseAgent):
         graph.add_edge("quest_subgraph", "result_compilation")
         graph.add_edge("graphics_subgraph", "result_compilation")
         graph.add_edge("audio_subgraph", "result_compilation")
+        graph.add_edge("internal_asset_subgraph", "result_compilation")
+        graph.add_edge("arcade_academy_subgraph", "result_compilation")
         
         graph.add_edge("result_compilation", END)
         
@@ -539,6 +565,238 @@ Respond with a JSON object for seeding coordination:
         
         state.subgraph_results["bevy"] = bevy_results
         return state
+        
+    async def _internal_asset_subgraph_node(self, state: OrchestratorState) -> OrchestratorState:
+        """Execute internal asset generation subgraph."""
+        
+        spec = state.generated_spec
+        if not spec:
+            return state
+            
+        # Convert spec to internal asset agent context
+        asset_context = {
+            "game_description": spec.description,
+            "asset_categories": spec.assets_needed,
+            "art_style": spec.art_style,
+            "complexity": spec.complexity,
+            "project_name": spec.title.lower().replace(" ", "_"),
+            "output_directory": "src/ai_game_dev/server/static/assets"
+        }
+        
+        # Execute internal asset agent if available
+        if self.internal_asset_agent:
+            asset_task = f"Generate comprehensive game assets for {spec.genre} game: {spec.description}"
+            asset_results = await self.internal_asset_agent.execute_task(asset_task, asset_context)
+        else:
+            asset_results = {"status": "internal_asset_agent_unavailable"}
+        
+        state.subgraph_results["internal_assets"] = asset_results
+        return state
+        
+    async def _arcade_academy_subgraph_node(self, state: OrchestratorState) -> OrchestratorState:
+        """Execute arcade academy educational subgraph."""
+        
+        spec = state.generated_spec
+        if not spec:
+            return state
+            
+        # Convert spec to arcade academy agent context
+        academy_context = {
+            "game_description": spec.description,
+            "features": spec.features,
+            "complexity": spec.complexity,
+            "target_audience": spec.target_audience,
+            "educational_objectives": ["coding concepts", "game development", "problem solving"],
+            "project_name": spec.title.lower().replace(" ", "_")
+        }
+        
+        # Execute arcade academy agent if available
+        if self.arcade_academy_agent:
+            academy_task = f"Generate educational content for {spec.genre} game: {spec.description}"
+            academy_results = await self.arcade_academy_agent.execute_task(academy_task, academy_context)
+        else:
+            academy_results = {"status": "arcade_academy_agent_unavailable"}
+        
+        state.subgraph_results["arcade_academy"] = academy_results
+        return state
+        
+    async def _dialogue_subgraph_node(self, state: OrchestratorState) -> OrchestratorState:
+        """Execute dialogue generation subgraph."""
+        
+        spec = state.generated_spec
+        if not spec:
+            return state
+            
+        # Convert spec to dialogue subgraph context
+        dialogue_context = {
+            "game_description": spec.description,
+            "genre": spec.genre,
+            "target_audience": spec.target_audience,
+            "art_style": spec.art_style,
+            "project_name": spec.title.lower().replace(" ", "_")
+        }
+        
+        # Execute dialogue subgraph if available
+        if self.dialogue_subgraph:
+            dialogue_task = f"Generate dialogue system for {spec.genre} game: {spec.description}"
+            dialogue_results = await self.dialogue_subgraph.execute_task(dialogue_task, dialogue_context)
+        else:
+            dialogue_results = {"status": "dialogue_subgraph_unavailable"}
+        
+        state.subgraph_results["dialogue"] = dialogue_results
+        return state
+        
+    async def _quest_subgraph_node(self, state: OrchestratorState) -> OrchestratorState:
+        """Execute quest generation subgraph."""
+        
+        spec = state.generated_spec
+        if not spec:
+            return state
+            
+        # Convert spec to quest subgraph context
+        quest_context = {
+            "game_description": spec.description,
+            "genre": spec.genre,
+            "features": spec.features,
+            "complexity": spec.complexity,
+            "project_name": spec.title.lower().replace(" ", "_")
+        }
+        
+        # Execute quest subgraph if available
+        if self.quest_subgraph:
+            quest_task = f"Generate quest system for {spec.genre} game: {spec.description}"
+            quest_results = await self.quest_subgraph.execute_task(quest_task, quest_context)
+        else:
+            quest_results = {"status": "quest_subgraph_unavailable"}
+        
+        state.subgraph_results["quest"] = quest_results
+        return state
+        
+    async def _graphics_subgraph_node(self, state: OrchestratorState) -> OrchestratorState:
+        """Execute graphics generation subgraph."""
+        
+        spec = state.generated_spec
+        if not spec:
+            return state
+            
+        # Convert spec to graphics subgraph context
+        graphics_context = {
+            "game_description": spec.description,
+            "art_style": spec.art_style,
+            "assets_needed": spec.assets_needed,
+            "complexity": spec.complexity,
+            "project_name": spec.title.lower().replace(" ", "_")
+        }
+        
+        # Execute graphics subgraph if available
+        if self.graphics_subgraph:
+            graphics_task = f"Generate graphics assets for {spec.genre} game: {spec.description}"
+            graphics_results = await self.graphics_subgraph.execute_task(graphics_task, graphics_context)
+        else:
+            graphics_results = {"status": "graphics_subgraph_unavailable"}
+        
+        state.subgraph_results["graphics"] = graphics_results
+        return state
+        
+    async def _audio_subgraph_node(self, state: OrchestratorState) -> OrchestratorState:
+        """Execute audio generation subgraph."""
+        
+        spec = state.generated_spec
+        if not spec:
+            return state
+            
+        # Convert spec to audio subgraph context
+        audio_context = {
+            "game_description": spec.description,
+            "genre": spec.genre,
+            "art_style": spec.art_style,
+            "complexity": spec.complexity,
+            "project_name": spec.title.lower().replace(" ", "_")
+        }
+        
+        # Execute audio subgraph if available
+        if self.audio_subgraph:
+            audio_task = f"Generate audio assets for {spec.genre} game: {spec.description}"
+            audio_results = await self.audio_subgraph.execute_task(audio_task, audio_context)
+        else:
+            audio_results = {"status": "audio_subgraph_unavailable"}
+        
+        state.subgraph_results["audio"] = audio_results
+        return state
+        
+    async def route_internal_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Route internal requests through the master orchestrator."""
+        
+        try:
+            # Convert request to orchestrator state
+            initial_state = OrchestratorState(
+                user_input=request.get("user_input", ""),
+                input_type=request.get("task_type", "prompt"),
+                context=request.get("context", {})
+            )
+            
+            # Handle different types of internal requests
+            task_type = request.get("task_type", "general")
+            
+            if task_type == "asset_verification":
+                # Route to internal asset generation
+                initial_state.routing_decision = "internal_assets"
+                initial_state.context["verification_mode"] = True
+                
+            elif task_type == "game_spec_generation":
+                # Route to spec generation flow
+                initial_state.routing_decision = "spec_generation"
+                
+            elif task_type == "arcade_academy":
+                # Route to educational content generation
+                initial_state.routing_decision = "arcade_academy"
+                
+            else:
+                # Default to input analysis
+                initial_state.routing_decision = "input_analysis"
+            
+            # Execute the workflow
+            result = await self.workflow.ainvoke(initial_state)
+            
+            return {
+                "success": True,
+                "result": result.outputs if hasattr(result, 'outputs') else result.__dict__,
+                "subgraph_results": result.subgraph_results if hasattr(result, 'subgraph_results') else {},
+                "message": "Request processed successfully through master orchestrator"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Failed to process internal request: {e}"
+            }
+        
+    async def load_game_specification(self, spec_data: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
+        """Load and parse game specification through the orchestrator."""
+        
+        try:
+            if isinstance(spec_data, str):
+                # File path - load TOML specification
+                parsed_spec = self.game_spec_parser.parse_toml_file(spec_data)
+            elif isinstance(spec_data, dict):
+                # Dictionary specification
+                parsed_spec = self.game_spec_parser.parse_dict_specification(spec_data)
+            else:
+                raise ValueError(f"Unsupported specification type: {type(spec_data)}")
+            
+            return {
+                "success": True,
+                "parsed_spec": parsed_spec,
+                "message": "Game specification loaded successfully"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Failed to load game specification: {e}"
+            }
         
     async def _result_compilation_node(self, state: OrchestratorState) -> OrchestratorState:
         """Compile results from subgraph execution."""
