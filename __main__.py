@@ -1,39 +1,63 @@
+#!/usr/bin/env python3
 """
-AI Game Development Platform - Main Entry Point
-Unified server with integrated education system.
+Production-ready entry point for AI Game Development Platform.
+Uses proper FastAPI + Jinja2 template architecture.
 """
-
 import sys
+import os
+import sqlite3
 from pathlib import Path
 
+# Add src to path for imports
+src_path = Path(__file__).parent / "src"
+sys.path.insert(0, str(src_path))
+
+def init_player_db():
+    """Initialize player database for user progression tracking."""
+    db_path = Path("data/player.db")
+    db_path.parent.mkdir(exist_ok=True)
+    
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Create player table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS players (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL DEFAULT 'Developer',
+            level INTEGER DEFAULT 1,
+            xp INTEGER DEFAULT 0,
+            games_created INTEGER DEFAULT 0,
+            modules_completed INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Initialize default player if none exists
+    cursor.execute('SELECT COUNT(*) FROM players')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO players (name, level, xp, games_created, modules_completed)
+            VALUES ('Developer', 1, 0, 0, 0)
+        ''')
+    
+    conn.commit()
+    conn.close()
+    print(f"📊 Player database initialized at {db_path}")
+
 def main():
-    """Launch the AI Game Development Platform."""
+    """Main entry point using proper FastAPI architecture."""
+    # Initialize player database
+    init_player_db()
     
-    # Add src directory to Python path
-    src_path = Path(__file__).parent / "src"
-    if str(src_path) not in sys.path:
-        sys.path.insert(0, str(src_path))
+    print("🚀 Starting AI Game Development Platform with split-panel interface...")
+    print("✅ Using FastAPI + Jinja2 template architecture")
+    print("🎮 Game Workshop | 🎓 Arcade Academy")
+    print("📊 SQLite persistence enabled")
     
-    # Try Streamlit first, then simple server, then minimal server
-    try:
-        # Import and run Streamlit app
-        from ai_game_dev.streamlit_app import main as streamlit_main
-        streamlit_main()
-        
-    except ImportError as e:
-        print(f"⚠️ Streamlit not available ({e}), trying simple web interface...")
-        
-        try:
-            # Fallback to simple server
-            from ai_game_dev.simple_server import run_simple_server
-            run_simple_server()
-            
-        except ImportError as e2:
-            print(f"⚠️ Simple server not available ({e2}), using minimal server...")
-            
-            # Final fallback to minimal server
-            from ai_game_dev.minimal_server import run_minimal_server
-            run_minimal_server()
+    # Use the proper unified server with FastAPI + Jinja2
+    from ai_game_dev.server.unified_server import run_server
+    run_server(host="0.0.0.0", port=5000)
 
 if __name__ == "__main__":
     main()
