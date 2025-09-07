@@ -168,7 +168,10 @@ class InternalAssetAgent(PygameAgent):
         # Determine task type from context
         asset_type = context.get("asset_type", "")
         
-        if "static" in asset_type or "logos" in asset_type or "frames" in asset_type or "textures" in asset_type:
+        # Route to comprehensive game asset generation for TOML-based assets
+        if any(game_asset in asset_type for game_asset in ["rpg_characters", "educational_environments", "professor_pixel", "game_code", "yarn_spinner", "educational_ui"]):
+            return await self._generate_comprehensive_game_assets(context)
+        elif "static" in asset_type or "logos" in asset_type or "frames" in asset_type or "textures" in asset_type:
             return await self._generate_static_assets(context)
         elif "audio" in asset_type:
             return await self._generate_audio_assets(context)
@@ -184,6 +187,62 @@ class InternalAssetAgent(PygameAgent):
                 "failed": [],
                 "assets_created": 0
             }
+    
+    async def _generate_comprehensive_game_assets(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate comprehensive game assets from TOML specifications."""
+        
+        results = {
+            "success": True,
+            "generated": [],
+            "failed": [],
+            "assets_created": 0,
+            "message": "Comprehensive game asset generation"
+        }
+        
+        try:
+            # Load game specifications
+            from ai_game_dev.game_specification import get_asset_generation_specifications
+            asset_specs = get_asset_generation_specifications()
+            
+            missing_assets = context.get("missing_assets", [])
+            asset_type = context.get("asset_type", "")
+            
+            # Generate based on asset type
+            if "rpg_characters" in asset_type:
+                character_results = await self._generate_rpg_characters(asset_specs["character_generation"])
+                results["generated"].extend(character_results)
+                results["assets_created"] += len(character_results)
+            
+            elif "educational_environments" in asset_type:
+                env_results = await self._generate_educational_environments(asset_specs["environment_generation"])
+                results["generated"].extend(env_results)
+                results["assets_created"] += len(env_results)
+            
+            elif "professor_pixel" in asset_type:
+                pixel_results = await self._generate_professor_pixel(asset_specs["character_generation"]["professor_pixel"])
+                results["generated"].extend(pixel_results)
+                results["assets_created"] += len(pixel_results)
+            
+            elif "game_code" in asset_type:
+                code_results = await self._generate_educational_game_code(asset_specs["code_generation"])
+                results["generated"].extend(code_results)
+                results["assets_created"] += len(code_results)
+            
+            elif "yarn_spinner" in asset_type:
+                yarn_results = await self._generate_yarn_spinner_content(asset_specs["yarn_spinner_generation"])
+                results["generated"].extend(yarn_results)
+                results["assets_created"] += len(yarn_results)
+            
+            else:
+                # Fall back to basic static asset generation
+                return await self._generate_static_assets(context)
+        
+        except Exception as e:
+            results["success"] = False
+            results["message"] = f"Comprehensive asset generation failed: {str(e)}"
+            print(f"❌ Comprehensive asset generation error: {e}")
+        
+        return results
     
     async def _generate_static_assets(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Generate static platform assets using LangChain DALLE."""

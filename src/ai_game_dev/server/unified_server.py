@@ -97,29 +97,20 @@ class UnifiedGameDevServer:
             print("ℹ️ Continuing server startup without asset verification")
     
     def _get_required_assets(self) -> Dict[str, List[str]]:
-        """Get list of all required assets by category."""
-        return {
-            "logos": [
-                "src/ai_game_dev/server/static/assets/logos/main-logo.svg",
-                "src/ai_game_dev/server/static/assets/logos/game-workshop-condensed.png",
-                "src/ai_game_dev/server/static/assets/logos/arcade-academy-condensed.png"
-            ],
-            "frames": [
-                "src/ai_game_dev/server/static/assets/frames/tech-frame.png",
-                "src/ai_game_dev/server/static/assets/frames/tech-frame_components"
-            ],
-            "textures": [
-                "src/ai_game_dev/server/static/assets/textures/circuit-pattern.png"
-            ],
-            "audio": [
-                "src/ai_game_dev/server/static/assets/audio/button_click_futuristic.wav",
-                "src/ai_game_dev/server/static/assets/audio/hover_beep_cyberpunk.wav",
-                "src/ai_game_dev/server/static/assets/audio/success_ding_pleasant.wav",
-                "src/ai_game_dev/server/static/assets/audio/error_buzz_warning.wav",
-                "src/ai_game_dev/server/static/assets/audio/notification_chime_tech.wav",
-                "src/ai_game_dev/server/static/assets/audio/typing_mechanical_keyboard.wav"
-            ]
-        }
+        """Get comprehensive game asset requirements from TOML specifications."""
+        try:
+            from ai_game_dev.game_specification import get_comprehensive_asset_requirements
+            return get_comprehensive_asset_requirements()
+        except ImportError as e:
+            print(f"⚠️ Failed to load game specifications: {e}")
+            print("ℹ️ Falling back to basic asset requirements")
+            # Fallback to basic assets if game specification system unavailable
+            return {
+                "basic_ui": [
+                    "src/ai_game_dev/server/static/assets/logos/main-logo.svg",
+                    "src/ai_game_dev/server/static/assets/frames/tech-frame.png"
+                ]
+            }
     
     def _check_missing_assets(self, required_assets: Dict[str, List[str]]) -> Dict[str, List[str]]:
         """Check which required assets are missing."""
