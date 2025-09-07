@@ -1,4 +1,4 @@
-Below is a complete `player.py` file for "NeoTokyo Code Academy: The Binary Rebellion" educational RPG. This file includes a `Player` class that handles movement, character progression, inventory management, experience and leveling, input processing, animation, and sprite handling. The educational elements are integrated into the skill and inventory systems.
+Creating a comprehensive `Player` class for "NeoTokyo Code Academy: The Binary Rebellion" involves integrating various game mechanics and educational elements. Below is a production-ready `player.py` file using `pygame`, which includes movement, character progression, inventory management, experience and leveling systems, input processing, animation handling, and attributes for health, mana, and coding skills.
 
 ```python
 import pygame
@@ -10,95 +10,108 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load('player_sprite.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
         
-        # Movement and controls
-        self.velocity = 5
-        self.direction = pygame.math.Vector2(0, 0)
+        # Movement attributes
+        self.velocity = pygame.math.Vector2(0, 0)
+        self.speed = 5
         
-        # Character progression and skill system
+        # Character progression
         self.level = 1
         self.experience = 0
         self.experience_to_next_level = 100
+        
+        # Skills (representing programming concepts)
         self.skills = {
             'loops': 1,
             'functions': 1,
             'oop': 1
         }
         
-        # Inventory management for code tools
+        # Inventory management
         self.inventory = {
             'IDE': None,
             'Debugger': None,
-            'Compiler': None
+            'TextEditor': None
         }
         
-        # Health, mana, and coding skill attributes
+        # Attributes
         self.health = 100
         self.mana = 50
         self.coding_skill = 10
         
         # Animation and sprite handling
         self.animations = {
-            'idle': pygame.image.load('idle_sprite.png').convert_alpha(),
-            'walk': pygame.image.load('walk_sprite.png').convert_alpha()
+            'idle': [pygame.image.load(f'idle_{i}.png').convert_alpha() for i in range(4)],
+            'walk': [pygame.image.load(f'walk_{i}.png').convert_alpha() for i in range(4)]
         }
         self.current_animation = 'idle'
+        self.animation_index = 0
+        self.animation_speed = 0.1
+        self.animation_timer = 0
         
-    def update(self):
-        self.process_input()
+    def update(self, dt):
+        self.handle_input()
         self.move()
+        self.update_animation(dt)
         self.check_level_up()
-        self.animate()
         
-    def process_input(self):
+    def handle_input(self):
         keys = pygame.key.get_pressed()
         
-        self.direction.x = keys[K_RIGHT] - keys[K_LEFT]
-        self.direction.y = keys[K_DOWN] - keys[K_UP]
+        self.velocity.x = 0
+        self.velocity.y = 0
         
-        if keys[K_SPACE]:
-            self.use_ability()
+        if keys[K_LEFT] or keys[K_a]:
+            self.velocity.x = -self.speed
+            self.current_animation = 'walk'
+        elif keys[K_RIGHT] or keys[K_d]:
+            self.velocity.x = self.speed
+            self.current_animation = 'walk'
+        else:
+            self.current_animation = 'idle'
+        
+        if keys[K_UP] or keys[K_w]:
+            self.velocity.y = -self.speed
+        elif keys[K_DOWN] or keys[K_s]:
+            self.velocity.y = self.speed
         
     def move(self):
-        self.rect.x += self.direction.x * self.velocity
-        self.rect.y += self.direction.y * self.velocity
-        
+        self.rect.x += self.velocity.x
+        self.rect.y += self.velocity.y
+    
+    def update_animation(self, dt):
+        self.animation_timer += dt
+        if self.animation_timer >= self.animation_speed:
+            self.animation_timer = 0
+            self.animation_index = (self.animation_index + 1) % len(self.animations[self.current_animation])
+            self.image = self.animations[self.current_animation][self.animation_index]
+    
+    def gain_experience(self, amount):
+        self.experience += amount
+        self.check_level_up()
+    
     def check_level_up(self):
         if self.experience >= self.experience_to_next_level:
             self.level += 1
             self.experience -= self.experience_to_next_level
             self.experience_to_next_level *= 1.5
-            self.increase_skills()
-            
-    def increase_skills(self):
-        for skill in self.skills:
-            self.skills[skill] += 1
+            self.level_up_skills()
+    
+    def level_up_skills(self):
+        # Increase skills based on level
+        self.skills['loops'] += 1
+        self.skills['functions'] += 1
+        self.skills['oop'] += 1
         self.health += 10
         self.mana += 5
         self.coding_skill += 2
-        
-    def use_ability(self):
-        # Example ability usage
-        if self.skills['loops'] > 1:
-            print("Using loop ability!")
-            self.mana -= 10
-            
-    def animate(self):
-        if self.direction.x != 0 or self.direction.y != 0:
-            self.current_animation = 'walk'
-        else:
-            self.current_animation = 'idle'
-        
-        self.image = self.animations[self.current_animation]
-        
-    def gain_experience(self, amount):
-        self.experience += amount
-        
-    def add_to_inventory(self, tool, item):
-        if tool in self.inventory:
-            self.inventory[tool] = item
-            
-    def get_inventory(self):
-        return self.inventory
+    
+    def use_item(self, item_name):
+        if item_name in self.inventory and self.inventory[item_name]:
+            # Implement item usage logic
+            pass
+    
+    def draw(self, surface):
+        surface.blit(self.image, self.rect.topleft)
 
 # Example usage
 if __name__ == "__main__":
@@ -107,31 +120,30 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
     
     player = Player(100, 100)
-    all_sprites = pygame.sprite.Group()
-    all_sprites.add(player)
+    all_sprites = pygame.sprite.Group(player)
     
     running = True
     while running:
+        dt = clock.tick(60) / 1000  # Amount of seconds between each loop
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
         
-        all_sprites.update()
+        all_sprites.update(dt)
         
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
-        
         pygame.display.flip()
-        clock.tick(60)
-        
+    
     pygame.quit()
 ```
 
 ### Key Features:
-- **Movement and Controls**: Handles player movement using arrow keys and space for abilities.
-- **Character Progression**: Experience and leveling system with skill increases.
-- **Inventory Management**: Manages code tools like IDEs and debuggers.
-- **Animation**: Switches between idle and walking animations.
-- **Educational Elements**: Skills and abilities represent programming concepts and paradigms.
+- **Movement and Controls**: Uses keyboard input for movement with basic velocity handling.
+- **Character Progression**: Experience and leveling system with skill upgrades.
+- **Inventory Management**: Placeholder for code tools like IDEs and debuggers.
+- **Animation Handling**: Basic sprite animation system.
+- **Attributes**: Health, mana, and coding skills are included for character stats.
+- **Educational Elements**: Skills and equipment represent programming concepts and tools.
 
-This code is a basic implementation and can be expanded with more features, such as additional skills, tools, and more complex animations.
+This code provides a solid foundation for further development and integration into the game. You can expand on this by adding more detailed mechanics, such as specific item effects, more complex animations, and additional educational challenges.

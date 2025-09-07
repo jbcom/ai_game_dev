@@ -84,7 +84,7 @@ class ImageGenerator:
             else:
                 # Use traditional Images API with dall-e-3
                 response = self.client.images.generate(
-                    model="dall-e-3",
+                    model="gpt-image-1",
                     prompt=prompt,
                     size=size,
                     quality=quality,

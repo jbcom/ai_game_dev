@@ -19,13 +19,13 @@ Preferred communication style: Simple, everyday language.
 - **Intelligent Routing**: Implemented automatic engine detection and routing based on game specifications or natural language prompts
 - **Real Seeding System**: Production-ready seeding with PyTorch embeddings, Internet Archive integration, and literary narrative enhancement
 - **Spec Generation Pipeline**: Converts natural language descriptions into structured game specifications with thematic analysis
-- **InternalAssetAgent**: Production-ready agent that coordinates all static asset generation using real OpenAI DALL-E 3 image generation
-- **Real Asset Generation**: Eliminated all placeholder functions - now uses actual OpenAI image generation with variants, masked edits, and batch processing
+- **InternalAssetAgent**: Production-ready agent that coordinates all static asset generation using real OpenAI GPT Image generation
+- **Real Asset Generation**: Eliminated all placeholder functions - now uses actual OpenAI GPT Image generation with variants, masked edits, and batch processing
 - **Internal CLI Integration**: Updated all internal CLI commands to use the agent architecture with master orchestrator coordination
 - **Production Quality**: Full async/await architecture with proper error handling, resource management, and concurrency control
 
 **Asset Generation Capabilities**:
-- OpenAI DALL-E 3 integration for high-quality image generation
+- OpenAI GPT Image integration for high-quality image generation
 - Image variants and masked editing for asset refinement
 - Batch processing with rate limiting and concurrent execution
 - Cyberpunk-themed asset generation for educational game

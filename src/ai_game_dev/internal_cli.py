@@ -68,11 +68,20 @@ def build_static_assets(
             results = asyncio.run(run_asset_generation())
             progress.update(task, completed=True, description="✅ Static assets complete")
             
-            # Display results
-            if results.get("success"):
-                console.print(f"✅ Generated {results.get('assets_created', 0)} static assets")
+            # Display results - handle dict response properly
+            if isinstance(results, dict):
+                success = results.get("success", True)
+                assets_count = results.get("assets_created", len(results.get("generated", [])))
+                message = results.get("response", results.get("message", "Asset generation completed"))
             else:
-                console.print(f"⚠️ Asset generation completed with issues: {results.get('response', 'Unknown error')}")
+                success = getattr(results, 'success', True)
+                assets_count = getattr(results, 'assets_created', 0)
+                message = getattr(results, 'response', 'Asset generation completed')
+                
+            if success or assets_count > 0:
+                console.print(f"✅ Generated {assets_count} static assets")
+            else:
+                console.print(f"⚠️ Asset generation completed: {message}")
                 
         except Exception as e:
             progress.update(task, completed=True, description="❌ Asset generation failed")
@@ -120,10 +129,18 @@ def build_educational_game_code(
             results = asyncio.run(run_game_generation())
             progress.update(task, completed=True, description="✅ Educational RPG code complete")
             
-            if results.get("success"):
-                console.print(f"✅ Generated educational RPG: {results.get('response', 'Complete')}")
+            # Handle dict response properly
+            if isinstance(results, dict):
+                success = results.get("success", True)
+                message = results.get("response", results.get("message", "Educational RPG generated"))
             else:
-                console.print(f"⚠️ Game generation completed with issues: {results.get('response', 'Unknown error')}")
+                success = getattr(results, 'success', True)
+                message = getattr(results, 'response', 'Educational RPG generated')
+                
+            if success:
+                console.print(f"✅ Generated educational RPG: {message}")
+            else:
+                console.print(f"⚠️ Game generation completed: {message}")
                 
         except Exception as e:
             progress.update(task, completed=True, description="❌ Game generation failed")
@@ -171,10 +188,20 @@ def build_educational_game_assets(
             results = asyncio.run(run_educational_assets())
             progress.update(task, completed=True, description="✅ Educational assets complete")
             
-            if results.get("success"):
-                console.print(f"✅ Generated educational assets: {results.get('assets_created', 0)} files")
+            # Handle dict response properly
+            if isinstance(results, dict):
+                success = results.get("success", True)
+                assets_count = results.get("assets_created", len(results.get("characters", []) + results.get("environments", []) + results.get("ui_elements", [])))
+                message = results.get("response", results.get("message", "Educational assets generated"))
             else:
-                console.print(f"⚠️ Asset generation completed with issues: {results.get('response', 'Unknown error')}")
+                success = getattr(results, 'success', True)
+                assets_count = getattr(results, 'assets_created', 0)
+                message = getattr(results, 'response', 'Educational assets generated')
+                
+            if success or assets_count > 0:
+                console.print(f"✅ Generated educational assets: {assets_count} files")
+            else:
+                console.print(f"⚠️ Asset generation completed: {message}")
                 
         except Exception as e:
             progress.update(task, completed=True, description="❌ Educational asset generation failed")

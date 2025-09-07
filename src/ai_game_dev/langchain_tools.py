@@ -53,7 +53,7 @@ class ImageGenerationTool(BaseTool):
             client = AsyncOpenAI(api_key=settings.openai_api_key)
             
             response = await client.images.generate(
-                model="dall-e-3",
+                model="gpt-image-1",
                 prompt=kwargs.get("prompt", ""),
                 size=kwargs.get("size", "1024x1024"),
                 quality=kwargs.get("quality", "standard"),
