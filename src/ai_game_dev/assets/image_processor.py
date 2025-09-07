@@ -71,7 +71,7 @@ class ImageProcessor:
         logger.info(f"Removed excess transparency: {image.size} -> {cropped.size}")
         return cropped
         
-    def detect_frame_pattern(self, image: Image.Image, threshold: float = 0.3) -> Dict[str, Any]:
+    def detect_frame_pattern(self, image: Image.Image, threshold: float = 0.1) -> Dict[str, Any]:
         """
         Detect if image is a frame with transparent center and content on edges.
         
@@ -84,29 +84,82 @@ class ImageProcessor:
         """
             
         if not NUMPY_AVAILABLE:
-            return {"is_frame": False, "reason": "NumPy not available for advanced frame detection"}
+            # Simple fallback without numpy for RGB frames
+            if image.mode == 'RGB':
+                # Quick heuristic: check if corners have content but center is dark/empty
+                width, height = image.size
+                corner_brightness = []
+                center_x, center_y = width // 2, height // 2
+                
+                # Sample corner pixels
+                corners = [(50, 50), (width-50, 50), (50, height-50), (width-50, height-50)]
+                for x, y in corners:
+                    r, g, b = image.getpixel((x, y))
+                    brightness = (r + g + b) / 3
+                    corner_brightness.append(brightness)
+                
+                # Sample center pixels  
+                center_pixels = [(center_x, center_y), (center_x-20, center_y), (center_x+20, center_y)]
+                center_brightness = []
+                for x, y in center_pixels:
+                    r, g, b = image.getpixel((x, y))
+                    brightness = (r + g + b) / 3
+                    center_brightness.append(brightness)
+                
+                avg_corner = sum(corner_brightness) / len(corner_brightness)
+                avg_center = sum(center_brightness) / len(center_brightness)
+                
+                # Detect both types: dark borders with light center OR light borders with dark center
+                is_dark_border_frame = avg_corner < 50 and avg_center > 150 and (avg_center - avg_corner) > 100
+                is_light_border_frame = avg_corner > 150 and avg_center < 50 and (avg_corner - avg_center) > 100
+                is_frame = is_dark_border_frame or is_light_border_frame
+                
+                frame_type = "dark_border" if is_dark_border_frame else "light_border" if is_light_border_frame else "none"
+                
+                return {
+                    "is_frame": is_frame, 
+                    "reason": "Fallback detection without numpy",
+                    "border_size": min(width, height) // 8,  # Default border size
+                    "frame_type": frame_type,
+                    "edge_opacities": {"fallback": "simple detection"},
+                    "center_opacity": avg_center / 255,
+                    "center_bounds": (width//4, height//4, 3*width//4, 3*height//4),
+                    "analysis": f"Corner: {avg_corner:.1f}, Center: {avg_center:.1f}, Type: {frame_type}"
+                }
+            else:
+                return {"is_frame": False, "reason": "NumPy not available for advanced frame detection"}
             
-        if not image.mode in ('RGBA', 'LA'):
-            return {"is_frame": False, "reason": "No alpha channel"}
+        # Handle both RGBA and RGB images
+        if image.mode not in ('RGBA', 'LA', 'RGB'):
+            return {"is_frame": False, "reason": "Unsupported image mode"}
             
         width, height = image.size
-        alpha = np.array(image.getchannel('A'))
         
-        # Define regions for analysis
-        border_size = min(width, height) // 8  # Dynamic border based on image size
-        center_margin = min(width, height) // 4
+        if image.mode in ('RGBA', 'LA'):
+            # For images with alpha channel
+            analysis_channel = np.array(image.getchannel('A'))
+        else:
+            # For RGB images, convert to grayscale and look for solid backgrounds
+            gray = image.convert('L')
+            analysis_channel = np.array(gray)
+            # Invert logic - dark areas (like black backgrounds) should be treated as "transparent"
+            analysis_channel = 255 - analysis_channel
+        
+        # Define regions for analysis - more aggressive detection
+        border_size = min(width, height) // 6  # Larger border detection
+        center_margin = min(width, height) // 6  # Smaller center margin
         
         # Extract regions
-        top_border = alpha[:border_size, :]
-        bottom_border = alpha[-border_size:, :]
-        left_border = alpha[:, :border_size]  
-        right_border = alpha[:, -border_size:]
+        top_border = analysis_channel[:border_size, :]
+        bottom_border = analysis_channel[-border_size:, :]
+        left_border = analysis_channel[:, :border_size]  
+        right_border = analysis_channel[:, -border_size:]
         
         center_x1 = center_margin
         center_x2 = width - center_margin
         center_y1 = center_margin  
         center_y2 = height - center_margin
-        center = alpha[center_y1:center_y2, center_x1:center_x2]
+        center = analysis_channel[center_y1:center_y2, center_x1:center_x2]
         
         # Calculate opacity percentages
         def calc_opacity(region):
@@ -124,10 +177,11 @@ class ImageProcessor:
         center_opacity = calc_opacity(center)
         min_edge_opacity = min(edge_opacities.values())
         
-        # Frame detection logic
+        # Frame detection logic - more sensitive
         is_frame = (
-            min_edge_opacity > threshold and  # All edges have content
-            center_opacity < threshold        # Center is mostly transparent
+            min_edge_opacity > threshold and           # All edges have content
+            center_opacity < (threshold * 3) and      # Center is mostly transparent  
+            (min_edge_opacity - center_opacity) > 0.2 # Clear difference between edges and center
         )
         
         return {
@@ -136,7 +190,7 @@ class ImageProcessor:
             "center_opacity": center_opacity, 
             "border_size": border_size,
             "center_bounds": (center_x1, center_y1, center_x2, center_y2),
-            "analysis": f"Edges: {min_edge_opacity:.2f}, Center: {center_opacity:.2f}"
+            "analysis": f"Edges: {min_edge_opacity:.2f}, Center: {center_opacity:.2f}, Mode: {image.mode}"
         }
         
     def split_frame_image(self, image: Image.Image, output_dir: Path) -> List[Path]:
@@ -249,9 +303,11 @@ class ImageProcessor:
             results["transparency_removed"] = True
             results["processed_size"] = image.size
             logger.info(f"Removed excess transparency: {original_size} -> {image.size}")
+        else:
+            original_image = image.copy()
         
-        # AUTOMATIC frame detection and splitting (in addition to transparency removal)
-        frame_info = self.detect_frame_pattern(original_image if 'original_image' in locals() else image)
+        # AUTOMATIC frame detection and splitting (ALWAYS check for frames)
+        frame_info = self.detect_frame_pattern(original_image)
         results["frame_analysis"] = frame_info
         
         if frame_info["is_frame"]:
