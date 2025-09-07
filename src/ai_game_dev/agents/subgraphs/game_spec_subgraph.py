@@ -257,6 +257,14 @@ class GameSpecSubgraph(BaseAgent):
                 "networking": "multiplayer" in state.detected_features
             },
             
+            # Path specifications
+            "paths": {
+                "assets_base": "public/static/assets/generated",  # Relative to repo root
+                "code_base": "generated_games",  # Relative to repo root
+                "use_relative_paths": True,  # Use repo-relative paths
+                "project_name": self._sanitize_project_name(title)
+            },
+            
             # Audio specifications
             "audio_specs": {
                 "music_tracks": self._get_music_track_count(state),
@@ -443,6 +451,14 @@ class GameSpecSubgraph(BaseAgent):
         
         state.validation_errors = errors
         return state
+    
+    def _sanitize_project_name(self, title: str) -> str:
+        """Sanitize project name for filesystem."""
+        import re
+        # Remove special characters, replace spaces with underscores
+        sanitized = re.sub(r'[^\w\s-]', '', title.lower())
+        sanitized = re.sub(r'[-\s]+', '_', sanitized)
+        return sanitized[:50]  # Limit length
     
     async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process game specification request."""

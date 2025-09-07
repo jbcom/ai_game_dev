@@ -500,6 +500,8 @@ chainlit.md
 generated_assets/
 generated_examples/
 generated_content/
+/generated_games/
+/public/static/assets/generated/
 
 # AI model outputs and caches
 *.pkl

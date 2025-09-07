@@ -84,9 +84,19 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
     
     async def start_academy_mode(self) -> Dict[str, Any]:
         """Initialize academy mode with the RPG game."""
+        # Ensure RPG spec has proper paths
+        rpg_spec_with_paths = self.rpg_spec.copy()
+        if "paths" not in rpg_spec_with_paths:
+            rpg_spec_with_paths["paths"] = {
+                "assets_base": "public/static/assets/generated/academy",
+                "code_base": "generated_games/academy",
+                "use_relative_paths": True,
+                "project_name": "neotokyo_code_academy"
+            }
+        
         # Use the pre-configured RPG spec
         result = await self.process({
-            "uploaded_spec": self.rpg_spec,
+            "uploaded_spec": rpg_spec_with_paths,
             "educational_mode": True
         })
         

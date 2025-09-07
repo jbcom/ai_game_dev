@@ -19,6 +19,7 @@ class StartupAssetGenerator:
     """Handles idempotent generation of all required assets on startup."""
     
     def __init__(self):
+        self.workspace_root = self._find_workspace_root()
         self.assets_dir = Path("public/static/assets")
         self.generated_dir = Path("generated_assets")
         self.examples_dir = Path("generated_examples")
@@ -38,6 +39,16 @@ class StartupAssetGenerator:
         self.audio_subgraph = None
         self.arcade_agent = None
         self.variant_system = None
+    
+    def _find_workspace_root(self) -> Path:
+        """Find the workspace root directory."""
+        # Look for pyproject.toml to identify root
+        current = Path.cwd()
+        while current != current.parent:
+            if (current / "pyproject.toml").exists():
+                return current
+            current = current.parent
+        return Path.cwd()  # Fallback to current directory
     
     def _load_manifest(self) -> Dict[str, Any]:
         """Load asset generation manifest for idempotency."""
@@ -306,9 +317,15 @@ class StartupAssetGenerator:
         
         # Import the complete RPG specification
         from ai_game_dev.education.rpg_specification import RPG_GAME_SPEC
+        from ai_game_dev.agents.subgraphs import ArcadeAcademySubgraph
         
-        # Check if already generated
-        rpg_dir = self.examples_dir / "neotokyo_academy_rpg"
+        # Use the paths from the spec
+        paths_config = RPG_GAME_SPEC.get("paths", {})
+        code_base = Path(paths_config.get("code_base", "generated_games/academy"))
+        project_name = paths_config.get("project_name", "neotokyo_code_academy")
+        
+        # Create full path (relative to workspace root)
+        rpg_dir = self.workspace_root / code_base / project_name
         spec_hash = self._get_asset_hash(RPG_GAME_SPEC)
         
         if self.manifest["generated_examples"].get("neotokyo_academy_rpg") == spec_hash and rpg_dir.exists():
@@ -317,17 +334,33 @@ class StartupAssetGenerator:
         
         print("📝 Generating complete RPG code and assets...")
         
-        # Use the arcade academy agent to generate everything
-        result = await self.arcade_agent.generate_complete_rpg(RPG_GAME_SPEC)
+        # Initialize and use the academy subgraph
+        academy_subgraph = ArcadeAcademySubgraph()
+        await academy_subgraph.initialize()
         
-        # Save all generated files
-        rpg_dir.mkdir(parents=True, exist_ok=True)
+        # Process the RPG spec
+        result = await academy_subgraph.process_with_education({
+            "uploaded_spec": RPG_GAME_SPEC,
+            "educational_mode": True,
+            "lesson_focus": "variables"  # Start with variables lesson
+        })
         
-        # Main game files
-        for filename, content in result.get("files", {}).items():
-            file_path = rpg_dir / filename
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.write_text(content)
+        if result["success"]:
+            # Extract generated code
+            project_data = result["project"]
+            rpg_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Save all generated files
+            for filename, content in project_data["code"].items():
+                file_path = rpg_dir / filename
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(content)
+            
+            # Assets are generated separately by the workshop subgraph
+            print(f"✅ Code saved to: {rpg_dir}")
+        else:
+            print(f"❌ Failed to generate RPG: {result.get('errors', [])}")
+            return
         
         # Update manifest
         self.manifest["generated_examples"]["neotokyo_academy_rpg"] = spec_hash

@@ -7,6 +7,8 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from langgraph.graph import StateGraph, END
 import json
+from pathlib import Path
+import os
 
 from ai_game_dev.agents.base_agent import BaseAgent, AgentConfig
 from ai_game_dev.agents.pygame_agent import PygameAgent
@@ -108,6 +110,9 @@ class GameWorkshopSubgraph(BaseAgent):
         
         # Build the orchestration graph
         self.graph = self._build_graph()
+        
+        # Determine workspace root
+        self.workspace_root = self._find_workspace_root()
     
     def _build_graph(self) -> StateGraph:
         """Build the workshop orchestration workflow."""
@@ -277,25 +282,31 @@ class GameWorkshopSubgraph(BaseAgent):
         
         # Generate sprites
         for sprite_name in assets_needed[:5]:  # Limit to avoid overwhelming
+            output_path = self._get_asset_path(spec, "sprites", f"{sprite_name}.png")
             graphics_tasks.append({
                 "task": "generate_sprite",
                 "name": sprite_name,
                 "style": spec.get("art_style", "modern"),
-                "size": "64x64" if "pixel" in spec.get("art_style", "") else "128x128"
+                "size": "64x64" if "pixel" in spec.get("art_style", "") else "128x128",
+                "output_path": str(output_path)
             })
         
         # Generate backgrounds
         for bg_name in backgrounds[:3]:
+            output_path = self._get_asset_path(spec, "backgrounds", f"{bg_name}.png")
             graphics_tasks.append({
                 "task": "generate_background",
                 "name": bg_name,
                 "style": spec.get("art_style", "modern"),
-                "size": "1280x720"
+                "size": "1280x720",
+                "output_path": str(output_path)
             })
         
         # Process all graphics
         results = []
         for task in graphics_tasks:
+            # Ensure directory exists
+            Path(task["output_path"]).parent.mkdir(parents=True, exist_ok=True)
             result = await self.graphics_subgraph.process(task)
             results.append(result)
         
@@ -310,25 +321,33 @@ class GameWorkshopSubgraph(BaseAgent):
         
         # Generate music tracks
         track_count = audio_specs.get("music_tracks", 2)
+        track_types = ["menu", "gameplay", "boss"]
         for i in range(min(track_count, 3)):  # Limit tracks
+            track_type = track_types[i]
+            output_path = self._get_asset_path(spec, "audio/music", f"{track_type}.mp3")
             audio_tasks.append({
                 "task": "generate_music",
-                "type": ["menu", "gameplay", "boss"][i],
+                "type": track_type,
                 "genre": spec.get("genre", "arcade"),
-                "duration": 120  # 2 minutes
+                "duration": 120,  # 2 minutes
+                "output_path": str(output_path)
             })
         
         # Generate sound effects
         for effect in sound_effects[:5]:  # Limit effects
+            output_path = self._get_asset_path(spec, "audio/effects", f"{effect}.wav")
             audio_tasks.append({
                 "task": "generate_sound",
                 "effect": effect,
-                "duration": 0.5
+                "duration": 0.5,
+                "output_path": str(output_path)
             })
         
         # Process all audio
         results = []
         for task in audio_tasks:
+            # Ensure directory exists
+            Path(task["output_path"]).parent.mkdir(parents=True, exist_ok=True)
             result = await self.audio_subgraph.process(task)
             results.append(result)
         
@@ -363,6 +382,10 @@ class GameWorkshopSubgraph(BaseAgent):
             state.complete = False
             return state
         
+        # Get paths from spec
+        code_path = self._get_code_path(state.game_spec)
+        paths_config = state.game_spec.get("paths", {})
+        
         # Create final project structure
         project = {
             "metadata": {
@@ -374,7 +397,13 @@ class GameWorkshopSubgraph(BaseAgent):
             "code": state.generated_code,
             "assets": state.generated_assets,
             "structure": state.project_structure,
-            "instructions": self._generate_instructions(state)
+            "instructions": self._generate_instructions(state),
+            "paths": {
+                "code_root": str(code_path),
+                "assets_root": str(self._resolve_path(paths_config.get("assets_base", ""), paths_config)),
+                "project_name": paths_config.get("project_name", "unnamed_project"),
+                "relative_to_repo": paths_config.get("use_relative_paths", True)
+            }
         }
         
         state.project_structure = project
@@ -406,6 +435,49 @@ class GameWorkshopSubgraph(BaseAgent):
         }
         
         return instructions.get(engine, {})
+    
+    def _find_workspace_root(self) -> Path:
+        """Find the workspace root directory."""
+        # Look for pyproject.toml to identify root
+        current = Path.cwd()
+        while current != current.parent:
+            if (current / "pyproject.toml").exists():
+                return current
+            current = current.parent
+        return Path.cwd()  # Fallback to current directory
+    
+    def _resolve_path(self, path_spec: str, path_config: Dict[str, Any]) -> Path:
+        """Resolve a path based on specification configuration."""
+        if path_config.get("use_relative_paths", True):
+            # Relative to workspace root
+            return self.workspace_root / path_spec
+        else:
+            # Absolute path
+            return Path(path_spec)
+    
+    def _get_asset_path(self, spec: Dict[str, Any], asset_type: str, asset_name: str) -> Path:
+        """Get the full path for an asset based on spec configuration."""
+        paths = spec.get("paths", {})
+        assets_base = paths.get("assets_base", "public/static/assets/generated")
+        project_name = paths.get("project_name", "unnamed_project")
+        
+        # Resolve base path
+        base_path = self._resolve_path(assets_base, paths)
+        
+        # Create full asset path: base/project_name/asset_type/asset_name
+        return base_path / project_name / asset_type / asset_name
+    
+    def _get_code_path(self, spec: Dict[str, Any]) -> Path:
+        """Get the base path for generated code."""
+        paths = spec.get("paths", {})
+        code_base = paths.get("code_base", "generated_games")
+        project_name = paths.get("project_name", "unnamed_project")
+        
+        # Resolve base path
+        base_path = self._resolve_path(code_base, paths)
+        
+        # Create full code path: base/project_name/
+        return base_path / project_name
     
     async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Process workshop request."""

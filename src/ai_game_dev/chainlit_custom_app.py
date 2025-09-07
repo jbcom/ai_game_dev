@@ -146,30 +146,43 @@ async def handle_create_game(user_input: str):
         if result["success"]:
             # Extract project details
             project_data = result["project"]
+            paths_info = project_data.get("paths", {})
             
-            # Create project record
-            project = project_manager.create_project(
-                name=project_data["metadata"]["title"],
-                description=description,
-                engine=project_data["metadata"]["engine"]
-            )
+            # Use the code root from the project paths
+            if paths_info.get("relative_to_repo", True):
+                code_root = Path(paths_info["code_root"])
+            else:
+                # For absolute paths, create project in project manager's default location
+                project = project_manager.create_project(
+                    name=project_data["metadata"]["title"],
+                    description=description,
+                    engine=project_data["metadata"]["engine"]
+                )
+                code_root = Path(project.project_path)
             
-            # Save generated files
+            # Save generated files to the specified location
+            code_root.mkdir(parents=True, exist_ok=True)
             for filename, content in project_data["code"].items():
-                file_path = Path(project.project_path) / filename
+                file_path = code_root / filename
                 file_path.parent.mkdir(parents=True, exist_ok=True)
                 file_path.write_text(content)
             
-            cl.user_session.set("current_project", project)
+            # Store project info
+            cl.user_session.set("current_project", {
+                "name": project_data["metadata"]["title"],
+                "path": str(code_root),
+                "engine": project_data["metadata"]["engine"],
+                "assets_path": paths_info.get("assets_root", "")
+            })
             
             # Send completion
             await send_ui_update({
                 "type": "generation_complete",
                 "project": {
-                    "id": project.id,
-                    "name": project.name,
-                    "path": str(project.project_path),
-                    "description": project.description,
+                    "name": project_data["metadata"]["title"],
+                    "path": str(code_root),
+                    "assets_path": paths_info.get("assets_root", ""),
+                    "description": description,
                     "files": list(project_data["code"].keys()),
                     "assets": project_data.get("assets", {})
                 }

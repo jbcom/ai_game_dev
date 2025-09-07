@@ -14,6 +14,14 @@ RPG_GAME_SPEC = {
     "target_resolution": "1280x720",
     "inspiration": "Final Fantasy VI, Secret of Mana, Chrono Trigger, Radiant Historia",
     
+    # Path configuration for proper asset and code organization
+    "paths": {
+        "assets_base": "public/static/assets/generated/academy",
+        "code_base": "generated_games/academy",
+        "use_relative_paths": True,
+        "project_name": "neotokyo_code_academy"
+    },
+    
     "core_systems": {
         "party_system": {
             "max_party_size": 4,
