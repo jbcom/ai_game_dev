@@ -105,14 +105,73 @@ class InternalAssetAgent(PygameAgent):
         - assets_created: int count
         """
         
+    async def verify_asset_availability(self, required_assets: Dict[str, List[str]]) -> Dict[str, Any]:
+        """
+        Idempotently verify all required assets are available, generate missing ones.
+        
+        Args:
+            required_assets: Dict mapping categories to lists of asset paths
+            
+        Returns:
+            Verification results with generation status
+        """
+        results = {
+            "all_available": True,
+            "missing_assets": {},
+            "generated_assets": {},
+            "failed_assets": {},
+            "total_checked": 0,
+            "total_missing": 0,
+            "total_generated": 0
+        }
+        
+        # Check each asset category
+        for category, asset_paths in required_assets.items():
+            missing_in_category = []
+            
+            for asset_path in asset_paths:
+                path = Path(asset_path)
+                results["total_checked"] += 1
+                
+                if not path.exists():
+                    missing_in_category.append(asset_path)
+                    results["total_missing"] += 1
+                    results["all_available"] = False
+            
+            if missing_in_category:
+                results["missing_assets"][category] = missing_in_category
+                
+                # Attempt to generate missing assets for this category
+                print(f"🔧 Generating missing {category} assets...")
+                generation_result = await self.execute_task(
+                    task=f"generate_{category}_assets",
+                    context={
+                        "asset_type": category,
+                        "missing_assets": missing_in_category,
+                        "output_dir": "src/ai_game_dev/server/static/assets"
+                    }
+                )
+                
+                if generation_result["success"]:
+                    results["generated_assets"][category] = generation_result["generated"]
+                    results["total_generated"] += generation_result["assets_created"]
+                    print(f"✅ Generated {generation_result['assets_created']} {category} assets")
+                else:
+                    results["failed_assets"][category] = generation_result.get("failed", [])
+                    print(f"❌ Failed to generate {category} assets")
+        
+        return results
+    
     async def execute_task(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute an internal asset generation task."""
         
         # Determine task type from context
         asset_type = context.get("asset_type", "")
         
-        if "static" in asset_type:
+        if "static" in asset_type or "logos" in asset_type or "frames" in asset_type or "textures" in asset_type:
             return await self._generate_static_assets(context)
+        elif "audio" in asset_type:
+            return await self._generate_audio_assets(context)
         elif "educational" in asset_type and "code" in asset_type:
             return await self._generate_educational_game_code(context)
         elif "educational" in asset_type and "asset" in asset_type:
@@ -436,6 +495,38 @@ Generate production-ready Python code with proper structure and comments."""
         response = await self.llm.ainvoke(messages)
         
         return response.content
+    
+    async def _generate_audio_assets(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate audio assets (placeholder - would integrate with audio generation service)."""
+        
+        results = {
+            "success": True,
+            "generated": [],
+            "failed": [],
+            "assets_created": 0,
+            "message": "Audio asset generation placeholder"
+        }
+        
+        # Audio generation would require external service integration
+        # For now, return success but note assets need manual creation
+        missing_audio = context.get("missing_assets", [])
+        
+        for audio_path in missing_audio:
+            results["failed"].append({
+                "type": "audio",
+                "path": audio_path,
+                "reason": "Audio generation requires external service integration"
+            })
+        
+        # Note: In production, this would integrate with services like:
+        # - ElevenLabs for voice synthesis
+        # - Suno for music generation
+        # - Custom TTS for cyberpunk audio effects
+        
+        results["success"] = False
+        results["message"] = "Audio assets require manual creation or external service integration"
+        
+        return results
         
     async def _generate_pygame_game_file(self) -> str:
         """Generate the game.py file for the educational RPG."""
@@ -464,6 +555,38 @@ Generate production-ready pygame code with proper class structure."""
         response = await self.llm.ainvoke(messages)
         
         return response.content
+    
+    async def _generate_audio_assets(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate audio assets (placeholder - would integrate with audio generation service)."""
+        
+        results = {
+            "success": True,
+            "generated": [],
+            "failed": [],
+            "assets_created": 0,
+            "message": "Audio asset generation placeholder"
+        }
+        
+        # Audio generation would require external service integration
+        # For now, return success but note assets need manual creation
+        missing_audio = context.get("missing_assets", [])
+        
+        for audio_path in missing_audio:
+            results["failed"].append({
+                "type": "audio",
+                "path": audio_path,
+                "reason": "Audio generation requires external service integration"
+            })
+        
+        # Note: In production, this would integrate with services like:
+        # - ElevenLabs for voice synthesis
+        # - Suno for music generation
+        # - Custom TTS for cyberpunk audio effects
+        
+        results["success"] = False
+        results["message"] = "Audio assets require manual creation or external service integration"
+        
+        return results
         
     async def _generate_pygame_player_file(self) -> str:
         """Generate the player.py file for the educational RPG."""
@@ -491,3 +614,35 @@ Generate production-ready pygame player class with proper state management."""
         response = await self.llm.ainvoke(messages)
         
         return response.content
+    
+    async def _generate_audio_assets(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate audio assets (placeholder - would integrate with audio generation service)."""
+        
+        results = {
+            "success": True,
+            "generated": [],
+            "failed": [],
+            "assets_created": 0,
+            "message": "Audio asset generation placeholder"
+        }
+        
+        # Audio generation would require external service integration
+        # For now, return success but note assets need manual creation
+        missing_audio = context.get("missing_assets", [])
+        
+        for audio_path in missing_audio:
+            results["failed"].append({
+                "type": "audio",
+                "path": audio_path,
+                "reason": "Audio generation requires external service integration"
+            })
+        
+        # Note: In production, this would integrate with services like:
+        # - ElevenLabs for voice synthesis
+        # - Suno for music generation
+        # - Custom TTS for cyberpunk audio effects
+        
+        results["success"] = False
+        results["message"] = "Audio assets require manual creation or external service integration"
+        
+        return results

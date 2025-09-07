@@ -77,33 +77,24 @@ class UnifiedGameDevServer:
         try:
             from ai_game_dev.agents.internal_agent import InternalAssetAgent
             
-            # Define required asset directories and files
+            # Get required asset list
             required_assets = self._get_required_assets()
-            missing_assets = self._check_missing_assets(required_assets)
             
-            if missing_assets:
-                print(f"🔧 Found {len(missing_assets)} missing assets, generating...")
+            # Initialize Internal agent for comprehensive verification
+            async with InternalAssetAgent() as agent:
+                verification_result = await agent.verify_asset_availability(required_assets)
                 
-                # Initialize Internal agent for asset generation
-                async with InternalAssetAgent() as agent:
-                    for asset_category, assets in missing_assets.items():
-                        print(f"📦 Generating {asset_category} assets...")
-                        
-                        result = await agent.execute_task(
-                            task=f"generate_{asset_category}_assets",
-                            context={
-                                "asset_type": asset_category,
-                                "missing_assets": assets,
-                                "output_dir": "src/ai_game_dev/server/static/assets"
-                            }
-                        )
-                        
-                        if result["success"]:
-                            print(f"✅ Generated {result['assets_created']} {asset_category} assets")
-                        else:
-                            print(f"❌ Failed to generate {asset_category} assets: {result.get('message', 'Unknown error')}")
-            else:
-                print("✅ All required assets are available")
+                # Report verification results
+                if verification_result["all_available"]:
+                    print("✅ All required assets are available")
+                else:
+                    print(f"🔧 Asset verification complete:")
+                    print(f"   📊 Total checked: {verification_result['total_checked']}")
+                    print(f"   ❌ Missing: {verification_result['total_missing']}")
+                    print(f"   ✅ Generated: {verification_result['total_generated']}")
+                    
+                    if verification_result["failed_assets"]:
+                        print(f"   ⚠️ Failed categories: {list(verification_result['failed_assets'].keys())}")
                 
         except Exception as e:
             print(f"⚠️ Asset verification failed: {e}")
