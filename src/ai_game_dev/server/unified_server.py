@@ -53,10 +53,6 @@ class UnifiedGameDevServer:
         print("🚀 Initializing SQLite caching and memory...")
         self._initialize_sqlite_cache()
         
-        # Verify asset availability on startup
-        print("🎨 Verifying asset availability...")
-        asyncio.create_task(self._verify_asset_availability())
-        
         # Initialize FastMCP server for SSE connections
         self.mcp = FastMCP("AI Game Development Server")
         self.setup_mcp_tools()
@@ -353,6 +349,11 @@ class UnifiedGameDevServer:
     async def start(self):
         """Start the unified server."""
         print(f"🚀 Starting Unified AI Game Development Server")
+        
+        # Verify asset availability before starting server
+        print("🎨 Verifying asset availability...")
+        await self._verify_asset_availability()
+        
         print(f"🌐 Web Interface: http://{self.host}:{self.port}")
         print(f"🔧 MCP SSE Endpoint: http://{self.host}:{self.port}/mcp/sse")
         print(f"📡 REST API: http://{self.host}:{self.port}/api/")
