@@ -39,31 +39,33 @@ class InternalAssetTask:
 
 class InternalAssetAgent(PygameAgent):
     """
-    Internal agent that coordinates all asset generation using LangChain DALLE.
+    Internal agent that coordinates asset generation by delegating to specialized subgraphs.
     """
     
     def __init__(self):
-        # Configure for internal asset generation
+        # Configure for internal asset coordination
         config = AgentConfig(
             model="gpt-4o",
             temperature=0.2,
             instructions=self._get_internal_asset_instructions()
         )
         super().__init__(config)
-        self.dalle_wrapper = None
-        self.dalle_tool = None
         self.tasks: List[InternalAssetTask] = []
-        self.image_processor = ImageProcessor()
+        
+        # Import and initialize subgraphs for delegation
+        from ai_game_dev.agents.subgraphs import GraphicsSubgraph, AudioSubgraph
+        self.graphics_subgraph = GraphicsSubgraph()
+        self.audio_subgraph = AudioSubgraph()
         
     async def initialize(self):
-        """Initialize the internal agent with LangChain DALLE."""
+        """Initialize the internal agent and its subgraphs."""
         
         # Initialize parent pygame agent
         await super().initialize()
         
-        # Initialize LangChain DALLE tool
-        self.dalle_wrapper = DallEAPIWrapper()
-        self.dalle_tool = OpenAIDALLEImageGenerationTool(api_wrapper=self.dalle_wrapper)
+        # Initialize delegated subgraphs
+        await self.graphics_subgraph.initialize()
+        await self.audio_subgraph.initialize()
         
     async def __aenter__(self):
         await self.initialize()
@@ -77,32 +79,34 @@ class InternalAssetAgent(PygameAgent):
         """Get specialized instructions for internal asset generation."""
         return """
         
-        INTERNAL ASSET GENERATION WITH LANGCHAIN DALLE:
+        INTERNAL ASSET COORDINATION AND DELEGATION:
         
-        You coordinate all internal asset generation using LangChain DALLE tool.
+        You coordinate all internal asset generation by delegating to specialized subgraphs.
         Your responsibilities include:
         
-        1. PLATFORM STATIC ASSETS:
-           - Generate cyberpunk UI elements (buttons, icons, panels)
-           - Create engine showcase artwork (pygame, bevy, godot panels)
-           - Produce branding and logo assets
+        1. COORDINATION TASKS:
+           - Route asset requests to appropriate subgraphs
+           - Delegate graphics generation to GraphicsSubgraph
+           - Delegate audio specifications to AudioSubgraph
+           - Aggregate results from multiple subgraphs
            
-        2. EDUCATIONAL RPG ASSETS:
-           - Create Professor Pixel character assets
-           - Generate cyberpunk character sprites
-           - Produce NeoTokyo environment tilesets
-           - Create educational UI elements
+        2. ASSET CATEGORIES:
+           - Platform UI assets (buttons, panels, logos)
+           - Educational game assets (characters, environments)
+           - Audio interface elements
+           - Game code and configuration files
            
-        3. ASSET QUALITY STANDARDS:
-           - All images generated using LangChain DALLE tool
-           - Cyberpunk aesthetic consistency
-           - Production-quality results
+        3. DELEGATION STANDARDS:
+           - Use GraphicsSubgraph for all visual asset generation
+           - Use AudioSubgraph for audio specifications
+           - Maintain consistent cyberpunk aesthetic
+           - Return aggregated results from all subgraphs
            
         Always return dict responses with:
         - success: bool
-        - generated: list of generated assets
+        - generated: list of generated assets from subgraphs
         - failed: list of failed assets
-        - assets_created: int count
+        - subgraph_results: dict of results from each subgraph
         """
         
     async def verify_asset_availability(self, required_assets: Dict[str, List[str]]) -> Dict[str, Any]:
@@ -163,30 +167,93 @@ class InternalAssetAgent(PygameAgent):
         return results
     
     async def execute_task(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute an internal asset generation task."""
+        """Execute asset generation task by delegating to specialized subgraphs."""
         
-        # Determine task type from context
+        print(f"🎨 Internal Agent coordinating: {task}")
+        
+        results = {
+            "success": True,
+            "generated": [],
+            "failed": [],
+            "subgraph_results": {},
+            "assets_created": 0,
+            "message": "Asset generation coordinated successfully"
+        }
+        
+        # Parse context to determine what needs generation
         asset_type = context.get("asset_type", "")
+        asset_categories = context.get("asset_categories", [])
         
-        # Route to comprehensive game asset generation for TOML-based assets
-        if any(game_asset in asset_type for game_asset in ["rpg_characters", "educational_environments", "professor_pixel", "game_code", "yarn_spinner", "educational_ui"]):
-            return await self._generate_comprehensive_game_assets(context)
-        elif "static" in asset_type or "logos" in asset_type or "frames" in asset_type or "textures" in asset_type:
-            return await self._generate_static_assets(context)
-        elif "audio" in asset_type:
-            return await self._generate_audio_assets(context)
-        elif "educational" in asset_type and "code" in asset_type:
-            return await self._generate_educational_game_code(context)
-        elif "educational" in asset_type and "asset" in asset_type:
-            return await self._generate_educational_assets(context)
-        else:
-            return {
-                "success": False,
-                "message": f"Unknown asset type: {asset_type}",
-                "generated": [],
-                "failed": [],
-                "assets_created": 0
-            }
+        try:
+            # Delegate graphics generation to GraphicsSubgraph for visual assets
+            if any(visual_asset in asset_type for visual_asset in ["rpg_characters", "educational_environments", "professor_pixel", "static", "logos", "frames", "textures"]):
+                print("🎨 Delegating visual asset generation to GraphicsSubgraph...")
+                
+                # Prepare game spec for graphics subgraph
+                game_spec = {
+                    "title": context.get("game_title", "NeoTokyo Code Academy"),
+                    "genre": "educational_rpg",
+                    "art_style": "cyberpunk_pixel_art",
+                    "description": "Cyberpunk educational RPG with Professor Pixel"
+                }
+                
+                graphics_results = await self.graphics_subgraph.generate_graphics(game_spec)
+                results["subgraph_results"]["graphics"] = graphics_results
+                
+                if graphics_results.get("success"):
+                    results["generated"].extend(graphics_results.get("generated_graphics", []))
+                    results["assets_created"] += graphics_results.get("total_generated", 0)
+                else:
+                    results["failed"].extend(graphics_results.get("failed_graphics", []))
+            
+            # Delegate audio specifications to AudioSubgraph  
+            elif "audio" in asset_type:
+                print("🎵 Delegating audio specs to AudioSubgraph...")
+                
+                # Prepare game spec for audio subgraph
+                audio_spec = {
+                    "title": "NeoTokyo Code Academy",
+                    "genre": "educational_rpg", 
+                    "art_style": "cyberpunk",
+                    "features": ["dialogue", "ambient_audio", "ui_audio"]
+                }
+                
+                audio_results = await self.audio_subgraph.generate_audio_specs(audio_spec)
+                results["subgraph_results"]["audio"] = audio_results
+                
+                if audio_results.get("success"):
+                    results["generated"].append({"type": "audio_specs", "data": audio_results})
+                    results["assets_created"] += 1
+                else:
+                    results["failed"].append({"type": "audio_specs", "error": "Audio spec generation failed"})
+            
+            # Handle game code generation (keep this internal for now)
+            elif "game_code" in asset_type or "yarn_spinner" in asset_type:
+                print("💻 Generating educational game code...")
+                code_results = await self._generate_educational_game_code(context)
+                results["subgraph_results"]["game_code"] = code_results
+                
+                if code_results.get("success"):
+                    results["generated"].extend(code_results.get("generated", []))
+                    results["assets_created"] += code_results.get("assets_created", 0)
+                else:
+                    results["failed"].extend(code_results.get("failed", []))
+            
+            else:
+                results["success"] = False
+                results["message"] = f"Unknown asset type: {asset_type}"
+                results["failed"].append({"type": "unknown", "error": f"Unsupported asset type: {asset_type}"})
+            
+            # Update overall success and message
+            results["success"] = results["assets_created"] > 0
+            results["message"] = f"Generated {results['assets_created']} assets, {len(results['failed'])} failed"
+            
+        except Exception as e:
+            results["success"] = False
+            results["message"] = f"Asset coordination failed: {str(e)}"
+            results["failed"].append({"type": "coordination", "error": str(e)})
+        
+        return results
     
     async def _generate_comprehensive_game_assets(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Generate comprehensive game assets from TOML specifications."""
