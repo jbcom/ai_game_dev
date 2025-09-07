@@ -7,7 +7,7 @@ import zipfile
 import io
 
 from ai_game_dev.project_manager import ProjectManager, ProjectInfo
-from ai_game_dev.assets.generator import AssetGenerator, AssetRequest
+# Asset generation now handled by LangGraph subgraphs
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -28,8 +28,10 @@ class AssetGenerationRequest(BaseModel):
 def get_project_manager() -> ProjectManager:
     return ProjectManager()
 
-def get_asset_generator() -> AssetGenerator:
-    return AssetGenerator()
+def get_graphics_subgraph():
+    """Get graphics subgraph for asset generation."""
+    from ai_game_dev.agents.subgraphs import GraphicsSubgraph
+    return GraphicsSubgraph()
 
 @router.get("/projects", response_model=List[Dict[str, Any]])
 async def list_projects(
@@ -203,36 +205,33 @@ async def get_project_stats(
 @router.post("/assets/generate")
 async def generate_asset(
     request: AssetGenerationRequest,
-    asset_generator: AssetGenerator = Depends(get_asset_generator)
+    graphics_subgraph = Depends(get_graphics_subgraph)
 ):
-    """Generate a game asset."""
-    asset_request = AssetRequest(
-        asset_type=request.asset_type,
-        description=request.description,
-        style=request.style,
-        dimensions=request.dimensions,
-        additional_params=request.additional_params
-    )
+    """Generate a game asset using LangGraph graphics subgraph."""
+    
+    # Convert request to game spec format for subgraph
+    game_spec = {
+        "title": f"Asset: {request.asset_type}",
+        "art_style": request.style,
+        "genre": "game",
+        "description": request.description,
+        "features": [request.asset_type]
+    }
     
     try:
-        if request.asset_type == "sprite":
-            asset = await asset_generator.generate_sprite(asset_request)
-        elif request.asset_type == "tileset":
-            asset = await asset_generator.generate_tileset(asset_request)
-        elif request.asset_type == "sound":
-            asset = await asset_generator.generate_sound(asset_request)
-        elif request.asset_type == "music":
-            asset = await asset_generator.generate_music(asset_request)
-        else:
-            raise HTTPException(status_code=400, detail=f"Unsupported asset type: {request.asset_type}")
+        # Use the graphics subgraph to generate assets
+        result = await graphics_subgraph.generate_graphics(game_spec)
         
-        return {
-            "success": True,
-            "asset_type": asset.asset_type,
-            "description": asset.description,
-            "metadata": asset.metadata,
-            "has_data": asset.data is not None
-        }
+        if result["success"]:
+            return {
+                "success": True,
+                "asset_type": request.asset_type,
+                "description": request.description,
+                "generated_assets": result["generated_graphics"],
+                "total_generated": result["total_generated"]
+            }
+        else:
+            raise HTTPException(status_code=500, detail=f"Asset generation failed: {result.get('error', 'Unknown error')}")
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Asset generation failed: {str(e)}")

@@ -20,6 +20,7 @@ from .sse_transport import create_sse_server
 # Import our core functionality
 from ai_game_dev.engines import engine_manager, generate_for_engine, get_supported_engines
 # Asset generation now handled by LangChain DALLE in subgraphs
+# Cache config imported on demand to avoid dependency issues
 
 # Try to import HTMY for web UI, fallback to simple web interface
 try:
@@ -48,11 +49,24 @@ class UnifiedGameDevServer:
             version="1.0.0"
         )
         
+        # Initialize SQLite caching and memory persistence
+        print("🚀 Initializing SQLite caching and memory...")
+        self._initialize_sqlite_cache()
+        
         # Initialize FastMCP server for SSE connections
         self.mcp = FastMCP("AI Game Development Server")
         self.setup_mcp_tools()
         self.setup_middleware()
         self.setup_routes()
+    
+    def _initialize_sqlite_cache(self):
+        """Initialize SQLite caching without heavy dependencies."""
+        try:
+            from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
+            initialize_sqlite_cache_and_memory()
+        except ImportError as e:
+            print(f"⚠️ SQLite caching unavailable: {e}")
+            print("ℹ️ Running without persistent caching")
     
     def setup_middleware(self):
         """Setup CORS and other middleware."""
