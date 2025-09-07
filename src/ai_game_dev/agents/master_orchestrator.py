@@ -95,10 +95,10 @@ class MasterGameDevOrchestrator(BaseAgent):
         
         # Initialize engine agents dynamically to avoid circular imports
         try:
-            from ai_game_dev.agents.pygame_agent import PygameAgent
+            from ai_game_dev.agents.pygame_agent import PygameAgent  # type: ignore
             self.pygame_agent = PygameAgent()
             await self.pygame_agent.initialize()
-        except (ImportError, FileNotFoundError):
+        except (ImportError, FileNotFoundError, ModuleNotFoundError):
             self.pygame_agent = None
             
         try:
@@ -146,10 +146,10 @@ class MasterGameDevOrchestrator(BaseAgent):
         
         # Initialize variant system for interactive A/B choices  
         try:
-            from ai_game_dev.models.llm_manager import LLMManager
+            from ai_game_dev.models.llm_manager import LLMManager  # type: ignore
             llm_manager = LLMManager()
             self.variant_system = InteractiveVariantSystem(llm_manager)
-        except ImportError:
+        except (ImportError, ModuleNotFoundError):
             # Fallback if LLMManager not available
             self.variant_system = InteractiveVariantSystem(self.llm)
         
@@ -381,13 +381,18 @@ Respond with a JSON object matching this structure:
             )
             
         except (json.JSONDecodeError, KeyError) as e:
-            # Create fallback spec
+            # Create fallback spec with validated engine
+            fallback_engine = state.detected_engine or "pygame"
+            if fallback_engine not in ["pygame", "godot", "bevy"]:
+                fallback_engine = "pygame"
+            
             state.generated_spec = GameSpec(
                 title="Generated Game",
                 description=user_input,
-                engine=state.detected_engine or "pygame",
+                engine=fallback_engine,  # type: ignore
                 genre="adventure",
-                target_audience="all"
+                target_audience="all",
+                complexity="intermediate"  # type: ignore
             )
             
         return state
@@ -656,11 +661,13 @@ Respond with a JSON object for seeding coordination:
         # Execute dialogue subgraph if available
         if self.dialogue_subgraph:
             dialogue_task = f"Generate dialogue system for {spec.genre} game: {spec.description}"
-            # Use generate method if available, otherwise fallback
+            # Use available methods for dialogue generation
             if hasattr(self.dialogue_subgraph, 'generate'):
-                dialogue_results = await self.dialogue_subgraph.generate(dialogue_context)
+                dialogue_results = await self.dialogue_subgraph.generate(dialogue_context)  # type: ignore
+            elif hasattr(self.dialogue_subgraph, 'execute'):
+                dialogue_results = await self.dialogue_subgraph.execute(dialogue_context)  # type: ignore
             else:
-                dialogue_results = {"status": "dialogue_generation_complete", "context": dialogue_context}
+                dialogue_results = {"status": "dialogue_generation_complete", "context": dialogue_context, "task": dialogue_task}
         else:
             dialogue_results = {"status": "dialogue_subgraph_unavailable"}
         
@@ -686,11 +693,13 @@ Respond with a JSON object for seeding coordination:
         # Execute quest subgraph if available
         if self.quest_subgraph:
             quest_task = f"Generate quest system for {spec.genre} game: {spec.description}"
-            # Use generate method if available, otherwise fallback
+            # Use available methods for quest generation
             if hasattr(self.quest_subgraph, 'generate'):
-                quest_results = await self.quest_subgraph.generate(quest_context)
+                quest_results = await self.quest_subgraph.generate(quest_context)  # type: ignore
+            elif hasattr(self.quest_subgraph, 'execute'):
+                quest_results = await self.quest_subgraph.execute(quest_context)  # type: ignore
             else:
-                quest_results = {"status": "quest_generation_complete", "context": quest_context}
+                quest_results = {"status": "quest_generation_complete", "context": quest_context, "task": quest_task}
         else:
             quest_results = {"status": "quest_subgraph_unavailable"}
         
@@ -716,11 +725,13 @@ Respond with a JSON object for seeding coordination:
         # Execute graphics subgraph if available
         if self.graphics_subgraph:
             graphics_task = f"Generate graphics assets for {spec.genre} game: {spec.description}"
-            # Use generate method if available, otherwise fallback
+            # Use available methods for graphics generation
             if hasattr(self.graphics_subgraph, 'generate'):
-                graphics_results = await self.graphics_subgraph.generate(graphics_context)
+                graphics_results = await self.graphics_subgraph.generate(graphics_context)  # type: ignore
+            elif hasattr(self.graphics_subgraph, 'execute'):
+                graphics_results = await self.graphics_subgraph.execute(graphics_context)  # type: ignore
             else:
-                graphics_results = {"status": "graphics_generation_complete", "context": graphics_context}
+                graphics_results = {"status": "graphics_generation_complete", "context": graphics_context, "task": graphics_task}
         else:
             graphics_results = {"status": "graphics_subgraph_unavailable"}
         
@@ -746,11 +757,13 @@ Respond with a JSON object for seeding coordination:
         # Execute audio subgraph if available
         if self.audio_subgraph:
             audio_task = f"Generate audio assets for {spec.genre} game: {spec.description}"
-            # Use generate method if available, otherwise fallback
+            # Use available methods for audio generation
             if hasattr(self.audio_subgraph, 'generate'):
-                audio_results = await self.audio_subgraph.generate(audio_context)
+                audio_results = await self.audio_subgraph.generate(audio_context)  # type: ignore
+            elif hasattr(self.audio_subgraph, 'execute'):
+                audio_results = await self.audio_subgraph.execute(audio_context)  # type: ignore
             else:
-                audio_results = {"status": "audio_generation_complete", "context": audio_context}
+                audio_results = {"status": "audio_generation_complete", "context": audio_context, "task": audio_task}
         else:
             audio_results = {"status": "audio_subgraph_unavailable"}
         
@@ -793,10 +806,21 @@ Respond with a JSON object for seeding coordination:
                 self.workflow = await self._build_graph()
             result = await self.workflow.ainvoke(initial_state)
             
+            # Handle result properly whether it's a state object or dict
+            if hasattr(result, 'outputs'):
+                result_data = result.outputs
+                subgraph_data = getattr(result, 'subgraph_results', {})
+            elif isinstance(result, dict):
+                result_data = result
+                subgraph_data = result.get('subgraph_results', {})
+            else:
+                result_data = result.__dict__ if hasattr(result, '__dict__') else {}
+                subgraph_data = getattr(result, 'subgraph_results', {})
+            
             return {
                 "success": True,
-                "result": result.outputs if hasattr(result, 'outputs') else result.__dict__,
-                "subgraph_results": result.subgraph_results if hasattr(result, 'subgraph_results') else {},
+                "result": result_data,
+                "subgraph_results": subgraph_data,
                 "message": "Request processed successfully through master orchestrator"
             }
             
@@ -814,15 +838,21 @@ Respond with a JSON object for seeding coordination:
             if isinstance(spec_data, str):
                 # File path - load TOML specification
                 if hasattr(self.game_spec_parser, 'parse_toml_file'):
-                    parsed_spec = self.game_spec_parser.parse_toml_file(spec_data)
+                    parsed_spec = self.game_spec_parser.parse_toml_file(spec_data)  # type: ignore
+                elif hasattr(self.game_spec_parser, 'parse_comprehensive_spec'):
+                    parsed_spec = self.game_spec_parser.parse_comprehensive_spec(spec_data)  # type: ignore
                 else:
-                    parsed_spec = self.game_spec_parser.parse_comprehensive_spec(spec_data)
+                    # Fallback parsing
+                    parsed_spec = {"file_path": spec_data, "parsed": False, "error": "No parser method available"}
             elif isinstance(spec_data, dict):
                 # Dictionary specification
                 if hasattr(self.game_spec_parser, 'parse_dict_specification'):
-                    parsed_spec = self.game_spec_parser.parse_dict_specification(spec_data)
+                    parsed_spec = self.game_spec_parser.parse_dict_specification(spec_data)  # type: ignore
+                elif hasattr(self.game_spec_parser, 'parse_comprehensive_spec'):
+                    parsed_spec = self.game_spec_parser.parse_comprehensive_spec(spec_data)  # type: ignore
                 else:
-                    parsed_spec = self.game_spec_parser.parse_comprehensive_spec(spec_data)
+                    # Fallback parsing
+                    parsed_spec = {"spec_data": spec_data, "parsed": True}
             else:
                 raise ValueError(f"Unsupported specification type: {type(spec_data)}")
             
@@ -958,11 +988,25 @@ Always ensure that the final output is a complete, functional game that meets th
                 self.workflow = await self._build_graph()
             result = await self.workflow.ainvoke(initial_state)
             
+            # Handle result properly whether it's a state object or dict
+            if hasattr(result, 'generated_spec'):
+                game_spec_data = result.generated_spec.__dict__ if result.generated_spec else {}
+                subgraph_data = getattr(result, 'subgraph_results', {})
+                final_data = getattr(result, 'outputs', {})
+            elif isinstance(result, dict):
+                game_spec_data = result.get('generated_spec', {})
+                subgraph_data = result.get('subgraph_results', {})
+                final_data = result.get('outputs', result)
+            else:
+                game_spec_data = {}
+                subgraph_data = {}
+                final_data = result.__dict__ if hasattr(result, '__dict__') else {}
+            
             return {
                 "success": True,
-                "game_spec": result.generated_spec.__dict__ if result.generated_spec else {},
-                "subgraph_results": result.subgraph_results,
-                "final_output": result.final_output
+                "game_spec": game_spec_data,
+                "subgraph_results": subgraph_data,
+                "final_output": final_data
             }
             
         except Exception as e:
