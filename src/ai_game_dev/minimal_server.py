@@ -7,6 +7,7 @@ import asyncio
 import json
 import sqlite3
 import os
+import mimetypes
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
@@ -26,6 +27,8 @@ class GameDevHandler(BaseHTTPRequestHandler):
         
         if path == "/":
             self.serve_main_interface()
+        elif path.startswith("/static/"):
+            self.serve_static_file(path)
         elif path == "/api/status":
             self.serve_api_status()
         elif path == "/api/player-data":
@@ -51,8 +54,41 @@ class GameDevHandler(BaseHTTPRequestHandler):
         else:
             self.serve_404()
     
+    def serve_static_file(self, path):
+        """Serve static files (assets)."""
+        
+        # Remove /static/ prefix and get relative path
+        file_path = path[8:]  # Remove '/static/'
+        
+        # Look for the file in the static assets directory
+        static_dir = Path(__file__).parent / "server" / "static"
+        full_path = static_dir / file_path
+        
+        try:
+            if full_path.exists() and full_path.is_file():
+                # Get MIME type
+                mime_type, _ = mimetypes.guess_type(str(full_path))
+                if mime_type is None:
+                    mime_type = 'application/octet-stream'
+                
+                # Read and serve the file
+                with open(full_path, 'rb') as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header('Content-type', mime_type)
+                self.send_header('Content-length', len(content))
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self.serve_404()
+                
+        except Exception as e:
+            print(f"Error serving static file {path}: {e}")
+            self.serve_404()
+    
     def serve_main_interface(self):
-        """Serve the main split-panel interface."""
+        """Serve the main split-panel interface with existing assets."""
         
         html = """
         <!DOCTYPE html>
@@ -61,33 +97,93 @@ class GameDevHandler(BaseHTTPRequestHandler):
             <title>🎮 AI Game Development Platform</title>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
+            
+            <!-- Local Fonts -->
+            <style>
+                @font-face {
+                    font-family: 'Inter';
+                    src: url('/static/assets/fonts/inter-400.woff2') format('woff2');
+                    font-weight: 400;
+                    font-display: swap;
+                }
+                @font-face {
+                    font-family: 'Inter';
+                    src: url('/static/assets/fonts/inter-600.woff2') format('woff2');
+                    font-weight: 600;
+                    font-display: swap;
+                }
+                @font-face {
+                    font-family: 'JetBrains Mono';
+                    src: url('/static/assets/fonts/jetbrains-mono-400.woff2') format('woff2');
+                    font-weight: 400;
+                    font-display: swap;
+                }
+            </style>
+            
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 
                 body { 
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+                    background: 
+                        url('/static/assets/textures/circuit-pattern.png'),
+                        linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 30%, #16213e 70%, #0f3460 100%);
+                    background-size: 300px 300px, cover;
+                    background-repeat: repeat, no-repeat;
+                    background-blend-mode: soft-light, normal;
                     min-height: 100vh;
                     padding: 20px;
+                    color: white;
                 }
                 
                 .main-container {
                     max-width: 1400px;
                     margin: 0 auto;
-                    background: rgba(255, 255, 255, 0.95);
-                    border-radius: 15px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                    overflow: hidden;
                     min-height: calc(100vh - 40px);
-                    border: 3px solid #4a5568;
+                    position: relative;
+                }
+                
+                /* Tech Frame System */
+                :root {
+                    --inset-top: 11%;
+                    --inset-right: 10%;
+                    --inset-bottom: 12%;
+                    --inset-left: 13%;
+                }
+                
+                .tech-frame {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: center / cover no-repeat url('/static/assets/frames/tech-frame.png');
+                }
+                
+                .safe-box {
+                    position: absolute;
+                    top: var(--inset-top);
+                    right: var(--inset-right);
+                    bottom: var(--inset-bottom);
+                    left: var(--inset-left);
+                    display: flex;
+                    flex-direction: column;
                 }
                 
                 .header {
-                    background: linear-gradient(90deg, #2d3748 0%, #4a5568 100%);
+                    background: 
+                        url('/static/assets/textures/glass-panel.png'),
+                        rgba(15, 23, 42, 0.8);
+                    background-size: cover, auto;
+                    background-blend-mode: overlay, normal;
+                    backdrop-filter: blur(15px);
+                    border: 1px solid rgba(100, 255, 218, 0.3);
+                    border-radius: 16px;
                     color: white;
                     padding: 20px;
                     text-align: center;
-                    border-bottom: 3px solid #2d3748;
+                    margin-bottom: 20px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                 }
                 
                 .header h1 {
@@ -134,12 +230,23 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 }
                 
                 .workshop-panel {
-                    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+                    background: 
+                        url('/static/assets/textures/hexagon-overlay.png'),
+                        linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+                    background-size: 120px 120px, cover;
+                    background-repeat: repeat, no-repeat;
+                    background-blend-mode: multiply, normal;
                     color: white;
                 }
                 
                 .academy-panel {
-                    background: linear-gradient(135deg, #a55eea 0%, #26de81 100%);
+                    background: 
+                        url('/static/assets/textures/particle-glow.png'),
+                        linear-gradient(135deg, #a55eea 0%, #26de81 100%);
+                    background-size: cover, cover;
+                    background-repeat: no-repeat, no-repeat;
+                    background-position: center, center;
+                    background-blend-mode: soft-light, normal;
                     color: white;
                 }
                 
@@ -184,18 +291,18 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     position: absolute;
                     top: 20px;
                     left: 20px;
-                    background: #4a5568;
-                    color: white;
+                    background: url('/static/assets/buttons/back.png') center / contain no-repeat;
+                    width: 60px;
+                    height: 40px;
                     border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
                     cursor: pointer;
-                    font-size: 1em;
-                    transition: background 0.3s;
+                    transition: all 0.3s;
+                    text-indent: -9999px; /* Hide text, show only image */
                 }
                 
                 .back-button:hover {
-                    background: #2d3748;
+                    transform: scale(1.1);
+                    filter: brightness(1.2);
                 }
                 
                 .loading {
@@ -251,14 +358,16 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 .professor-pixel {
                     width: 120px;
                     height: 120px;
-                    border-radius: 50%;
-                    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
                     margin: 0 auto 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 3em;
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                    background: url('/static/assets/characters/professor_pixel.png') center / cover no-repeat;
+                    border-radius: 50%;
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+                    animation: float 3s ease-in-out infinite;
+                }
+                
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
                 }
                 
                 @media (max-width: 768px) {
@@ -279,13 +388,18 @@ class GameDevHandler(BaseHTTPRequestHandler):
         </head>
         <body>
             <div class="main-container">
-                <!-- Header -->
-                <div class="header">
-                    <h1>🎮 AI Game Development Platform</h1>
-                    <p class="subtitle">Choose your path: Create games or master programming</p>
-                </div>
+                <!-- Tech Frame Background -->
+                <div class="tech-frame"></div>
                 
-                <!-- Split Panel Interface -->
+                <!-- Safe Content Area -->
+                <div class="safe-box">
+                    <!-- Header -->
+                    <div class="header">
+                        <h1>🎮 AI Game Development Platform</h1>
+                        <p class="subtitle">Choose your path: Create games or master programming</p>
+                    </div>
+                    
+                    <!-- Split Panel Interface -->
                 <div id="split-view" class="split-container">
                     <!-- Game Workshop Panel -->
                     <div class="panel workshop-panel" onclick="loadContent('workshop')">
@@ -331,6 +445,51 @@ class GameDevHandler(BaseHTTPRequestHandler):
                         <div class="loading">Loading...</div>
                     </div>
                 </div>
+                </div>
+            </div>
+            
+            <!-- Audio System -->
+            <script>
+                class AudioManager {
+                    constructor() {
+                        this.sounds = {
+                            click: new Audio('/static/assets/audio/button_click_futuristic.wav'),
+                            hover: new Audio('/static/assets/audio/hover_beep_cyberpunk.wav'),
+                            success: new Audio('/static/assets/audio/success_ding_pleasant.wav'),
+                            notification: new Audio('/static/assets/audio/notification_chime_tech.wav')
+                        };
+                        this.enabled = true;
+                        this.volume = 0.3;
+                        
+                        Object.values(this.sounds).forEach(sound => {
+                            sound.volume = this.volume;
+                        });
+                    }
+                    
+                    play(soundName) {
+                        if (this.enabled && this.sounds[soundName]) {
+                            this.sounds[soundName].currentTime = 0;
+                            this.sounds[soundName].play().catch(() => {});
+                        }
+                    }
+                }
+                
+                const audioManager = new AudioManager();
+                
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.addEventListener('click', function(e) {
+                        if (e.target.matches('button, .btn, .panel')) {
+                            audioManager.play('click');
+                        }
+                    });
+                    
+                    document.addEventListener('mouseover', function(e) {
+                        if (e.target.matches('.panel, button, .btn')) {
+                            audioManager.play('hover');
+                        }
+                    });
+                });
+            </script>
             </div>
             
             <script>
