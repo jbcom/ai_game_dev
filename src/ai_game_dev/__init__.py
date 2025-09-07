@@ -42,7 +42,7 @@ except ImportError:
 from ai_game_dev.audio import AudioTools
 
 # Asset management
-from ai_game_dev.assets import AssetTools, ArchiveSeeder
+# Asset generation now handled by LangChain DALLE in subgraphs
 
 # Graphics and fonts
 from ai_game_dev.graphics import CC0Libraries
