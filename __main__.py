@@ -54,16 +54,67 @@ def main():
     print("✅ Direct LangGraph subgraph orchestration")
     print("🎮 Game Workshop | 🎓 Arcade Academy")
     print("📊 SQLite persistence enabled")
-    print("🌐 Opening http://localhost:8000")
     
     # Run Chainlit app
     import subprocess
     import sys
-    subprocess.run([
-        sys.executable, "-m", "chainlit", "run", 
-        "src/ai_game_dev/chainlit_app.py",
-        "--port", "8000"
-    ])
+    
+    try:
+        # Check if Chainlit is installed
+        import chainlit
+    except ImportError:
+        print("❌ Error: Chainlit is not installed!")
+        print("Please install it with: pip install chainlit")
+        print("Or run: hatch env create")
+        sys.exit(1)
+    
+    # Check if port is available
+    import socket
+    port = 8000
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(('', port))
+        except OSError:
+            print(f"❌ Error: Port {port} is already in use!")
+            print("Please stop any other services running on this port")
+            print("Or set a different port with environment variable: AI_GAME_DEV_PORT=8001")
+            sys.exit(1)
+    
+    # Get port from environment or use default
+    import os
+    port = int(os.environ.get('AI_GAME_DEV_PORT', '8000'))
+    
+    print(f"🌐 Opening http://localhost:{port}")
+    print("")
+    
+    try:
+        result = subprocess.run([
+            sys.executable, "-m", "chainlit", "run", 
+            "src/ai_game_dev/chainlit_app.py",
+            "--port", str(port)
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error: Failed to start Chainlit server!")
+        print(f"Exit code: {e.returncode}")
+        if e.returncode == 1:
+            print("This might be due to:")
+            print("  - Missing chainlit_app.py file")
+            print("  - Syntax errors in the application")
+            print("  - Missing dependencies")
+        print("\nTry running with debug mode:")
+        print(f"  chainlit run src/ai_game_dev/chainlit_app.py --port {port} --debug")
+        sys.exit(1)
+    except FileNotFoundError:
+        print("❌ Error: Python executable not found!")
+        print("Please ensure Python is properly installed")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n👋 Shutting down AI Game Development Platform...")
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        print("Please report this issue on GitHub")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
