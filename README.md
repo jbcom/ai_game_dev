@@ -1,39 +1,34 @@
 # 🎮 AI Game Development Platform
 
-## Revolutionary Universal AI-Powered Game Development with Interactive Variants
+## Revolutionary AI-Powered Game Development with Chainlit
 
-A comprehensive platform that transforms game development through artificial intelligence, featuring automated code generation, interactive A/B testing, and educational integration with Professor Pixel.
+A next-generation platform that transforms game development through direct LangGraph subgraph orchestration, featuring real-time visualization, automated code generation, and educational integration.
 
 ### 🌟 **Core Features**
 
-#### **🔧 Interactive Variant System**
-- **Automatic A/B Detection**: AI analyzes code to suggest variant implementations (hex vs square grids, turn-based vs real-time combat)
-- **Live Split-Screen Preview**: Compare different approaches side-by-side before choosing
-- **Feature Flag System**: Generated `features.toml` configuration with toggle switches
-- **Cross-Engine Support**: Works seamlessly across pygame, Godot, and Bevy
+#### **🔗 Direct Subgraph Architecture**
+- **No Orchestrator Overhead**: Chainlit directly manages LangGraph subgraphs
+- **Real-Time Visualization**: Watch AI traverse through specialized subgraphs
+- **Modular Design**: GraphicsSubgraph, AudioSubgraph, DialogueSubgraph, QuestSubgraph
+- **Engine-Specific Agents**: Direct integration with Pygame, Godot, and Bevy
 
-#### **🎓 Arcade Academy with Professor Pixel**
-- **AI-Powered Teaching**: Automatic detection of teachable moments through code analysis
-- **Interactive Learning**: Students can experiment with variant choices and see educational impact
-- **Contextual Lessons**: Professor Pixel appears exactly when concepts become relevant
-- **Progressive Difficulty**: Educational content adapts to student level and learning objectives
+#### **🎓 Arcade Academy Mode**
+- **Interactive Learning**: Educational RPG featuring Professor Pixel
+- **Progressive Curriculum**: Learn programming through engaging gameplay
+- **Achievement System**: Track progress and unlock new content
+- **AI Mentorship**: Contextual help and guidance
 
-#### **🚀 Multi-Engine Game Generation**
-- **Pygame**: Full WebAssembly deployment support with pygbag integration
-- **Godot**: GDScript generation with native features
-- **Bevy**: Rust ECS architecture with performance optimization
-- **Unified Workflow**: Single interface for all engine development
+#### **🚀 Game Workshop Mode**
+- **Natural Language Input**: Describe your game in plain English
+- **Multi-Engine Support**: Pygame, Godot, and Bevy
+- **Asset Generation**: Automatic sprite, sound, and music creation
+- **Complete Projects**: Fully playable games with all required files
 
-#### **🎨 Comprehensive Asset Generation**
-- **Real OpenAI Integration**: High-quality image generation with variants and masking
-- **Audio Synthesis**: Music and sound effect generation
-- **Asset Organization**: Structured static asset management with premium resources
-
-#### **🌐 Modern Web Interface**
-- **Single Scaling Frame**: HTMX-powered interface with no page redirects
-- **Real-Time Updates**: WebSocket support for live development feedback
-- **Responsive Design**: Works on desktop and mobile devices
-- **Professional UI**: Custom cyberpunk theme with premium assets
+#### **🎨 Modern Interface**
+- **Chainlit UI**: Clean, responsive interface with custom cyberpunk theme
+- **WebSocket Updates**: Real-time progress as games are generated
+- **Custom CSS/JS**: Full control over appearance and behavior
+- **No External Dependencies**: Pure Python, no Node.js required
 
 ---
 
@@ -41,7 +36,6 @@ A comprehensive platform that transforms game development through artificial int
 
 ### **Prerequisites**
 - Python 3.11+ 
-- Node.js 20+ (for frontend assets)
 - OpenAI API key (for asset generation)
 
 ### **Setup**
@@ -50,307 +44,227 @@ A comprehensive platform that transforms game development through artificial int
 git clone <repository-url>
 cd ai-game-dev
 
-# Install with hatch (uses UV backend automatically)
+# Install with hatch
+pip install hatch
 hatch env create
-
-# Activate the environment and install dependencies
-hatch shell
-
-# Alternative: Install specific dependency groups
-hatch env create dev    # Development environment
-hatch env create pygame # Pygame environment
-hatch env create web    # Web environment
 
 # Set up environment variables
 export OPENAI_API_KEY="your-api-key-here"
 
-# Start the development server
-hatch run python __main__.py
+# Start the platform
+hatch run
+# or
+python -m __main__
 ```
 
-Visit `http://localhost:5000` to access the platform.
+Visit `http://localhost:8000` to access the Chainlit interface.
 
 ---
 
-## 🎯 **Quick Usage Examples**
+## 🎯 **Usage**
 
-### **Generate a Game with Interactive Variants**
-```python
-from ai_game_dev.variants import create_variant_enabled_game
-
-# Generate a pygame game with automatic variant detection
-result = await create_variant_enabled_game(
-    base_code="# Simple platformer game",
-    engine="pygame"
-)
-
-print(f"Found {len(result['variants'])} interactive choices!")
-print(f"Generated features.toml with {len(result['features_toml'])} toggles")
-```
-
-### **Educational Game with Professor Pixel**
-```python
-from ai_game_dev.agents import ArcadeAcademyAgent
-from ai_game_dev.agents.educational_context import EducationalContext
-
-agent = ArcadeAcademyAgent()
-context = EducationalContext(
-    target_audience="middle_school",
-    learning_objectives=["variables", "loops", "conditionals"]
-)
-
-game = await agent.generate_educational_game(
-    "Create a space adventure where students learn programming",
-    context
-)
-
-print(f"Generated {len(game['teachable_moments'])} learning opportunities!")
-```
-
-### **Deploy to WebAssembly**
+### **Starting the Platform**
 ```bash
-# Deploy pygame game to browser
-python -m ai_game_dev.deployment.pygbag_deploy my_game.py
+# Production mode
+hatch run
+
+# Development mode with auto-reload
+just dev
+
+# Quick commands
+just start    # Start platform
+just test     # Run tests
+just format   # Format code
+just qa       # Quality assurance
 ```
+
+### **In the Chainlit Interface**
+
+1. **Choose Your Mode:**
+   ```
+   workshop   # Enter Game Workshop
+   academy    # Enter Arcade Academy
+   ```
+
+2. **Create a Game (Workshop Mode):**
+   ```
+   create a space shooter game
+   create a puzzle platformer with pygame
+   create a cyberpunk RPG with godot
+   ```
+
+3. **Learn Programming (Academy Mode):**
+   ```
+   start lesson
+   continue
+   progress
+   ```
 
 ---
 
-## 🏗️ **Architecture Overview**
+## 🏗️ **Architecture**
 
-### **Agent-Based System**
+### **Simplified Flow**
 ```
-Master Orchestrator
-├── Pygame Agent (+ WebAssembly)
-├── Godot Agent (+ GDScript)  
-├── Bevy Agent (+ Rust ECS)
-└── Arcade Academy Agent (+ Educational AI)
+User Input → Chainlit → Subgraph Selection → Direct Processing → Real-time Updates
 ```
 
-### **Interactive Variant Pipeline**
-```
-Code Generation → Variant Detection → A/B Choices → Feature Flags → Live Preview
-```
-
-### **Educational Enhancement**
-```
-Base Game → Teachable Moment Analysis → Professor Pixel Integration → Interactive Learning
-```
+### **Key Components**
+- **chainlit_app.py**: Main application handling user interaction
+- **Subgraphs**: Specialized processors for different aspects
+  - GraphicsSubgraph: Image and sprite generation
+  - AudioSubgraph: Sound and music creation
+  - DialogueSubgraph: Conversation systems
+  - QuestSubgraph: Game objectives and progression
+- **Engine Agents**: Game-specific code generators
+  - PygameAgent: 2D Python games
+  - GodotAgent: GDScript projects
+  - BevyAgent: Rust ECS games
+- **ArcadeAcademyAgent**: Educational content and lessons
 
 ---
 
-## 📂 **Project Structure**
-
+## 📁 **Project Structure**
 ```
 ai-game-dev/
-├── src/ai_game_dev/
-│   ├── agents/                 # AI agents for different engines
-│   │   ├── master_orchestrator.py  # Central coordination
-│   │   ├── arcade_academy_agent.py # Educational AI
-│   │   └── base_agent.py           # Shared functionality
-│   ├── variants/               # Interactive variant system
-│   │   ├── variant_system.py      # Core A/B testing logic
-│   │   └── __init__.py
-│   ├── models/                 # Data models and schemas
-│   ├── engines/                # Engine-specific templates
-│   ├── server/                 # Web interface (FastAPI + HTMX)
-│   ├── deployment/             # WebAssembly and deployment tools
-│   └── static/                 # Premium assets and resources
-├── tests/                      # Comprehensive test suite
-├── docs/                       # Sphinx documentation
-└── generated_assets/           # AI-generated game assets
+├── src/
+│   └── ai_game_dev/
+│       ├── chainlit_app.py          # Main Chainlit application
+│       ├── agents/
+│       │   ├── subgraphs/           # LangGraph subgraphs
+│       │   │   ├── __init__.py
+│       │   │   ├── graphics_subgraph.py
+│       │   │   ├── audio_subgraph.py
+│       │   │   ├── dialogue_subgraph.py
+│       │   │   └── quest_subgraph.py
+│       │   ├── pygame_agent.py      # Pygame code generator
+│       │   ├── godot_agent.py       # Godot code generator
+│       │   ├── bevy_agent.py        # Bevy code generator
+│       │   └── arcade_academy_agent.py # Educational agent
+│       └── project_manager.py       # Project management
+├── .chainlit/                       # Chainlit configuration
+│   └── config.toml
+├── public/                          # Web assets
+│   ├── style.css                    # Cyberpunk theme
+│   └── readme.md                    # Welcome screen
+├── __main__.py                      # Entry point
+├── pyproject.toml                   # Project configuration
+├── justfile                         # Task automation
+└── README.md                        # This file
 ```
 
 ---
 
-## 🧪 **Testing & Quality**
+## 🧪 **Development**
 
-### **Run Tests**
+### **Running Tests**
 ```bash
-# Full test suite (using hatch + UV)
-hatch run test
-
-# Coverage report
-hatch run coverage
-
-# Type checking
-hatch run mypy
-
-# Code quality
-hatch run lint
-
-# Or use justfile shortcuts
+# Full test suite
 just test
-just coverage
-just mypy
-just lint
+
+# Fast tests
+just test-fast
+
+# Test imports
+just test-imports
+
+# Test Chainlit startup
+just test-chainlit
 ```
 
-### **Current Coverage**
-- **Overall**: 10% (targeting production quality)
-- **Models Module**: 98% (comprehensive data model testing)
-- **Agents**: Coverage for all engine agents
-- **Variants**: New interactive system testing
+### **Code Quality**
+```bash
+# Format code
+just format
+
+# Run linting
+just lint
+
+# Security check
+just security
+
+# Full QA
+just qa
+```
+
+### **Documentation**
+```bash
+# Build docs
+just docs
+
+# Serve docs
+just docs-serve
+```
 
 ---
 
-## 🎓 **Educational Features**
+## 🚀 **Deployment**
 
-### **Automatic Teaching Moments**
-The AI analyzes generated code and automatically detects opportunities to teach programming concepts:
+### **Validation**
+```bash
+# Check deployment readiness
+just validate
 
-- **Variables**: When game state changes (health, score, position)
-- **Loops**: When repetitive actions occur (enemy spawning, animation frames)
-- **Conditionals**: When game logic branches (collision detection, win/lose conditions)
-- **Functions**: When code can be organized better
+# Create deployment package
+just package
+```
 
-### **Interactive A/B Learning**
-Students can experiment with different programming approaches:
-
-- **Grid Systems**: Square vs hexagonal tile layouts
-- **Combat Mechanics**: Turn-based vs real-time systems  
-- **Movement**: Discrete vs continuous player control
-- **AI Behavior**: Simple vs sophisticated enemy intelligence
-
-Each choice shows immediate visual impact and explains the educational trade-offs.
-
----
-
-## 🚀 **Deployment Options**
-
-### **Development**
-- Local FastAPI server with hot reload
-- SQLite persistence for player data
-- Real-time WebSocket updates
-
-### **Production**
-- **WebAssembly**: pygame games run in browser via pygbag
-- **Native**: Export to Windows/Mac/Linux executables
-- **Cloud**: Deploy to Replit, Heroku, or custom servers
+### **Environment Variables**
+- `OPENAI_API_KEY`: Required for asset generation
+- `ANTHROPIC_API_KEY`: Optional for Claude support
+- `GOOGLE_API_KEY`: Optional for Gemini support
 
 ---
 
 ## 🤝 **Contributing**
 
-### **Development Setup**
-```bash
-# Create development environment with hatch
-hatch env create dev
-
-# Activate development environment
-hatch shell
-
-# Set up pre-commit hooks
-hatch run setup-dev
-
-# Run quality checks
-hatch run quality-check
-
-# Or use justfile shortcuts
-just setup-dev
-just quality-check
-```
-
-### **Adding New Features**
-1. **Variant Types**: Extend the variant system with new A/B choice patterns
-2. **Educational Content**: Add Professor Pixel lessons for new programming concepts
-3. **Engine Support**: Integrate additional game engines beyond pygame/Godot/Bevy
-4. **Asset Generators**: Create new AI-powered asset generation capabilities
+1. Fork the repository
+2. Create a feature branch
+3. Run `just setup` to configure development environment
+4. Make your changes
+5. Run `just qa` to ensure quality
+6. Submit a pull request
 
 ---
 
-## 📊 **Technology Stack**
+## 📝 **Recent Changes**
 
-### **Backend**
-- **Python 3.11+**: Modern async/await architecture
-- **Hatch + UV**: Modern Python project management with fast dependency resolution
-- **FastAPI**: High-performance web framework
-- **LangChain/LangGraph**: Multi-agent AI orchestration
-- **OpenAI GPT**: Image generation and code analysis
-- **SQLite**: Lightweight persistence
+### **Architecture Overhaul**
+- ✅ Removed `simple_server.py` - using unified server through main
+- ✅ Removed master orchestrator layer - Chainlit manages directly
+- ✅ Removed internal agent - subgraphs handle all generation
+- ✅ Integrated Chainlit for modern UI with LangGraph visualization
+- ✅ Updated all workflows and documentation
 
-### **Frontend**
-- **HTMX**: Dynamic content without page reloads
-- **DaisyUI + Tailwind**: Modern component library
-- **Jinja2**: Server-side template rendering
-- **WebSockets**: Real-time communication
-
-### **Game Engines**
-- **Pygame**: Python 2D games with WebAssembly support
-- **Godot**: Professional 2D/3D engine with GDScript
-- **Bevy**: High-performance Rust ECS engine
-
-### **AI & ML**
-- **OpenAI GPT-4**: Code generation and analysis
-- **PyTorch**: Semantic embedding for asset seeding
-- **Internet Archive**: Literary narrative enhancement
-- **AST Parsing**: Code structure analysis for education
-
----
-
-## 🎮 **Example Games Generated**
-
-### **NeoTokyo Code Academy: The Binary Rebellion**
-- **Genre**: Educational RPG with cyberpunk themes
-- **Features**: Professor Pixel guide, interactive code challenges
-- **Variants**: Multiple combat systems, grid layouts, AI behaviors
-- **Deployment**: WebAssembly-ready for browser play
-
-### **Space Explorer Platformer**  
-- **Genre**: 2D platformer with physics
-- **Features**: Procedural level generation, collectible items
-- **Variants**: Movement systems, enemy AI, power-up mechanics
-- **Educational Focus**: Variables, loops, collision detection
-
----
-
-## 📈 **Performance & Optimization**
-
-### **AI Generation**
-- **Batch Processing**: Concurrent asset generation with rate limiting
-- **Caching**: Intelligent caching of generated content
-- **Connection Pooling**: Optimized LLM provider connections
-
-### **Web Interface**
-- **HTMX**: Minimal JavaScript with server-side rendering
-- **Asset CDN**: Optimized delivery of static resources
-- **WebSocket**: Efficient real-time updates
-
-### **Game Performance**
-- **WebAssembly**: Near-native performance in browsers
-- **Asset Optimization**: Compressed images and audio
-- **Feature Flags**: Runtime performance tuning
-
----
-
-## 🆘 **Support & Documentation**
-
-### **Documentation**
-- **API Reference**: Comprehensive function documentation
-- **Tutorials**: Step-by-step game development guides  
-- **Architecture Guide**: Deep dive into system design
-- **Educational Guide**: Using Professor Pixel effectively
-
-### **Community**
-- **Issues**: Report bugs and request features
-- **Discussions**: Community Q&A and showcases
-- **Contributing**: Guidelines for code contributions
+### **Improvements**
+- 🚀 Faster response times without orchestrator overhead
+- 🎨 Better UI/UX with Chainlit's built-in features
+- 🔍 Real-time visibility into AI processing
+- 📦 Simpler deployment with fewer components
 
 ---
 
 ## 📄 **License**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see LICENSE file for details
 
 ---
 
 ## 🙏 **Acknowledgments**
 
-- **OpenAI**: GPT models and image generation capabilities
-- **LangChain**: Multi-agent orchestration framework
-- **Pygame Community**: WebAssembly deployment via pygbag
-- **Replit**: Cloud development platform
-- **Internet Archive**: Public domain content for AI seeding
+- LangChain & LangGraph teams for the AI framework
+- Chainlit team for the excellent UI platform
+- OpenAI for GPT-4 and DALL-E integration
+- The open-source game development community
 
 ---
 
-**✨ Start building revolutionary AI-powered games with interactive learning today!**
+## 📞 **Support**
+
+- GitHub Issues: Report bugs and request features
+- Documentation: See `/docs` for detailed guides
+- Community: Join our Discord server (coming soon)
+
+---
+
+**Built with ❤️ using Chainlit, LangGraph, and AI**

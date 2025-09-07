@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-python:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -16,102 +16,126 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install uv
-      uses: astral-sh/setup-uv@v3
-      with:
-        version: "latest"
-    
     - name: Set up Python ${{ matrix.python-version }}
-      run: uv python install ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
     
     - name: Install dependencies
-      run: uv sync --all-extras
+      run: |
+        python -m pip install --upgrade pip
+        pip install hatch
+        hatch env create
     
     - name: Run tests
-      run: uv run pytest tests/ -v --cov=packages --cov-report=xml
+      run: hatch run test:cov
     
-    - name: Run type checking
-      run: uv run mypy packages/
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  lint:
+    runs-on: ubuntu-latest
     
-    - name: Run formatting check
-      run: uv run black --check packages/
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install hatch
+        hatch env create lint
     
     - name: Run linting
-      run: uv run ruff check packages/
+      run: hatch run lint:all
 
-  test-rust:
+  docs:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Cache Cargo dependencies
-      uses: actions/cache@v3
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          packages/bevy_game_dev/target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('packages/bevy_game_dev/Cargo.lock') }}
+        python-version: "3.11"
     
-    - name: Run Rust tests
-      working-directory: packages/bevy_game_dev
-      run: cargo test --verbose
-    
-    - name: Check Rust formatting
-      working-directory: packages/bevy_game_dev
-      run: cargo fmt --check
-    
-    - name: Run Clippy
-      working-directory: packages/bevy_game_dev
-      run: cargo clippy -- -D warnings
-
-  build-packages:
-    runs-on: ubuntu-latest
-    needs: [test-python, test-rust]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install uv
-      uses: astral-sh/setup-uv@v3
-    
-    - name: Build Python packages
+    - name: Install dependencies
       run: |
-        cd packages/ai_game_dev && uv build --wheel
-        cd ../ai_game_assets && uv build --wheel
-        cd ../pygame_game_dev && uv build --wheel
-        cd ../arcade_game_dev && uv build --wheel
+        python -m pip install --upgrade pip
+        pip install hatch
+        hatch env create docs
     
-    - name: Build Rust package
-      working-directory: packages/bevy_game_dev
-      run: cargo build --release
+    - name: Build documentation
+      run: hatch run docs:build
     
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+    - name: Upload docs artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: built-packages
-        path: |
-          packages/*/dist/*.whl
-          packages/bevy_game_dev/target/release/
+        name: documentation
+        path: docs/_build/
 
-  integration-tests:
+  integration-test:
     runs-on: ubuntu-latest
-    needs: build-packages
+    needs: [test, lint]
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Download build artifacts
-      uses: actions/download-artifact@v3
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        name: built-packages
+        python-version: "3.11"
     
-    - name: Install uv
-      uses: astral-sh/setup-uv@v3
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install hatch
+        hatch env create
     
-    - name: Run integration tests
-      run: uv run pytest tests/integration/ -v
+    - name: Test Chainlit startup
+      run: |
+        timeout 30s hatch run server || code=$?
+        if [ $code -eq 124 ]; then
+          echo "Server started successfully (timeout expected)"
+          exit 0
+        else
+          echo "Server failed to start"
+          exit 1
+        fi
+    
+    - name: Test subgraph imports
+      run: |
+        hatch run python -c "
+        from ai_game_dev.agents.subgraphs import GraphicsSubgraph, AudioSubgraph
+        from ai_game_dev.agents.pygame_agent import PygameAgent
+        from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
+        print('✅ All imports successful')
+        "
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'

@@ -491,6 +491,11 @@ $RECYCLE.BIN/
 # Project-Specific Ignores
 # =============================================================================
 
+# Chainlit specific
+.chainlit/
+chainlit.md
+.chainlit.config
+
 # Generated game assets and content
 generated_assets/
 generated_examples/
