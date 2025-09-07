@@ -86,13 +86,34 @@
     }
     
     .workshop-panel {
-        background: url('/static/assets/panels/game-workshop-panel.png') center / cover no-repeat;
+        background: linear-gradient(135deg, rgba(0, 100, 100, 0.8), rgba(0, 150, 150, 0.9));
         color: white;
+        position: relative;
     }
     
     .academy-panel {
-        background: url('/static/assets/panels/arcade-academy-panel.png') center / cover no-repeat;
+        background: linear-gradient(135deg, rgba(100, 0, 100, 0.8), rgba(150, 0, 150, 0.9));
         color: white;
+        position: relative;
+    }
+    
+    .panel-logo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        transition: all 0.3s ease;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    }
+    
+    .vertical-panel:hover .panel-logo {
+        transform: translate(-50%, -50%) scale(1.05);
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
     }
     
     .panel-overlay {
@@ -285,6 +306,9 @@
                          hx-trigger="click"
                          onclick="playVideo('workshop')">
                         <div class="panel-overlay"></div>
+                        <img src="/static/assets/logos/game-workshop-condensed.png" 
+                             alt="Game Workshop" 
+                             class="panel-logo">
                     </div>
                     
                     <!-- Arcade Academy Panel -->
@@ -294,6 +318,9 @@
                          hx-trigger="click"
                          onclick="playVideo('academy')">
                         <div class="panel-overlay"></div>
+                        <img src="/static/assets/logos/arcade-academy-condensed.png" 
+                             alt="Arcade Academy" 
+                             class="panel-logo">
                     </div>
                 </div>
             </div>
