@@ -20,6 +20,7 @@ from ai_game_dev.agents.subgraphs import (
     GraphicsSubgraph,
     AudioSubgraph
 )
+from ai_game_dev.variants import InteractiveVariantSystem
 # Engine imports will be done dynamically to avoid circular imports
 
 
@@ -85,6 +86,9 @@ class MasterGameDevOrchestrator(BaseAgent):
         self.graphics_subgraph = None
         self.audio_subgraph = None
         
+        # Initialize variant system for interactive A/B choices
+        self.variant_system = None
+        
     async def initialize(self):
         """Initialize the orchestrator and all engine subagents."""
         await super().initialize()
@@ -123,6 +127,11 @@ class MasterGameDevOrchestrator(BaseAgent):
         
         self.audio_subgraph = AudioSubgraph()
         await self.audio_subgraph.initialize()
+        
+        # Initialize variant system for interactive A/B choices
+        from ai_game_dev.models.llm_manager import LLMManager
+        llm_manager = LLMManager()
+        self.variant_system = InteractiveVariantSystem(llm_manager)
         
     async def _setup_instructions(self):
         """Set up orchestrator-specific instructions."""

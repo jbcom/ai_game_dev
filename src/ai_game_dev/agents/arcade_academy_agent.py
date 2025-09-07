@@ -27,6 +27,7 @@ except ImportError:
 
 from .base_agent import GameDevelopmentAgent, AgentConfig
 from ..models.llm_manager import LLMManager
+from ..variants.variant_system import InteractiveVariantSystem, create_variant_enabled_game
 
 
 @dataclass
@@ -439,35 +440,53 @@ class ArcadeAcademyAgent(GameDevelopmentAgent):
         educational_context: EducationalContext,
         **kwargs
     ) -> Dict[str, Any]:
-        """Generate a pygame game with automatic educational analysis and breakpoint insertion."""
+        """Generate a pygame game with automatic educational analysis and interactive variants."""
         
-        # Step 1: Generate base pygame game
+        # Step 1: Generate base pygame game  
         base_game_result = await self._generate_base_pygame_game(game_description, **kwargs)
         
-        # Step 2: Analyze code for teachable moments
-        teachable_moments = await self.code_analyzer.analyze_code_for_teachable_moments(
+        # Step 2: Generate interactive variants using the general variant system
+        variant_system = InteractiveVariantSystem(self.llm_manager)
+        variant_result = await variant_system.generate_interactive_game_with_variants(
             base_game_result['main_code'],
+            'pygame',
+            educational_context.__dict__
+        )
+        
+        # Step 3: Analyze code for teachable moments (Arcade Academy enhancement)
+        teachable_moments = await self.code_analyzer.analyze_code_for_teachable_moments(
+            variant_result['enhanced_code'],
             educational_context
         )
         
-        # Step 3: Insert Professor Pixel breakpoints at optimal locations
+        # Step 4: Insert Professor Pixel breakpoints at optimal locations
         enhanced_code = await self._insert_educational_breakpoints(
-            base_game_result['main_code'],
+            variant_result['enhanced_code'],
             teachable_moments
         )
         
-        # Step 4: Generate Professor Pixel lesson content for detected concepts
+        # Step 5: Generate Professor Pixel lesson content for detected concepts
         lesson_data = await self._generate_lesson_content(teachable_moments, educational_context)
         
-        # Step 5: Package complete educational game
+        # Step 6: Enhance variants with educational context (Arcade Academy superpower)
+        educational_variants = await self._enhance_variants_with_education(
+            variant_result['variants'],
+            educational_context
+        )
+        
+        # Step 7: Package complete educational game with interactive variants
         return {
             'game_code': enhanced_code,
+            'features_toml': variant_result['features_toml'],
             'teachable_moments': teachable_moments,
             'lesson_data': lesson_data,
             'educational_context': educational_context,
+            'interactive_variants': educational_variants,
+            'variant_preview_data': variant_result['preview_data'],
             'deployment_ready': True,
             'professor_pixel_integrated': True,
-            'webassembly_compatible': True
+            'webassembly_compatible': True,
+            'has_interactive_choices': True
         }
     
     async def _generate_base_pygame_game(self, description: str, **kwargs) -> Dict[str, Any]:
@@ -629,6 +648,107 @@ professor_pixel.register_breakpoint('collision_detected', 'conditionals')
             'difficulty': moment.difficulty_level,
             'educational_value': moment.educational_value
         }
+    
+    async def _enhance_variants_with_education(
+        self, 
+        variants: List[Dict[str, Any]], 
+        educational_context: EducationalContext
+    ) -> List[Dict[str, Any]]:
+        """Enhance general variants with educational context and Professor Pixel integration."""
+        
+        enhanced_variants = []
+        
+        for variant in variants:
+            # Add educational metadata to each variant
+            enhanced_variant = variant.copy()
+            
+            # Add Professor Pixel teaching moments for each choice
+            for choice in enhanced_variant['choices']:
+                choice['professor_pixel_lesson'] = await self._create_variant_lesson(
+                    choice, variant, educational_context
+                )
+                choice['educational_insight'] = self._generate_educational_insight(choice, variant)
+            
+            # Add overall learning objectives for this variant
+            enhanced_variant['learning_objectives'] = self._map_variant_to_learning_objectives(
+                variant, educational_context
+            )
+            enhanced_variant['educational_value_score'] = self._calculate_educational_value(variant)
+            
+            enhanced_variants.append(enhanced_variant)
+        
+        return enhanced_variants
+    
+    async def _create_variant_lesson(
+        self, 
+        choice: Dict[str, Any], 
+        variant: Dict[str, Any],
+        educational_context: EducationalContext
+    ) -> Dict[str, Any]:
+        """Create a Professor Pixel lesson for a variant choice."""
+        
+        return {
+            'title': f"🎯 Choice Exploration: {choice['name']}",
+            'message': f"Let's explore what happens when you choose {choice['name']} for {variant['name']}!",
+            'explanation': f"This choice teaches you about {variant['educational_value']}",
+            'interactive_challenge': f"Try switching between the choices to see how {variant['name']} affects your game!",
+            'code_comparison': True,  # Enable split-screen code comparison
+            'visual_impact': choice.get('description', ''),
+            'difficulty_progression': choice.get('difficulty', 'same')
+        }
+    
+    def _generate_educational_insight(self, choice: Dict[str, Any], variant: Dict[str, Any]) -> str:
+        """Generate educational insight for a variant choice."""
+        
+        insights = {
+            'easier': "🟢 This choice is great for beginners - it's simpler to understand and implement.",
+            'harder': "🔴 This choice is more advanced - it introduces complex concepts but offers more power.",
+            'same': "🟡 Both choices are similar in difficulty - this is about different approaches to the same problem."
+        }
+        
+        difficulty = choice.get('difficulty', 'same')
+        base_insight = insights.get(difficulty, insights['same'])
+        
+        return f"{base_insight} In {variant['name']}, this affects how {variant.get('context', 'the game')} behaves."
+    
+    def _map_variant_to_learning_objectives(
+        self, 
+        variant: Dict[str, Any], 
+        educational_context: EducationalContext
+    ) -> List[str]:
+        """Map variant choices to specific learning objectives."""
+        
+        variant_mappings = {
+            'grid_system': ['Coordinate systems', 'Spatial reasoning', 'Mathematical concepts'],
+            'combat_system': ['State management', 'Game loops', 'Conditional logic'],
+            'movement_system': ['Input handling', 'Physics concepts', 'Real-time programming'],
+            'ai_behavior': ['Algorithms', 'Decision trees', 'Pathfinding concepts']
+        }
+        
+        return variant_mappings.get(variant['id'], ['Problem-solving', 'Code organization'])
+    
+    def _calculate_educational_value(self, variant: Dict[str, Any]) -> float:
+        """Calculate educational value score for a variant."""
+        
+        base_scores = {
+            'visual': 0.7,      # Visual changes are easy to understand
+            'mechanical': 0.9,  # Game mechanics teach core concepts well
+            'algorithmic': 0.8, # Algorithms are highly educational
+            'architectural': 0.6 # Code organization is important but abstract
+        }
+        
+        variant_type = variant.get('type', 'mechanical')
+        base_score = base_scores.get(variant_type, 0.7)
+        
+        # Bonus for beginner-friendly variants
+        has_easy_choice = any(
+            choice.get('difficulty') == 'easier' 
+            for choice in variant.get('choices', [])
+        )
+        if has_easy_choice:
+            base_score += 0.1
+        
+        return min(1.0, base_score)
     
     def _extract_code_from_response(self, response: str) -> str:
         """Extract Python code from LLM response."""
