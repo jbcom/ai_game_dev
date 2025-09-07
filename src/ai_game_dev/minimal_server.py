@@ -227,27 +227,52 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     flex-direction: column;
                     justify-content: center;
                     text-align: center;
+                    position: relative;
+                    z-index: 2;
                 }
                 
                 .workshop-panel {
-                    background: 
-                        url('/static/assets/textures/hexagon-overlay.png'),
-                        linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-                    background-size: 120px 120px, cover;
-                    background-repeat: repeat, no-repeat;
-                    background-blend-mode: multiply, normal;
+                    background: url('/static/assets/panels/game-workshop-panel.png') center / cover no-repeat;
                     color: white;
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .workshop-panel::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.3);
+                    transition: background 0.3s ease;
+                }
+                
+                .workshop-panel:hover::before {
+                    background: rgba(0, 0, 0, 0.1);
                 }
                 
                 .academy-panel {
-                    background: 
-                        url('/static/assets/textures/particle-glow.png'),
-                        linear-gradient(135deg, #a55eea 0%, #26de81 100%);
-                    background-size: cover, cover;
-                    background-repeat: no-repeat, no-repeat;
-                    background-position: center, center;
-                    background-blend-mode: soft-light, normal;
+                    background: url('/static/assets/panels/arcade-academy-panel.png') center / cover no-repeat;
                     color: white;
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .academy-panel::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.3);
+                    transition: background 0.3s ease;
+                }
+                
+                .academy-panel:hover::before {
+                    background: rgba(0, 0, 0, 0.1);
                 }
                 
                 .panel-icon {
@@ -285,6 +310,75 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     padding: 40px;
                     background: white;
                     min-height: 600px;
+                }
+                
+                /* Video Overlay System */
+                .video-overlay {
+                    position: absolute;
+                    top: var(--inset-top);
+                    right: var(--inset-right);
+                    bottom: var(--inset-bottom);
+                    left: var(--inset-left);
+                    background: rgba(0, 0, 0, 0.95);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                }
+                
+                .video-container {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                }
+                
+                .intro-video {
+                    max-width: 100%;
+                    max-height: 100%;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                }
+                
+                .skip-video {
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.7);
+                    color: white;
+                    border: 2px solid rgba(100, 255, 218, 0.5);
+                    padding: 10px 20px;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                    transition: all 0.3s;
+                    z-index: 1001;
+                }
+                
+                .skip-video:hover {
+                    background: rgba(100, 255, 218, 0.2);
+                    border-color: rgba(100, 255, 218, 0.8);
+                }
+                
+                /* Mascot Integration */
+                .mascot-portrait {
+                    width: 100px;
+                    height: 100px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    margin: 0 auto 20px;
+                    filter: drop-shadow(0 5px 15px rgba(100, 255, 218, 0.3));
+                }
+                
+                .professor-mascot {
+                    background-image: url('/static/assets/mascots/professor-pixel-transparent.png');
+                }
+                
+                .ai-orb-mascot {
+                    background-image: url('/static/assets/mascots/ai-orb-transparent.png');
                 }
                 
                 .back-button {
@@ -446,6 +540,17 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     </div>
                 </div>
                 </div>
+                
+                <!-- Video Overlay -->
+                <div id="video-overlay" class="video-overlay">
+                    <div class="video-container">
+                        <button class="skip-video" onclick="skipVideo()">Skip Intro ⏭️</button>
+                        <video id="intro-video" class="intro-video" autoplay muted onended="onVideoEnd()">
+                            <source src="" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
             </div>
             
             <!-- Audio System -->
@@ -507,15 +612,58 @@ class GameDevHandler(BaseHTTPRequestHandler):
                     }
                 }
                 
-                // Load dynamic content
+                // Load content with video transition
                 async function loadContent(type) {
+                    // Determine which video to play
+                    const videoSrc = type === 'workshop' 
+                        ? '/static/assets/videos/game-workshop-intro.mp4'
+                        : '/static/assets/videos/arcade-academy-intro.mp4';
+                    
+                    // Set up video and show overlay
+                    const video = document.getElementById('intro-video');
+                    const videoOverlay = document.getElementById('video-overlay');
+                    
+                    video.src = videoSrc;
+                    video.currentType = type; // Store type for after video
+                    
+                    // Hide split view and show video
                     document.getElementById('split-view').style.display = 'none';
+                    videoOverlay.style.display = 'flex';
+                    
+                    // Play audio feedback
+                    audioManager.play('success');
+                }
+                
+                // Handle video end
+                async function onVideoEnd() {
+                    const video = document.getElementById('intro-video');
+                    const type = video.currentType;
+                    await transitionToContent(type);
+                }
+                
+                // Skip video button
+                async function skipVideo() {
+                    const video = document.getElementById('intro-video');
+                    const type = video.currentType;
+                    video.pause();
+                    audioManager.play('click');
+                    await transitionToContent(type);
+                }
+                
+                // Transition from video to content
+                async function transitionToContent(type) {
+                    // Hide video overlay
+                    document.getElementById('video-overlay').style.display = 'none';
+                    
+                    // Show dynamic content
                     document.getElementById('dynamic-content').style.display = 'block';
                     
+                    // Load the content
                     try {
                         const response = await fetch(`/api/content/${type}`);
                         const html = await response.text();
                         document.getElementById('content-area').innerHTML = html;
+                        audioManager.play('notification');
                     } catch (error) {
                         document.getElementById('content-area').innerHTML = 
                             '<div class="loading">Error loading content. Please try again.</div>';
@@ -525,7 +673,9 @@ class GameDevHandler(BaseHTTPRequestHandler):
                 // Show split view
                 function showSplitView() {
                     document.getElementById('dynamic-content').style.display = 'none';
+                    document.getElementById('video-overlay').style.display = 'none';
                     document.getElementById('split-view').style.display = 'flex';
+                    audioManager.play('click');
                 }
                 
                 // Save user progress
@@ -573,6 +723,9 @@ class GameDevHandler(BaseHTTPRequestHandler):
         
         return """
         <div style="max-width: 800px; margin: 0 auto;">
+            <!-- AI Orb Mascot -->
+            <div class="mascot-portrait ai-orb-mascot"></div>
+            
             <h1 style="color: #ff6b6b; text-align: center; margin-bottom: 30px;">
                 🛠️ Game Workshop
             </h1>
@@ -690,6 +843,9 @@ class GameDevHandler(BaseHTTPRequestHandler):
         
         return """
         <div style="max-width: 800px; margin: 0 auto;">
+            <!-- Professor Pixel Mascot -->
+            <div class="mascot-portrait professor-mascot"></div>
+            
             <h1 style="color: #a55eea; text-align: center; margin-bottom: 30px;">
                 🎓 Arcade Academy
             </h1>
@@ -697,8 +853,7 @@ class GameDevHandler(BaseHTTPRequestHandler):
             <!-- Professor Pixel Introduction -->
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                         color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
-                <div class="professor-pixel">👨‍💻</div>
-                <h2 style="margin-bottom: 15px;">Meet Professor Pixel</h2>
+                <h2 style="margin-bottom: 15px;">Welcome, Digital Rebels!</h2>
                 <p style="font-size: 1.1em; line-height: 1.6; opacity: 0.95;">
                     Welcome to 2087, where corporations control all information. I'm Professor Pixel, 
                     and I need your help to teach coding to the digital resistance!
