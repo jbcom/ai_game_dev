@@ -4,6 +4,7 @@ Ensures all required internal assets are generated idempotently on server start
 """
 import asyncio
 import json
+import toml
 from pathlib import Path
 from typing import Dict, List, Any
 import hashlib
@@ -78,22 +79,17 @@ class StartupAssetGenerator:
         """Generate all required assets idempotently."""
         print("🎨 Starting comprehensive asset generation...")
         
-        # 1. Core UI Assets
-        await self._generate_ui_assets()
+        # Parse the comprehensive platform asset specification
+        parser = GameSpecificationParser()
+        platform_spec = parser.parse_platform_assets_spec()
         
-        # 2. Character Assets
-        await self._generate_character_assets()
+        # 1. Generate all platform assets from spec
+        await self._generate_platform_assets(platform_spec)
         
-        # 3. Game Icons and Logos
-        await self._generate_game_icons()
+        # 2. Generate Arcade Academy RPG game code and assets
+        await self._generate_academy_rpg_complete()
         
-        # 4. Audio Assets
-        await self._generate_audio_assets()
-        
-        # 5. Arcade Academy RPG Assets
-        await self._generate_academy_game_assets()
-        
-        # 6. Example Games with Variants
+        # 3. Generate example games with variants
         await self._generate_example_games()
         
         # Save manifest
@@ -209,64 +205,134 @@ class StartupAssetGenerator:
         for audio_spec in audio_assets:
             await self._generate_audio_if_needed(audio_spec)
     
-    async def _generate_academy_game_assets(self):
-        """Generate all assets for the Arcade Academy RPG."""
-        print("🎓 Generating Arcade Academy RPG assets...")
+    async def _generate_platform_assets(self, platform_spec: GameSpecification):
+        """Generate all platform assets from specification."""
+        print("🎨 Generating platform assets from specification...")
         
-        # Get the full game specification
-        academy_spec = {
-            "title": "NeoTokyo Code Academy: The Binary Rebellion",
-            "type": "educational_rpg",
-            "description": "Learn programming through an epic cyberpunk adventure",
-            "assets_needed": [
-                # Environments
-                {
-                    "name": "academy_entrance",
-                    "type": "environment",
-                    "description": "Futuristic academy entrance with holographic displays"
-                },
-                {
-                    "name": "code_classroom",
-                    "type": "environment",
-                    "description": "High-tech classroom with floating code displays"
-                },
-                {
-                    "name": "binary_dungeon",
-                    "type": "environment",
-                    "description": "Digital dungeon made of binary code"
-                },
-                # Characters
-                {
-                    "name": "student_avatar",
-                    "type": "character_sprite",
-                    "description": "Customizable student character in cyberpunk attire"
-                },
-                {
-                    "name": "code_enemies",
-                    "type": "enemy_sprites",
-                    "description": "Bug enemies, syntax errors as creatures"
-                },
-                # UI Elements
-                {
-                    "name": "dialogue_box",
-                    "type": "ui_element",
-                    "description": "Futuristic dialogue interface"
-                },
-                {
-                    "name": "code_editor_ui",
-                    "type": "ui_element",
-                    "description": "In-game code editor with syntax highlighting"
-                }
-            ]
-        }
+        # Read the TOML spec directly for complete asset lists
+        spec_file = Path("src/ai_game_dev/specs/web_platform_assets.toml")
+        with open(spec_file, 'r') as f:
+            toml_data = toml.load(f)
         
-        # Generate each asset
-        for asset in academy_spec["assets_needed"]:
-            asset["game"] = "arcade_academy"
-            await self._generate_asset_if_needed(asset, f"academy/{asset['type']}")
+        # Process each asset category
+        assets_data = toml_data.get("assets", {})
         
-        # Generate the game code itself
-        await self._generate_academy_game_code()
+        for category_name, category_data in assets_data.items():
+            prompts = category_data.get("prompts", [])
+            size = category_data.get("size", "512x512")
+            quality = category_data.get("quality", "hd")
+            asset_category = category_data.get("category", category_name)
+            
+            print(f"📦 Processing {category_name} ({len(prompts)} assets)...")
+            
+            for i, prompt in enumerate(prompts):
+                # Generate unique name from prompt
+                asset_name = f"{category_name}_{i}"
+                output_path = self.assets_dir / asset_category / f"{asset_name}.png"
+                
+                # Check if already exists
+                spec_hash = self._get_asset_hash({"prompt": prompt, "size": size})
+                manifest_key = f"{asset_category}/{asset_name}"
+                
+                if self.manifest["generated_assets"].get(manifest_key) == spec_hash and output_path.exists():
+                    print(f"  ✓ {asset_name} already exists")
+                    continue
+                
+                print(f"  🎨 Generating {asset_name}...")
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Generate using graphics subgraph
+                result = await self.graphics_subgraph.process({
+                    "task": "generate_asset",
+                    "prompt": prompt,
+                    "size": size,
+                    "quality": quality,
+                    "output_path": str(output_path)
+                })
+                
+                # Update manifest
+                self.manifest["generated_assets"][manifest_key] = spec_hash
+        
+        # Generate audio assets
+        await self._generate_platform_audio(toml_data.get("audio", {}))
+    
+    async def _generate_platform_audio(self, audio_spec: Dict[str, Any]):
+        """Generate all platform audio assets."""
+        print("🎵 Generating platform audio assets...")
+        
+        # Process each audio category
+        for category_name, category_data in audio_spec.items():
+            if category_name == "generation_config":
+                continue
+                
+            effects = category_data.get("effects", [])
+            durations = category_data.get("duration_ms", [])
+            format = category_data.get("format", "wav")
+            
+            for i, effect_name in enumerate(effects):
+                duration_ms = durations[i] if i < len(durations) else 1000
+                audio_path = self.assets_dir / "audio" / f"{effect_name}.{format}"
+                
+                # Check if already exists
+                spec_hash = self._get_asset_hash({
+                    "effect": effect_name, 
+                    "duration": duration_ms,
+                    "category": category_name
+                })
+                manifest_key = f"audio/{effect_name}"
+                
+                if self.manifest["generated_assets"].get(manifest_key) == spec_hash and audio_path.exists():
+                    print(f"  ✓ {effect_name} already exists")
+                    continue
+                
+                print(f"  🎵 Generating {effect_name}...")
+                audio_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                # Generate using audio subgraph
+                result = await self.audio_subgraph.process({
+                    "task": "generate_sound_effect",
+                    "effect_name": effect_name,
+                    "duration_ms": duration_ms,
+                    "category": category_name,
+                    "output_path": str(audio_path)
+                })
+                
+                # Update manifest
+                self.manifest["generated_assets"][manifest_key] = spec_hash
+    
+    async def _generate_academy_rpg_complete(self):
+        """Generate the complete Arcade Academy RPG."""
+        print("🎓 Generating NeoTokyo Code Academy RPG...")
+        
+        # Import the complete RPG specification
+        from ai_game_dev.education.rpg_specification import RPG_GAME_SPEC
+        
+        # Check if already generated
+        rpg_dir = self.examples_dir / "neotokyo_academy_rpg"
+        spec_hash = self._get_asset_hash(RPG_GAME_SPEC)
+        
+        if self.manifest["generated_examples"].get("neotokyo_academy_rpg") == spec_hash and rpg_dir.exists():
+            print("✓ NeoTokyo Academy RPG already generated")
+            return
+        
+        print("📝 Generating complete RPG code and assets...")
+        
+        # Use the arcade academy agent to generate everything
+        result = await self.arcade_agent.generate_complete_rpg(RPG_GAME_SPEC)
+        
+        # Save all generated files
+        rpg_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Main game files
+        for filename, content in result.get("files", {}).items():
+            file_path = rpg_dir / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(content)
+        
+        # Update manifest
+        self.manifest["generated_examples"]["neotokyo_academy_rpg"] = spec_hash
+        
+        print("✅ NeoTokyo Academy RPG generated successfully!")
     
     async def _generate_academy_game_code(self):
         """Generate the actual Academy game code."""
