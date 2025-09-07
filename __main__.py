@@ -54,11 +54,19 @@ async def main():
     print("✅ Using FastAPI + Jinja2 template architecture")
     print("🎮 Game Workshop | 🎓 Arcade Academy")
     print("📊 SQLite persistence enabled")
-    print("🎼 Master Orchestrator coordination enabled")
+    print("🎼 Initializing Master Orchestrator...")
+    
+    # Initialize master orchestrator
+    from ai_game_dev.agents.master_orchestrator import MasterGameDevOrchestrator
+    master_orchestrator = MasterGameDevOrchestrator()
+    await master_orchestrator.initialize()
+    
+    print("✅ Master Orchestrator initialized successfully")
     
     # Use the proper unified server with FastAPI + Jinja2
-    from ai_game_dev.server.unified_server import run_server
-    run_server(host="0.0.0.0", port=5000)
+    from ai_game_dev.server.unified_server import UnifiedGameDevServer
+    server = UnifiedGameDevServer(master_orchestrator)
+    await server.start()
 
 if __name__ == "__main__":
     import asyncio

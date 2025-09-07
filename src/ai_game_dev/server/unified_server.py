@@ -40,9 +40,11 @@ class UnifiedGameDevServer:
     Provides both SSE-based MCP endpoints and web UI from a single FastAPI server.
     """
     
-    def __init__(self, host: str = "0.0.0.0", port: int = 5000):
+    def __init__(self, master_orchestrator=None, host: str = "0.0.0.0", port: int = 5000):
         self.host = host
         self.port = port
+        self.master_orchestrator = master_orchestrator
+        self.master_orchestrator_initialized = master_orchestrator is not None
         self.app = FastAPI(
             title="AI Game Development Server",
             description="Unified server for game development with MCP protocol and web interface",
@@ -70,20 +72,16 @@ class UnifiedGameDevServer:
     
     async def _setup_master_orchestrator_integration(self):
         """Setup integration with master orchestrator for asset management."""
+        if not self.master_orchestrator_initialized:
+            print("⚠️ Master Orchestrator not provided during initialization")
+            return
+            
         try:
-            from ai_game_dev.agents.master_orchestrator import MasterGameDevOrchestrator
-            
-            print("🎼 Setting up Master Orchestrator integration...")
-            
-            # Initialize master orchestrator
-            self.master_orchestrator = MasterGameDevOrchestrator()
-            await self.master_orchestrator.initialize()
-            
             # Setup internal asset verification through orchestrator
             print("🎨 Requesting asset verification through Master Orchestrator...")
             
             verification_request = {
-                "task_type": "asset_verification",
+                "task_type": "asset_verification", 
                 "user_input": "Verify all required game assets are available and generate missing ones",
                 "context": {
                     "asset_categories": ["rpg_characters", "educational_environments", "professor_pixel", "game_code", "yarn_spinner"],
@@ -98,9 +96,6 @@ class UnifiedGameDevServer:
                 print("✅ Asset verification completed through Master Orchestrator")
             else:
                 print(f"⚠️ Asset verification had issues: {result.get('message', 'Unknown error')}")
-                
-            # Store orchestrator for later use
-            self.master_orchestrator_initialized = True
                 
         except Exception as e:
             print(f"⚠️ Master Orchestrator integration failed: {e}")
@@ -351,9 +346,12 @@ class UnifiedGameDevServer:
         """Start the unified server."""
         print(f"🚀 Starting Unified AI Game Development Server")
         
-        # Verify asset availability before starting server
-        print("🎨 Verifying asset availability...")
-        await self._verify_asset_availability()
+        # Setup master orchestrator integration if available
+        if self.master_orchestrator_initialized:
+            print("🎨 Setting up Master Orchestrator integration...")
+            await self._setup_master_orchestrator_integration()
+        else:
+            print("⚠️ Starting without Master Orchestrator integration")
         
         print(f"🌐 Web Interface: http://{self.host}:{self.port}")
         print(f"🔧 MCP SSE Endpoint: http://{self.host}:{self.port}/mcp/sse")
@@ -379,9 +377,9 @@ class UnifiedGameDevServer:
             print("\n👋 Server stopped by user")
 
 
-def run_server(host: str = "0.0.0.0", port: int = 5000):
+def run_server(host: str = "0.0.0.0", port: int = 5000, master_orchestrator=None):
     """Start the unified game development server."""
-    server = UnifiedGameDevServer(host, port)
+    server = UnifiedGameDevServer(master_orchestrator, host, port)
     server.run()
 
 
