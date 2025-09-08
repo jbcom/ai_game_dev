@@ -165,12 +165,12 @@ async def generate_variants(
 ) -> list[dict[str, str]]:
     """Generate variants of a game feature."""
     
-    from ai_game_dev.tools.openai_tools.templates import get_variant_template
+    from ai_game_dev.tools.openai_tools.template_loader import template_loader
     
     # Create a temporary agent for variant generation
     variant_agent = Agent(
         name="Variant Generator",
-        instructions=get_variant_template(feature),
+        instructions=f"Generate creative variants for {feature} mechanics in games",
         tools=[]
     )
     

@@ -2,6 +2,7 @@
 OpenAI text generation tools for game content.
 Generates dialogue, quests, and code using GPT-5.
 """
+import json
 from pathlib import Path
 from typing import Any, Literal
 
@@ -76,7 +77,7 @@ Character: Dialogue text
 """
     
     response = await client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model=OPENAI_MODELS["text"]["default"],  # GPT-5
         messages=[
             {"role": "system", "content": "You are a game dialogue writer specializing in interactive narratives."},
             {"role": "user", "content": prompt}
@@ -119,7 +120,7 @@ Include:
 Make it engaging and appropriate for the genre."""
     
     response = await client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model=OPENAI_MODELS["text"]["default"],  # GPT-5
         messages=[
             {"role": "system", "content": "You are a game designer creating engaging quests."},
             {"role": "user", "content": prompt}
@@ -129,7 +130,6 @@ Make it engaging and appropriate for the genre."""
     )
     
     quest_data = response.choices[0].message.content
-    import json
     quest_json = json.loads(quest_data)
     
     # Generate dialogue if requested
@@ -188,8 +188,18 @@ async def generate_game_code(
     client = AsyncOpenAI()
     
     # Get engine-specific template and instructions
-    template = get_engine_template(engine)
-    instructions = get_prompt_template(engine, educational_mode)
+    template = template_loader.render_engine_prompt(
+        engine, 
+        "code_structure",
+        game_spec=game_spec,
+        educational_mode=educational_mode
+    )
+    instructions = template_loader.render_engine_prompt(
+        engine,
+        "architecture", 
+        game_spec=game_spec,
+        include_comments=include_comments
+    )
     
     prompt = f"""Generate a complete {engine} game based on this specification:
 {json.dumps(game_spec, indent=2)}
@@ -201,7 +211,7 @@ async def generate_game_code(
 """
     
     response = await client.chat.completions.create(
-        model="gpt-4-turbo-preview", 
+        model=OPENAI_MODELS["text"]["code_generation"],  # GPT-5 for code
         messages=[
             {"role": "system", "content": template},
             {"role": "user", "content": prompt}
@@ -296,7 +306,7 @@ For each teachable moment, provide:
 """
     
     response = await client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model=OPENAI_MODELS["text"]["educational"],  # GPT-5 for education
         messages=[
             {"role": "system", "content": "You are a programming educator analyzing code for learning opportunities."},
             {"role": "user", "content": prompt}
@@ -305,7 +315,6 @@ For each teachable moment, provide:
         temperature=0.5
     )
     
-    import json
     moments = json.loads(response.choices[0].message.content)
     
     return moments.get("teachable_moments", [])
@@ -350,6 +359,3 @@ def _get_run_instructions(engine: str) -> str:
         "bevy": "```bash\ncargo run\n```"
     }
     return instructions.get(engine, "See engine documentation")
-
-
-import json
