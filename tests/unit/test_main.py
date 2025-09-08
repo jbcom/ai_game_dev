@@ -5,11 +5,10 @@ import sys
 from pathlib import Path
 
 from ai_game_dev.__main__ import (
-    parse_args,
+    check_port_available,
     run_server,
     generate_game,
     generate_assets,
-    async_main,
     main
 )
 
@@ -17,51 +16,27 @@ from ai_game_dev.__main__ import (
 class TestMainModule:
     """Test the main module functions."""
     
-    def test_parse_args_server_mode(self):
-        """Test parsing args for server mode."""
-        with patch('sys.argv', ['ai-game-dev']):
-            args = parse_args()
-            assert args.mode == 'server'
-            assert args.port == 8000
+    def test_check_port_available_free(self):
+        """Test checking if port is available when free."""
+        with patch('socket.socket') as mock_socket:
+            mock_sock_instance = MagicMock()
+            mock_socket.return_value.__enter__.return_value = mock_sock_instance
+            
+            result = check_port_available(8080)
+            
+            assert result is True
+            mock_sock_instance.bind.assert_called_once_with(('127.0.0.1', 8080))
     
-    def test_parse_args_server_with_port(self):
-        """Test parsing args for server with custom port."""
-        with patch('sys.argv', ['ai-game-dev', '--port', '9000']):
-            args = parse_args()
-            assert args.mode == 'server'
-            assert args.port == 9000
-    
-    def test_parse_args_game_mode(self):
-        """Test parsing args for game generation."""
-        with patch('sys.argv', ['ai-game-dev', '--game-spec', 'game.toml']):
-            args = parse_args()
-            assert args.mode == 'game'
-            assert args.game_spec == 'game.toml'
-            assert args.game_dir == 'games'
-    
-    def test_parse_args_game_mode_with_dir(self):
-        """Test parsing args for game with custom dir."""
-        with patch('sys.argv', ['ai-game-dev', '--game-spec', 'game.toml', '--game-dir', 'output']):
-            args = parse_args()
-            assert args.mode == 'game'
-            assert args.game_spec == 'game.toml'
-            assert args.game_dir == 'output'
-    
-    def test_parse_args_assets_mode(self):
-        """Test parsing args for asset generation."""
-        with patch('sys.argv', ['ai-game-dev', '--assets-spec', 'assets.toml']):
-            args = parse_args()
-            assert args.mode == 'assets'
-            assert args.assets_spec == 'assets.toml'
-            assert args.assets_dir == 'public/static/assets/generated'
-    
-    def test_parse_args_assets_mode_with_dir(self):
-        """Test parsing args for assets with custom dir."""
-        with patch('sys.argv', ['ai-game-dev', '--assets-spec', 'assets.toml', '--assets-dir', 'output']):
-            args = parse_args()
-            assert args.mode == 'assets'
-            assert args.assets_spec == 'assets.toml'
-            assert args.assets_dir == 'output'
+    def test_check_port_available_in_use(self):
+        """Test checking if port is available when in use."""
+        with patch('socket.socket') as mock_socket:
+            mock_sock_instance = MagicMock()
+            mock_sock_instance.bind.side_effect = OSError("Address in use")
+            mock_socket.return_value.__enter__.return_value = mock_sock_instance
+            
+            result = check_port_available(8080)
+            
+            assert result is False
     
     def test_run_server(self):
         """Test server startup."""
@@ -95,7 +70,7 @@ class TestMainModule:
                 with patch('ai_game_dev.__main__.generate_for_engine') as mock_gen:
                     mock_gen.return_value = MagicMock(project_path='/path/to/game')
                     
-                    await generate_game('spec.toml', 'output')
+                    await generate_game(Path('spec.toml'), Path('output'))
                     
                     MockLoader.assert_called_once_with('.')
                     mock_loader.load_and_resolve.assert_called_once()
@@ -106,7 +81,7 @@ class TestMainModule:
         """Test game generation with missing spec file."""
         with patch('ai_game_dev.__main__.load_toml', side_effect=FileNotFoundError()):
             with pytest.raises(SystemExit):
-                await generate_game('missing.toml', 'output')
+                await generate_game(Path('missing.toml'), Path('output'))
     
     @pytest.mark.asyncio
     async def test_generate_assets_success(self):
@@ -124,7 +99,7 @@ class TestMainModule:
                     mock_sprite.return_value = '/path/to/sprite.png'
                     mock_bg.return_value = '/path/to/bg.png'
                     
-                    await generate_assets('spec.toml', 'output')
+                    await generate_assets(Path('spec.toml'), Path('output'))
                     
                     mock_sprite.assert_called_once()
                     mock_bg.assert_called_once()
@@ -134,43 +109,26 @@ class TestMainModule:
         """Test asset generation with missing spec file."""
         with patch('ai_game_dev.__main__.load_toml', side_effect=FileNotFoundError()):
             with pytest.raises(SystemExit):
-                await generate_assets('missing.toml', 'output')
+                await generate_assets(Path('missing.toml'), Path('output'))
     
-    @pytest.mark.asyncio
-    async def test_async_main_server_mode(self):
-        """Test async main in server mode."""
-        args = MagicMock(mode='server', port=8000)
-        
-        with patch('ai_game_dev.__main__.run_server') as mock_run:
-            await async_main(args)
-            mock_run.assert_called_once_with(8000)
     
-    @pytest.mark.asyncio
-    async def test_async_main_game_mode(self):
-        """Test async main in game mode."""
-        args = MagicMock(mode='game', game_spec='spec.toml', game_dir='output')
-        
-        with patch('ai_game_dev.__main__.generate_game', new_callable=AsyncMock) as mock_gen:
-            await async_main(args)
-            mock_gen.assert_called_once_with('spec.toml', 'output')
-    
-    @pytest.mark.asyncio
-    async def test_async_main_assets_mode(self):
-        """Test async main in assets mode."""
-        args = MagicMock(mode='assets', assets_spec='spec.toml', assets_dir='output')
-        
-        with patch('ai_game_dev.__main__.generate_assets', new_callable=AsyncMock) as mock_gen:
-            await async_main(args)
-            mock_gen.assert_called_once_with('spec.toml', 'output')
-    
-    def test_main(self):
-        """Test main entry point."""
-        with patch('ai_game_dev.__main__.parse_args') as mock_parse:
-            with patch('ai_game_dev.__main__.asyncio.run') as mock_run:
-                args = MagicMock(mode='server')
-                mock_parse.return_value = args
-                
+    def test_main_server_mode(self):
+        """Test main entry point in server mode."""
+        with patch('sys.argv', ['ai-game-dev']):
+            with patch('ai_game_dev.__main__.run_server') as mock_run:
                 main()
-                
-                mock_parse.assert_called_once()
+                mock_run.assert_called_once_with(8000)
+    
+    def test_main_game_mode(self):
+        """Test main entry point in game mode."""
+        with patch('sys.argv', ['ai-game-dev', '--game-spec', 'test.toml']):
+            with patch('asyncio.run') as mock_run:
+                main()
+                mock_run.assert_called_once()
+    
+    def test_main_assets_mode(self):
+        """Test main entry point in assets mode."""
+        with patch('sys.argv', ['ai-game-dev', '--assets-spec', 'test.toml']):
+            with patch('asyncio.run') as mock_run:
+                main()
                 mock_run.assert_called_once()
