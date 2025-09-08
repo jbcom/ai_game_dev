@@ -8,19 +8,18 @@ from typing import Any, Literal
 from agents import Agent, Runner
 from pydantic import BaseModel
 
-from ai_game_dev.tools.openai_tools import (
-    generate_character_sprite,
-    generate_dialogue,
-    generate_environment,
-    generate_game_asset,
-    generate_game_code,
-    generate_music,
-    generate_quest,
-    generate_sound_effect,
-    generate_ui_element,
-    generate_voice,
-    identify_teachable_moments,
+from ai_game_dev.graphics import (
+    generate_game_sprite,
+    generate_game_background,
+    generate_ui_pack,
 )
+from ai_game_dev.audio import (
+    generate_voice_acting,
+    generate_sound_effect,
+    generate_background_music,
+)
+from ai_game_dev.fonts import render_game_text
+from ai_game_dev.variants import generate_mechanic_variants
 
 
 class GameSpec(BaseModel):
@@ -59,14 +58,13 @@ Your process:
 
 Be creative but practical. Focus on making fun, complete games.""",
     tools=[
-        generate_game_code,
-        generate_character_sprite,
-        generate_environment,
-        generate_ui_element,
+        # Note: generate_game_code needs to be created separately
+        generate_game_sprite,
+        generate_game_background,
+        generate_ui_pack,
         generate_sound_effect,
-        generate_music,
-        generate_dialogue,
-        generate_quest,
+        generate_background_music,
+        generate_voice_acting,
     ]
 )
 
@@ -85,11 +83,10 @@ Your mission:
 
 Always be encouraging and explain concepts clearly.""",
     tools=[
-        generate_game_code,
-        identify_teachable_moments,
-        generate_dialogue,
-        generate_character_sprite,
-        generate_voice,
+        # Note: generate_game_code and identify_teachable_moments need to be created
+        generate_game_sprite,
+        generate_voice_acting,
+        generate_mechanic_variants,  # For educational variants
     ]
 )
 
@@ -191,14 +188,8 @@ async def create_dialogue_tree(
 ) -> str:
     """Create an interactive dialogue tree."""
     
-    dialogue = await generate_dialogue(
-        character_name=character,
-        context=scenario,
-        num_branches=branches,
-        dialogue_style="yarn"
-    )
-    
-    return dialogue
+    # For now, return a placeholder - dialogue generation should be added to a text module
+    return f"Dialogue tree for {character} in scenario: {scenario} with {branches} branches"
 
 
 # Main entry point for web UI

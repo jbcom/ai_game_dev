@@ -1,22 +1,55 @@
 """
-Game development tools powered by OpenAI.
+Tools package - exports functionality from audio, graphics, fonts, and variants.
+Each subpackage provides OpenAI function tools.
 """
 
-from ai_game_dev.tools.openai_tools import *
+# Re-export from subpackages
+from ai_game_dev.audio import *
+from ai_game_dev.graphics import *
+from ai_game_dev.fonts import *
+from ai_game_dev.variants import *
 
 __all__ = [
-    # Audio
-    "generate_voice",
+    # From audio
+    "AudioTools",
+    "TTSGenerator", 
+    "MusicGenerator",
+    "FreesoundClient",
+    "generate_voice_acting",
     "generate_sound_effect",
-    "generate_music",
-    # Image  
-    "generate_game_asset",
-    "generate_character_sprite",
-    "generate_environment",
-    "generate_ui_element",
-    # Text
-    "generate_dialogue",
-    "generate_quest",
-    "generate_game_code",
-    "identify_teachable_moments",
+    "generate_background_music",
+    "generate_audio_pack",
+    
+    # From graphics
+    "CC0Libraries",
+    "ImageProcessor",
+    "generate_game_sprite",
+    "generate_game_background", 
+    "generate_ui_pack",
+    "find_cc0_assets",
+    "process_game_image",
+    "generate_complete_graphics_pack",
+    "find_or_generate_sprite",
+    "process_spritesheet",
+    
+    # From fonts
+    "GoogleFonts",
+    "find_game_font",
+    "render_game_text", 
+    "generate_text_assets",
+    
+    # From variants
+    "VariantType",
+    "VariantChoice", 
+    "VariantPoint",
+    "FeatureFlags",
+    "VariantGenerator",
+    "VariantCodeInjector",
+    "InteractiveVariantSystem",
+    "create_variant_enabled_game",
+    "generate_mechanic_variants",
+    "identify_interactive_moments",
+    "apply_variant_to_code",
+    "generate_educational_variants",
+    "create_variant_pack",
 ]

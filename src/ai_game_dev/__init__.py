@@ -1,8 +1,7 @@
 """AI Game Development Library.
 
 A revolutionary unified Python package for AI-powered game development
-featuring multi-LLM support, comprehensive asset generation, and 
-engine-specific TOML specifications.
+using OpenAI agents for comprehensive asset generation and multi-engine support.
 """
 
 from ai_game_dev.models import (
@@ -19,6 +18,11 @@ from ai_game_dev.providers import (
     setup_google,
     setup_ollama,
     setup_openai,
+)
+from ai_game_dev.agent import (
+    create_game,
+    create_educational_game,
+    process_request,
 )
 
 # Version info
@@ -42,6 +46,11 @@ __all__ = [
     "setup_google",
     "setup_ollama",
     "create_default_manager",
+    
+    # Agent functions
+    "create_game",
+    "create_educational_game",
+    "process_request",
     
     # Version
     "__version__",
