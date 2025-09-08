@@ -12,7 +12,6 @@ import toml
 
 from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
 from ai_game_dev.agents.subgraphs import AudioSubgraph, GraphicsSubgraph
-from ai_game_dev.variants import InteractiveVariantSystem
 
 
 class StartupAssetGenerator:
@@ -78,7 +77,7 @@ class StartupAssetGenerator:
         self.graphics_subgraph = GraphicsSubgraph()
         self.audio_subgraph = AudioSubgraph()
         self.arcade_agent = ArcadeAcademyAgent()
-        self.variant_system = InteractiveVariantSystem()
+        self.variant_system = None  # Will be initialized if needed
         
         await self.graphics_subgraph.initialize()
         await self.audio_subgraph.initialize()
@@ -602,7 +601,7 @@ class StartupAssetGenerator:
 # Auto-generated with variant support
 
 import {game_spec['engine']}
-        from ai_game_dev.variants import load_variant_config
+        from ai_game_dev.tools.variants import load_variant_config
 
 # Load feature flags
 config = load_variant_config('features.toml')

@@ -10,15 +10,15 @@ import json
 from pathlib import Path
 import os
 
-from ai_game_dev.agents.base_agent import BaseAgent, AgentConfig
-from ai_game_dev.agents.pygame_agent import PygameAgent
-from ai_game_dev.agents.godot_agent import GodotAgent
-from ai_game_dev.agents.bevy_agent import BevyAgent
-from .dialogue_subgraph import DialogueSubgraph
-from .quest_subgraph import QuestSubgraph
-from .graphics_subgraph import GraphicsSubgraph
+from ai_game_dev.agents.base_agent import AgentConfig, BaseAgent
 from .audio_subgraph import AudioSubgraph
+from .bevy_subgraph import BevySubgraph
+from .dialogue_subgraph import DialogueSubgraph
 from .game_spec_subgraph import GameSpecSubgraph
+from .godot_subgraph import GodotSubgraph
+from .graphics_subgraph import GraphicsSubgraph
+from .pygame_subgraph import PygameSubgraph
+from .quest_subgraph import QuestSubgraph
 
 
 @dataclass
@@ -72,11 +72,11 @@ class GameWorkshopSubgraph(BaseAgent):
         self.graphics_subgraph = GraphicsSubgraph()
         self.audio_subgraph = AudioSubgraph()
         
-        # Engine agents
-        self.engine_agents = {
-            "pygame": PygameAgent(),
-            "godot": GodotAgent(),
-            "bevy": BevyAgent()
+        # Engine subgraphs
+        self.engine_subgraphs = {
+            "pygame": PygameSubgraph(),
+            "godot": GodotSubgraph(),
+            "bevy": BevySubgraph()
         }
         
         self.graph = None
@@ -104,9 +104,9 @@ class GameWorkshopSubgraph(BaseAgent):
         await self.graphics_subgraph.initialize()
         await self.audio_subgraph.initialize()
         
-        # Initialize engine agents
-        for agent in self.engine_agents.values():
-            await agent.initialize()
+        # Initialize engine subgraphs
+        for subgraph in self.engine_subgraphs.values():
+            await subgraph.initialize()
         
         # Build the orchestration graph
         self.graph = self._build_graph()
@@ -202,7 +202,7 @@ class GameWorkshopSubgraph(BaseAgent):
         state.engine = spec.get("engine", "pygame")
         
         # Validate engine
-        if state.engine not in self.engine_agents:
+        if state.engine not in self.engine_subgraphs:
             state.errors.append(f"Unsupported engine: {state.engine}")
         
         return state
@@ -215,15 +215,15 @@ class GameWorkshopSubgraph(BaseAgent):
         if state.errors:
             return state
         
-        # Get the appropriate engine agent
-        engine_agent = self.engine_agents.get(state.engine)
-        if not engine_agent:
-            state.errors.append(f"Engine agent not found: {state.engine}")
+        # Get the appropriate engine subgraph
+        engine_subgraph = self.engine_subgraphs.get(state.engine)
+        if not engine_subgraph:
+            state.errors.append(f"Engine subgraph not found: {state.engine}")
             return state
         
         # Generate game code
         try:
-            result = await engine_agent.generate_game(state.game_spec)
+            result = await engine_subgraph.process({"game_spec": state.game_spec})
             state.generated_code = result.get("files", {})
             state.project_structure = result.get("structure", {})
         except Exception as e:
