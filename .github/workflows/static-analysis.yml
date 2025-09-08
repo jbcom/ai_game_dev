@@ -60,7 +60,7 @@ jobs:
           uv run ruff check src/ai_game_dev/
 
       - name: Upload analysis artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: python-${{ matrix.tool }}-analysis
@@ -107,7 +107,7 @@ jobs:
           verbose: true
 
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: |
@@ -126,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all analysis artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           path: analysis-reports
 
@@ -154,7 +154,7 @@ jobs:
             });
 
       - name: Upload unified quality report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quality-dashboard
           path: |
@@ -220,7 +220,7 @@ jobs:
           uv run mprof plot -o memory-profile.png || true
 
       - name: Upload performance artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-analysis
           path: |
