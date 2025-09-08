@@ -106,6 +106,7 @@ Issues = "https://github.com/ai-game-dev/ai-game-dev/issues"
 
 [project.scripts]
 ai-game-dev = "ai_game_dev.__main__:main"
+ai-game-dev-process-image = "ai_game_dev.assets.image_processor:main"
 
 # Hatch testing environment with UV backend - includes E2E dependencies
 [tool.hatch.envs.hatch-test]
@@ -176,11 +177,11 @@ path = ".venv"
 
 [tool.hatch.envs.default.scripts]
 # Main platform commands
-run = "python -m __main__"
-run-dev = "python -m __main__"
-server = "python -m __main__"
+run = "python -m ai_game_dev"
+run-dev = "python -m ai_game_dev"
+server = "python -m ai_game_dev"
 # Image processing command with automatic frame detection
-process-image = "python scripts/process_image.py {args}"
+process-image = "ai-game-dev-process-image {args}"
 
 [tool.hatch.envs.test]
 type = "virtual"

@@ -352,3 +352,21 @@ def process_image_cli(input_path: str, output_path: Optional[str] = None) -> Non
             print(f"  - {component}")
     if results.get('processed_files'):
         print(f"Output files: {results['processed_files']}")
+
+
+def main():
+    """Main entry point for command-line usage."""
+    import sys
+    
+    if len(sys.argv) < 2:
+        print("Usage: ai-game-dev-process-image INPUT_PATH [OUTPUT_PATH]")
+        sys.exit(1)
+    
+    input_path = sys.argv[1]
+    output_path = sys.argv[2] if len(sys.argv) > 2 else None
+    
+    process_image_cli(input_path, output_path)
+
+
+if __name__ == "__main__":
+    main()
