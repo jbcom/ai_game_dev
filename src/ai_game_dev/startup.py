@@ -4,13 +4,15 @@ Idempotently generates all example games and assets on server startup.
 """
 import asyncio
 import json
+import tomllib
 from pathlib import Path
 from typing import Dict, Any, List
 
 from ai_game_dev.agent import create_game, create_educational_game
 from ai_game_dev.graphics import generate_game_sprite, generate_ui_pack
 from ai_game_dev.audio import generate_sound_effect, generate_background_music
-from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR
+from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR, PLATFORM_SPEC_PATH
+from ai_game_dev.text import get_rpg_specification
 
 
 # Example game specifications
@@ -88,6 +90,7 @@ class StartupGenerator:
         self.assets_dir = Path(GENERATED_ASSETS_DIR)
         self.games_dir = Path(GENERATED_GAMES_DIR)
         self.manifest_path = self.assets_dir / "manifest.json"
+        self.platform_spec = self._load_platform_spec()
         
     async def generate_all(self):
         """Generate all startup assets and example games."""
@@ -106,10 +109,20 @@ class StartupGenerator:
         # Generate example games
         await self._generate_example_games(manifest)
         
+        # Generate the educational RPG from spec
+        await self._generate_educational_rpg(manifest)
+        
         # Save updated manifest
         self._save_manifest(manifest)
         
         print("✅ Startup generation complete!")
+        
+    def _load_platform_spec(self) -> Dict[str, Any]:
+        """Load the unified platform specification."""
+        if PLATFORM_SPEC_PATH.exists():
+            with open(PLATFORM_SPEC_PATH, 'rb') as f:
+                return tomllib.load(f)
+        return {}
         
     def _load_manifest(self) -> Dict[str, Any]:
         """Load generation manifest to track what's already been created."""
@@ -234,6 +247,55 @@ class StartupGenerator:
                     }
             else:
                 print(f"  ✓ {spec['title']} already exists")
+                
+    async def _generate_educational_rpg(self, manifest: Dict[str, Any]):
+        """Generate the full educational RPG from specification."""
+        print("🎓 Generating NeoTokyo Code Academy RPG...")
+        
+        rpg_key = "educational_rpg_full"
+        if rpg_key not in manifest.get("games", {}):
+            try:
+                # Get the full RPG specification
+                rpg_spec = get_rpg_specification()
+                
+                # Generate the complete educational RPG
+                project = await create_educational_game(
+                    topic="Programming through Cyberpunk Adventure",
+                    concepts=["variables", "loops", "functions", "classes", "algorithms"],
+                    level="progressive"  # Adapts from beginner to advanced
+                )
+                
+                # Save to special directory
+                rpg_dir = self.games_dir / "neotokyo_code_academy"
+                rpg_dir.mkdir(exist_ok=True)
+                
+                # Write all game files
+                for filename, content in project.code_files.items():
+                    (rpg_dir / filename).write_text(content)
+                
+                # Save the full RPG specification
+                spec_path = rpg_dir / "full_game_spec.json"
+                spec_path.write_text(json.dumps(rpg_spec, indent=2))
+                
+                manifest["games"][rpg_key] = {
+                    "title": "NeoTokyo Code Academy: The Binary Rebellion",
+                    "engine": "pygame",
+                    "path": str(rpg_dir),
+                    "type": "educational_rpg",
+                    "generated": True
+                }
+                
+                print("    ✅ Educational RPG generated successfully!")
+                
+            except Exception as e:
+                print(f"    ❌ Error generating RPG: {e}")
+                manifest["games"][rpg_key] = {
+                    "title": "NeoTokyo Code Academy",
+                    "error": str(e),
+                    "generated": False
+                }
+        else:
+            print("  ✓ Educational RPG already exists")
 
 
 async def run_startup_generation():
