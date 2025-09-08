@@ -17,7 +17,7 @@ client = AsyncOpenAI()  # Will use OPENAI_API_KEY env var automatically
 template_loader = TemplateLoader()
 
 
-@function_tool(strict_mode=False)(strict_mode=False)
+@function_tool(strict_mode=False)
 async def generate_dialogue_tree(
     characters: list[str],
     scenario: str,
@@ -68,7 +68,7 @@ Create an engaging, branching conversation that fits the scenario."""
     return response.choices[0].message.content
 
 
-@function_tool(strict_mode=False)(strict_mode=False)
+@function_tool(strict_mode=False)
 async def generate_quest_chain(
     quest_theme: str,
     quest_count: int = 3,
