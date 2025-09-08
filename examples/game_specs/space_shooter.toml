@@ -1,0 +1,65 @@
+# Example Game Specification - Space Shooter
+
+[game]
+title = "Galactic Defender"
+description = "A fast-paced space shooter where you defend Earth from alien invaders with upgradeable weapons"
+genre = "shooter"
+engine = "pygame"
+art_style = "retro"
+
+[features]
+core = [
+    "player_ship_movement",
+    "shooting_mechanics",
+    "enemy_waves",
+    "power_ups",
+    "boss_battles",
+    "weapon_upgrades",
+    "shield_system",
+    "high_score_tracking"
+]
+
+[assets]
+sprites = [
+    "player_ship",
+    "enemy_fighter",
+    "enemy_bomber",
+    "enemy_boss",
+    "laser_blue",
+    "laser_red",
+    "powerup_shield",
+    "powerup_rapid_fire",
+    "explosion_small",
+    "explosion_large",
+    "background_stars",
+    "background_nebula"
+]
+
+sounds = [
+    "laser_shoot",
+    "explosion",
+    "powerup_collect",
+    "shield_hit",
+    "boss_warning",
+    "game_over"
+]
+
+music = [
+    "intense_battle",
+    "boss_theme",
+    "victory_theme",
+    "menu_ambient"
+]
+
+[gameplay]
+player_speed = 400
+bullet_speed = 600
+enemy_speed_base = 150
+fire_rate = 0.3
+shield_duration = 5.0
+powerup_spawn_rate = 15.0
+
+[enemies]
+types = ["fighter", "bomber", "kamikaze", "boss"]
+wave_size_progression = [5, 8, 12, 15, 20]
+difficulty_multiplier = 1.2
