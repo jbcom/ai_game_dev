@@ -11,20 +11,30 @@ from openai import AsyncOpenAI
 from ai_game_dev.constants import OPENAI_MODELS
 from ai_game_dev.templates import TemplateLoader
 from ai_game_dev.assets.asset_registry import get_asset_registry
+from ai_game_dev.types import (
+    DialogueNode,
+    Quest,
+    GameNarrative,
+    CharacterProfile,
+    LessonPlan,
+    TeachableMoment,
+    GameSpec,
+    CodeRepository
+)
 
 # Initialize components
 client = AsyncOpenAI()  # Will use OPENAI_API_KEY env var automatically
 template_loader = TemplateLoader()
 
 
-@function_tool(strict_mode=False)
+@function_tool
 async def generate_dialogue_tree(
     characters: list[str],
     scenario: str,
     branches: int = 3,
     dialogue_style: str = "natural",
     emotion_tags: bool = True
-) -> str:
+) -> DialogueNode:
     """
     Generate an interactive dialogue tree in Yarnspinner format.
     
@@ -59,22 +69,23 @@ Create an engaging, branching conversation that fits the scenario."""
     response = await client.chat.completions.create(
         model=OPENAI_MODELS["text"]["default"],  # GPT-5
         messages=[
-            {"role": "system", "content": "You are a game dialogue writer specializing in interactive narratives."},
+            {"role": "system", "content": "You are a game dialogue writer specializing in interactive narratives. Return valid JSON."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.8
+        temperature=0.8,
+        response_format={"type": "json_object"}
     )
     
-    return response.choices[0].message.content
+    return json.loads(response.choices[0].message.content)
 
 
-@function_tool(strict_mode=False)
+@function_tool
 async def generate_quest_chain(
     quest_theme: str,
     quest_count: int = 3,
     difficulty_progression: bool = True,
     include_side_objectives: bool = True
-) -> dict[str, Any]:
+) -> list[Quest]:
     """
     Generate a chain of related quests with objectives and rewards.
     
@@ -117,7 +128,7 @@ Format as JSON."""
     return json.loads(response.choices[0].message.content)
 
 
-@function_tool(strict_mode=False)
+@function_tool
 async def generate_game_narrative(
     genre: str,
     setting: str,
@@ -125,7 +136,7 @@ async def generate_game_narrative(
     antagonist: str,
     tone: str = "balanced",
     acts: int = 3
-) -> dict[str, Any]:
+) -> GameNarrative:
     """
     Generate a complete game narrative structure.
     
@@ -173,14 +184,14 @@ Format as structured JSON."""
     return json.loads(response.choices[0].message.content)
 
 
-@function_tool(strict_mode=False)
+@function_tool
 async def generate_character_backstory(
     character_name: str,
     character_role: str,
     personality_traits: list[str],
     relationships: list[str] | None = None,
     secrets: int = 1
-) -> dict[str, Any]:
+) -> CharacterProfile:
     """
     Generate detailed character backstory and profile.
     
@@ -277,13 +288,13 @@ Make the dialogue engaging and true to each character."""
     return response.choices[0].message.content
 
 
-@function_tool(strict_mode=False)
+@function_tool
 async def generate_educational_content(
     programming_concept: str,
     difficulty_level: Literal["beginner", "intermediate", "advanced"],
     game_context: str,
     include_exercises: bool = True
-) -> dict[str, Any]:
+) -> LessonPlan:
     """
     Generate educational content for teaching programming through games.
     
@@ -334,7 +345,7 @@ async def generate_code_repository(
     game_spec: dict[str, Any],
     include_comments: bool = True,
     educational_mode: bool = False
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """
     Generate a complete code repository for a game engine.
     

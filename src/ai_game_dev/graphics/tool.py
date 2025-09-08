@@ -27,7 +27,7 @@ class GeneratedImage(BaseModel):
     url: str | None = None
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_sprite(
     object_name: str,
     art_style: Literal["pixel", "cartoon", "realistic", "minimalist", "hand-drawn"] = "pixel",
@@ -122,7 +122,7 @@ async def generate_sprite(
     )
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_tileset(
     environment: str,
     tile_size: Literal["16x16", "32x32", "64x64"] = "32x32",
@@ -195,7 +195,7 @@ async def generate_tileset(
     )
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_background(
     scene: str,
     style: Literal["pixel", "painted", "cartoon", "realistic", "abstract"] = "painted",
@@ -269,7 +269,7 @@ async def generate_background(
     )
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_ui_elements(
     ui_theme: str,
     elements: list[str],
@@ -344,7 +344,7 @@ async def generate_ui_elements(
     return results
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def find_or_generate_sprite(
     object_name: str,
     prefer_cc0: bool = True,
@@ -386,7 +386,7 @@ async def find_or_generate_sprite(
     )
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def process_spritesheet(
     image_path: str,
     sprite_width: int,
@@ -445,7 +445,7 @@ async def process_spritesheet(
     }
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_graphics_pack(
     game_title: str,
     game_genre: str,

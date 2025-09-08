@@ -24,9 +24,6 @@ from .seeding_tools import (
 )
 
 # Educational content tools (moved from education module)
-from .yarn_dialogue import YarnDialogueGenerator
-from .characters_and_story import CharacterGenerator, StoryGenerator
-from .rpg_specification import get_rpg_specification
 from .educational_tools import (
     create_lesson_plan,
     identify_teachable_moment,
@@ -60,10 +57,6 @@ __all__ = [
     "SeedingRequest",
     
     # Educational content
-    "YarnDialogueGenerator",
-    "CharacterGenerator",
-    "StoryGenerator", 
-    "get_rpg_specification",
     "create_lesson_plan",
     "identify_teachable_moment",
     "generate_educational_game_spec",

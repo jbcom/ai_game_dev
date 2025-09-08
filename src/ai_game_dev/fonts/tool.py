@@ -11,7 +11,7 @@ from agents import function_tool
 from ai_game_dev.fonts.google_fonts import GoogleFonts
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def find_game_font(
     style: Literal["pixel", "fantasy", "sci-fi", "casual", "retro", "horror"] = "casual",
     weight: Literal["regular", "bold", "light"] = "regular",
@@ -82,7 +82,7 @@ async def find_game_font(
     return font_info
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def render_game_text(
     text: str,
     font_style: Literal["title", "ui", "dialogue", "score"] = "ui",
@@ -193,7 +193,7 @@ async def render_game_text(
     return result
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_text_assets(
     game_title: str,
     ui_texts: list[str] | None = None,

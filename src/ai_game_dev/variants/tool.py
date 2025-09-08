@@ -23,7 +23,7 @@ class GameVariant(BaseModel):
     educational_value: str | None = None
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_mechanic_variants(
     base_code: str,
     mechanic_type: Literal["movement", "combat", "inventory", "puzzles", "ai"],
@@ -96,7 +96,7 @@ Generate as a JSON array with each variant having:
     return variants
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def identify_interactive_moments(
     game_code: str,
     game_description: str,
@@ -163,7 +163,7 @@ Return as JSON with structure:
     return moments
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def apply_variant_to_code(
     original_code: str,
     variant: GameVariant,
@@ -221,7 +221,7 @@ Return the complete modified code.
     return response.choices[0].message.content
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_educational_variants(
     concept: str,
     base_mechanic: str,
@@ -260,7 +260,7 @@ The mechanic should demonstrate the concept clearly.
     return variants
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def create_variant_pack(
     game_path: str,
     variant_types: list[str] | None = None,

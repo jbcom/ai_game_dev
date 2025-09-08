@@ -14,7 +14,7 @@ from .literary_seeder import LiterarySeeder, SeedingRequest, SeededContent
 _seeder = LiterarySeeder()
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def seed_narrative_content(
     themes: list[str],
     genres: list[str],
@@ -50,7 +50,7 @@ async def seed_narrative_content(
     return result
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def extract_narrative_patterns(
     text: str,
     analysis_type: str = "comprehensive"
@@ -89,7 +89,7 @@ async def extract_narrative_patterns(
     return results
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def find_literary_inspirations(
     game_description: str,
     target_audience: str = "general",
@@ -161,7 +161,7 @@ async def find_literary_inspirations(
     }
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_quest_seeds(
     game_genre: str,
     quest_count: int = 5,
@@ -239,7 +239,7 @@ async def generate_quest_seeds(
     return quest_seeds
 
 
-@function_tool  
+@function_tool(strict_mode=False)  
 async def create_character_backstory(
     character_name: str,
     character_role: str,
@@ -309,7 +309,7 @@ async def create_character_backstory(
     return backstory
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def enhance_game_narrative(
     game_spec: Dict[str, Any],
     narrative_depth: str = "medium"

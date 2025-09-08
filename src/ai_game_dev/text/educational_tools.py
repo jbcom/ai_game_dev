@@ -7,18 +7,12 @@ from typing import Any, Dict, List, Literal
 from agents import function_tool
 
 from ai_game_dev.templates import TemplateLoader
-from .rpg_specification import get_rpg_specification
-from .yarn_dialogue import YarnDialogueGenerator
-from .characters_and_story import CharacterGenerator, StoryGenerator
 
 # Initialize components
 template_loader = TemplateLoader()
-yarn_generator = YarnDialogueGenerator()
-character_generator = CharacterGenerator()
-story_generator = StoryGenerator()
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def create_lesson_plan(
     concept: str,
     student_level: Literal["beginner", "intermediate", "advanced"],
@@ -125,7 +119,7 @@ async def create_lesson_plan(
     return template_loader.render_academy_prompt("lesson_plan", **context)
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def identify_teachable_moment(
     code_snippet: str,
     student_level: Literal["beginner", "intermediate", "advanced"],
@@ -157,7 +151,7 @@ async def identify_teachable_moment(
     return template_loader.render_academy_prompt("teachable_moment", **context)
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_educational_game_spec() -> Dict[str, Any]:
     """
     Generate the complete RPG specification for Arcade Academy.
@@ -168,7 +162,7 @@ async def generate_educational_game_spec() -> Dict[str, Any]:
     return get_rpg_specification()
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def create_educational_dialogue(
     lesson_id: str,
     characters: list[str],
@@ -199,7 +193,7 @@ async def create_educational_dialogue(
     return yarn_generator.generate_educational_dialogue(dialogue_data)
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def generate_academy_characters(
     include_students: bool = True,
     include_mentors: bool = True,
@@ -249,7 +243,7 @@ async def generate_academy_characters(
     return characters
 
 
-@function_tool
+@function_tool(strict_mode=False)
 async def create_coding_challenge(
     concept: str,
     difficulty: Literal["easy", "medium", "hard"],
