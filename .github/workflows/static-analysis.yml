@@ -38,26 +38,26 @@ jobs:
       - name: Run MyPy
         if: matrix.tool == 'mypy'
         run: |
-          uv run mypy packages/ --config-file pyproject.toml
-          uv run mypy packages/ --config-file pyproject.toml --html-report mypy-report
+          uv run mypy src/ai_game_dev/ --config-file pyproject.toml
+          uv run mypy src/ai_game_dev/ --config-file pyproject.toml --html-report mypy-report
 
       - name: Run Pylint
         if: matrix.tool == 'pylint'
         run: |
-          uv run pylint packages/ --output-format=json > pylint-report.json || true
-          uv run pylint packages/ --output-format=text
+          uv run pylint src/ai_game_dev/ --output-format=json > pylint-report.json || true
+          uv run pylint src/ai_game_dev/ --output-format=text
 
       - name: Run Bandit Security Analysis
         if: matrix.tool == 'bandit'
         run: |
-          uv run bandit -r packages/ -f json -o bandit-report.json || true
-          uv run bandit -r packages/ -f txt
+          uv run bandit -r src/ai_game_dev/ -f json -o bandit-report.json || true
+          uv run bandit -r src/ai_game_dev/ -f txt
 
       - name: Run Ruff Linting
         if: matrix.tool == 'ruff'
         run: |
-          uv run ruff check packages/ --output-format=json > ruff-report.json || true
-          uv run ruff check packages/
+          uv run ruff check src/ai_game_dev/ --output-format=json > ruff-report.json || true
+          uv run ruff check src/ai_game_dev/
 
       - name: Upload analysis artifacts
         uses: actions/upload-artifact@v3
@@ -70,80 +70,6 @@ jobs:
             bandit-report.json
             ruff-report.json
 
-  rust-analysis:
-    name: Rust Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          components: rustfmt, clippy
-          override: true
-
-      - name: Cache Rust dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            packages/bevy_game_dev/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Run Rustfmt
-        run: |
-          cd packages/bevy_game_dev
-          cargo fmt --all -- --check
-
-      - name: Run Clippy
-        run: |
-          cd packages/bevy_game_dev
-          cargo clippy --all-targets --all-features -- -D warnings -W clippy::all
-
-      - name: Generate Clippy JSON report
-        run: |
-          cd packages/bevy_game_dev
-          cargo clippy --all-targets --all-features --message-format=json > clippy-report.json 2>&1 || true
-
-      - name: Upload Rust analysis artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: rust-analysis
-          path: packages/bevy_game_dev/clippy-report.json
-
-  gdscript-analysis:
-    name: GDScript Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install GDScript tools
-        run: |
-          pip install gdtoolkit==4.2.2
-
-      - name: Run GDScript format check
-        run: |
-          gdformat --check packages/godot_game_dev/ || true
-
-      - name: Run GDScript linting
-        run: |
-          gdlint packages/godot_game_dev/ > gdlint-report.txt 2>&1 || true
-          cat gdlint-report.txt
-
-      - name: Upload GDScript analysis artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: gdscript-analysis
-          path: gdlint-report.txt
 
   code-coverage:
     name: Code Coverage Analysis
@@ -167,7 +93,7 @@ jobs:
 
       - name: Run Python test coverage
         run: |
-          uv run pytest tests/ --cov=packages --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing
+          uv run pytest tests/ --cov=src/ai_game_dev --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing
 
       - name: Generate coverage badge
         run: |
@@ -189,44 +115,11 @@ jobs:
             coverage.xml
             coverage-badge.svg
 
-  rust-coverage:
-    name: Rust Code Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          override: true
-
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
-
-      - name: Run Rust coverage
-        run: |
-          cd packages/bevy_game_dev
-          cargo tarpaulin --out xml --output-dir ../../ --skip-clean
-
-      - name: Upload Rust coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./cobertura.xml
-          flags: rust
-          fail_ci_if_error: false
-
-      - name: Upload Rust coverage artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: rust-coverage
-          path: cobertura.xml
 
   quality-gates:
     name: Quality Gates & Reporting
     runs-on: ubuntu-latest
-    needs: [python-analysis, rust-analysis, gdscript-analysis, code-coverage, rust-coverage]
+    needs: [python-analysis, code-coverage]
     if: always()
     steps:
       - name: Checkout
@@ -321,8 +214,7 @@ jobs:
       - name: Memory profiling
         run: |
           uv run mprof run python -c "
-          from packages.ai_game_dev import AIGameDev
-          from packages.ai_game_assets import AssetTools
+          from ai_game_dev import create_game, create_educational_game
           # Basic memory usage test
           " || true
           uv run mprof plot -o memory-profile.png || true

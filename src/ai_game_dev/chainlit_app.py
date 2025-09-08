@@ -21,10 +21,14 @@ from ai_game_dev.variants import generate_mechanic_variants
 from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
 from ai_game_dev.project_manager import ProjectManager
 from ai_game_dev.constants import CHAINLIT_CONFIG
+from ai_game_dev.startup import run_startup_generation
 
 # Initialize components
 initialize_sqlite_cache_and_memory()
 project_manager = ProjectManager()
+
+# Run startup generation in the background
+asyncio.create_task(run_startup_generation())
 
 
 @cl.on_chat_start
