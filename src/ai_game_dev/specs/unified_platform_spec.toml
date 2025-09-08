@@ -1,147 +1,162 @@
-# Unified Platform Specification for AI Game Development
-# This file consolidates all platform assets and the educational RPG game specification
+# Unified Platform Specification
+# This file defines all assets and game specs for the AI Game Development Platform
 
 [platform]
 name = "AI Game Development Platform"
 version = "1.0.0"
-description = "AI-powered game development platform with Workshop and Academy modes"
+modes = ["workshop", "academy"]
 
-[platform.features]
-workshop = ["multi_engine_support", "asset_generation", "code_generation", "variant_system"]
-academy = ["interactive_learning", "progress_tracking", "teachable_moments", "skill_assessment"]
+# Static assets that already exist - do not regenerate
+[static_assets]
 
-[platform.engines]
-supported = ["pygame", "godot", "bevy"]
-default = "pygame"
+[static_assets.audio]
+ui = [
+    "button_click_futuristic",
+    "hover_beep_cyberpunk", 
+    "error_buzz_warning",
+    "success_ding_pleasant",
+    "notification_chime_tech"
+]
+menu = ["menu_open_whoosh", "menu_close_whoosh_reverse"]
+ambient = ["typing_mechanical_keyboard"]
 
-[platform.models]
-text = "gpt-5"
-image = "gpt-image-1"
-code = "gpt-5"
-audio_tts = "tts-1-hd"
+[static_assets.sprites]
+characters = ["professor_pixel"]
+mascots = [
+    "ai-orb-mascot",
+    "professor-pixel-mascot",
+    "ai-orb-transparent",
+    "professor-pixel-transparent"
+]
+panels = [
+    "arcade-academy-panel",
+    "game-workshop-panel",
+    "bevy-panel",
+    "godot-panel",
+    "pygame-panel"
+]
 
-# Common UI Assets for Platform
-[ui_assets]
-[ui_assets.buttons]
-types = ["play", "pause", "menu", "quit", "restart", "settings", "save", "load"]
-styles = ["normal", "hover", "pressed", "disabled"]
-themes = ["cyberpunk", "fantasy", "retro", "modern"]
+[static_assets.ui]
+buttons = ["play-button", "pause-button", "stop-button", "skip-button", "volume-slider"]
+frames = ["tech-frame"]
+logos = ["arcade-academy-condensed", "game-workshop-condensed", "main-logo", "platform-logo"]
 
-[ui_assets.panels]
-types = ["dialog", "inventory", "settings", "score", "quest_log", "character_sheet"]
-sizes = ["small", "medium", "large", "fullscreen"]
+# Assets to generate on startup
+[generated_assets]
 
-[ui_assets.icons]
-categories = ["items", "stats", "skills", "status_effects", "achievements"]
-items = ["health", "mana", "coin", "star", "key", "sword", "shield", "potion"]
-stats = ["strength", "intelligence", "agility", "vitality", "luck"]
+[generated_assets.sprites.game_elements]
+items = ["collectible_gem", "enemy_slime", "platform_tile", "powerup_star", "health_potion"]
+enemies = ["bug_creature", "error_demon"]
 
-# Common Sound Effects
-[sound_effects]
-[sound_effects.ui]
-sounds = ["click", "hover", "confirm", "cancel", "notification", "error"]
-format = "wav"
-quality = "high"
+[generated_assets.sprites.weapons]
+items = ["laser_beam", "plasma_sword", "shield_bubble"]
 
-[sound_effects.gameplay]
-sounds = ["jump", "collect", "hit", "powerup", "gameover", "levelup", "checkpoint"]
-variations = 3
+[generated_assets.sprites.effects]
+items = ["explosion", "sparkle", "damage_flash"]
 
-[sound_effects.combat]
-sounds = ["shoot", "explosion", "shield", "damage", "critical_hit", "miss"]
-intensity_levels = ["light", "medium", "heavy"]
+[generated_assets.sprites.characters]
+items = ["mentor_ai", "student_coder", "bug_boss"]
 
-# Character Assets
-[characters]
-[characters.mascots]
-ai_orb = { description = "Floating AI assistant orb with holographic effects", animations = ["idle", "thinking", "success", "error"] }
-professor_pixel = { description = "Friendly pixel art professor with cyberpunk aesthetic", animations = ["idle", "teaching", "celebrating", "explaining"] }
+[generated_assets.audio.gameplay]
+effects = ["jump", "collect", "damage", "levelup"]
 
-[characters.academy_npcs]
-web_weaver = { role = "HTML/CSS mentor", description = "Spider-themed web developer" }
-data_sage = { role = "Data structures mentor", description = "Mystical data wizard" }
-code_knight = { role = "OOP mentor", description = "Armored programming warrior" }
-bug_hunter = { role = "Debugging mentor", description = "Stealthy bug assassin" }
+[generated_assets.audio.combat]
+effects = ["shoot", "explosion", "shield_activate"]
+
+[generated_assets.audio.ui]
+effects = ["dialogue_beep"]
+
+[generated_assets.audio.music]
+tracks = [
+    {name = "menu_theme", style = "electronic", tempo = 120},
+    {name = "exploration_theme", style = "ambient", tempo = 80},
+    {name = "battle_theme", style = "orchestral", tempo = 140},
+    {name = "victory_theme", style = "chiptune", tempo = 100}
+]
+
+[generated_assets.backgrounds.environments]
+scenes = [
+    {name = "cyberpunk_city", style = "cyberpunk", description = "Neon-lit futuristic cityscape"},
+    {name = "digital_realm", style = "digital", description = "Abstract digital space with code elements"},
+    {name = "academy_classroom", style = "modern", description = "High-tech classroom with holographic displays"},
+    {name = "boss_arena", style = "dramatic", description = "Epic battle arena with dramatic lighting"}
+]
+
+# Example games to generate
+[example_games]
+
+[example_games.platformer]
+title = "Pixel Jump Adventure"
+engine = "pygame"
+type = "platformer"
+description = "A classic 2D platformer with jumping mechanics and collectibles"
+features = ["jumping", "collectibles", "enemies", "levels"]
+
+[example_games.space_shooter]
+title = "Galaxy Defender"
+engine = "godot"
+type = "space_shooter"
+description = "A space shooter with wave-based enemies and power-ups"
+features = ["shooting", "enemies", "powerups", "boss_battles"]
+
+[example_games.puzzle]
+title = "Code Blocks"
+engine = "bevy"
+type = "puzzle"
+description = "A puzzle game that teaches programming concepts through block manipulation"
+features = ["puzzle_mechanics", "educational_elements", "progression"]
 
 # Educational RPG Specification
 [educational_rpg]
 title = "NeoTokyo Code Academy: The Binary Rebellion"
-description = "A cyberpunk educational RPG where students learn programming through adventure"
 engine = "pygame"
-art_style = "16-bit pixel art"
-resolution = "1280x720"
+type = "educational_rpg"
+description = """
+In the year 2089, NeoTokyo is ruled by the malevolent AI Corporation. 
+As a student at the underground Code Academy, you must learn programming 
+to fight back against the digital oppression. Master variables, loops, 
+functions, and classes to become a true Code Warrior!
+"""
 
-[educational_rpg.story]
-setting = "2087 Neo-Tokyo"
-premise = "Join rebel hackers fighting the oppressive Algorithm Empire"
-acts = 3
-total_quests = 25
-side_quests = 15
+[educational_rpg.features]
+combat = "turn-based with code challenges"
+progression = "unlock new abilities through learning concepts"
+dialogue = "interactive conversations teaching programming"
+exploration = "discover coding concepts in the game world"
 
-[educational_rpg.mechanics]
-party_size = 4
-battle_system = "ATB (Active Time Battle)"
-skill_system = "Programming concept based"
-progression = "Learn by doing with visual feedback"
+[educational_rpg.educational_concepts]
+beginner = ["variables", "data types", "conditionals", "loops"]
+intermediate = ["functions", "arrays", "objects", "classes"]
+advanced = ["algorithms", "design patterns", "optimization", "debugging"]
 
-[educational_rpg.educational]
-concepts = ["variables", "loops", "functions", "classes", "data_structures", "algorithms", "debugging"]
-difficulty_progression = "adaptive"
-teachable_moments = "context_sensitive"
-assessment_type = "stealth"
+[educational_rpg.characters]
+player = {name = "Professor Pixel", role = "Student turned teacher"}
+mentor = {name = "Master Compiler", role = "Wise coding sage"}
+antagonist = {name = "CEO Null Pointer", role = "Corporate villain"}
+npcs = ["Debug Sprite", "Syntax Error", "Runtime Exception"]
 
-# Example Game Templates
-[game_templates]
-[game_templates.platformer]
-title = "Pixel Quest Adventures"
-engine = "pygame"
-features = ["jumping", "double_jump", "enemies", "collectibles", "levels"]
-difficulty = "beginner"
+[educational_rpg.levels]
+tutorial = "Academy Training Grounds"
+level1 = "Variable Valley"
+level2 = "Loop Lake"
+level3 = "Function Forest"
+level4 = "Class Castle"
+boss = "Binary Tower"
 
-[game_templates.space_shooter]
-title = "Galactic Defender"
-engine = "pygame"
-features = ["shooting", "waves", "powerups", "bosses", "scoring"]
-difficulty = "intermediate"
+# Asset path mappings
+[asset_paths]
+static_root = "/public/static/assets"
+generated_root = "/public/static/assets/generated"
+games_root = "/generated_games"
 
-[game_templates.puzzle]
-title = "Crystal Match Quest"
-engine = "pygame"
-features = ["match3", "combos", "special_powers", "progression"]
-difficulty = "beginner"
+# Code generation should use these paths
+[asset_paths.mapping]
+# For web/Chainlit UI
+web_sprites = "${static_root}/sprites"
+web_audio = "${static_root}/audio"
+web_backgrounds = "${static_root}/backgrounds"
 
-[game_templates.adventure_3d]
-title = "Rust Realms"
-engine = "bevy"
-features = ["3d_movement", "combat", "inventory", "quests"]
-difficulty = "advanced"
-
-[game_templates.rpg_2d]
-title = "Forest of Shadows"
-engine = "godot"
-features = ["dialogue", "turn_based_combat", "save_system", "inventory"]
-difficulty = "intermediate"
-
-# Asset Generation Settings
-[asset_generation]
-[asset_generation.sprites]
-default_size = "64x64"
-formats = ["png", "webp"]
-styles = ["pixel", "digital", "cartoon"]
-
-[asset_generation.audio]
-music_duration = "2-3 minutes"
-loop_points = true
-formats = ["mp3", "ogg"]
-
-[asset_generation.fonts]
-sources = ["google_fonts", "system"]
-categories = ["title", "body", "ui", "code"]
-
-# Platform Configuration
-[config]
-startup_generation = true
-cache_assets = true
-auto_save = true
-telemetry = false
-offline_mode = true
+# For generated games (relative to game directory)
+game_sprites = "../../public/static/assets/sprites"
+game_audio = "../../public/static/assets/audio"
+game_backgrounds = "../../public/static/assets/backgrounds"

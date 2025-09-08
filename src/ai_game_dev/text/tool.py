@@ -10,6 +10,7 @@ from openai import AsyncOpenAI
 
 from ai_game_dev.constants import OPENAI_API_KEY, OPENAI_MODELS
 from ai_game_dev.templates import TemplateLoader
+from ai_game_dev.assets.asset_registry import get_asset_registry
 
 # Initialize components
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
@@ -346,19 +347,31 @@ async def generate_code_repository(
     Returns:
         Dictionary mapping file paths to code content
     """
+    # Get available assets from registry
+    registry = get_asset_registry()
+    game_type = game_spec.get('type', 'general')
+    assets_config = registry.get_assets_for_game(game_type, engine)
+    
+    # Merge assets into game spec
+    if 'assets' not in game_spec:
+        game_spec['assets'] = {}
+    game_spec['assets'].update(assets_config)
+    
     # Load engine-specific templates
     template = template_loader.render_engine_prompt(
         engine,
         "code_structure",
         game_spec=game_spec,
-        educational_mode=educational_mode
+        educational_mode=educational_mode,
+        assets=assets_config
     )
     
     instructions = template_loader.render_engine_prompt(
         engine,
         "architecture",
         game_spec=game_spec,
-        include_comments=include_comments
+        include_comments=include_comments,
+        assets=assets_config
     )
     
     prompt = f"""{instructions}
@@ -368,11 +381,14 @@ async def generate_code_repository(
 Game Specification:
 {json.dumps(game_spec, indent=2)}
 
+Available Assets:
+{json.dumps(assets_config, indent=2)}
+
 Generate a complete, working code repository with:
 1. All necessary files for the {engine} engine
 2. {'Detailed educational comments' if educational_mode else 'Clear comments' if include_comments else 'Minimal comments'}
 3. Proper project structure
-4. Asset loading and management
+4. Asset loading and management using the provided asset paths
 5. Game mechanics implementation
 6. UI and controls
 

@@ -13,6 +13,7 @@ from ai_game_dev.graphics import generate_game_sprite, generate_ui_pack, generat
 from ai_game_dev.audio import generate_sound_effect, generate_background_music
 from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR, PLATFORM_SPEC_PATH, ASSETS_DIR
 from ai_game_dev.text import get_rpg_specification
+from ai_game_dev.assets.asset_registry import get_asset_registry
 
 
 # Example game specifications
@@ -158,6 +159,9 @@ class StartupGenerator:
         """Generate common assets that don't already exist as static files."""
         print("🎨 Generating missing assets...")
         
+        # Get asset registry
+        registry = get_asset_registry()
+        
         # Sprites
         for category, items in ASSETS_TO_GENERATE.get("sprites", {}).items():
             sprite_dir = self.assets_dir / "sprites" / category
@@ -176,6 +180,16 @@ class StartupGenerator:
                         description=f"{item.replace('_', ' ')} sprite for games",
                         style=style,
                         save_path=str(sprite_dir / f"{item}.png")
+                    )
+                    
+                    # Register in asset registry
+                    asset_path = f"/public/static/assets/generated/sprites/{category}/{item}.png"
+                    registry.register_asset(
+                        name=item,
+                        path=asset_path,
+                        asset_type="sprites",
+                        category=category,
+                        generated=True
                     )
                     
                     manifest["assets"][asset_key] = {
@@ -203,6 +217,16 @@ class StartupGenerator:
                         save_path=str(audio_dir / f"{sound}.wav")
                     )
                     
+                    # Register in asset registry
+                    asset_path = f"/public/static/assets/generated/audio/{category}/{sound}.wav"
+                    registry.register_asset(
+                        name=sound,
+                        path=asset_path,
+                        asset_type="audio",
+                        category=category,
+                        generated=True
+                    )
+                    
                     manifest["assets"][asset_key] = {
                         "type": "audio",
                         "category": category,
@@ -226,6 +250,16 @@ class StartupGenerator:
                         scene=item.replace('_', ' '),
                         style="cyberpunk" if "cyberpunk" in item else "digital",
                         save_path=str(bg_dir / f"{item}.png")
+                    )
+                    
+                    # Register in asset registry
+                    asset_path = f"/public/static/assets/generated/backgrounds/{category}/{item}.png"
+                    registry.register_asset(
+                        name=item,
+                        path=asset_path,
+                        asset_type="backgrounds",
+                        category=category,
+                        generated=True
                     )
                     
                     manifest["assets"][asset_key] = {
@@ -304,38 +338,9 @@ class StartupGenerator:
                 # Get the full RPG specification
                 rpg_spec = get_rpg_specification()
                 
-                # Update asset paths in the spec to point to generated locations
-                asset_config = {
-                    "sprites": {
-                        "player": "/public/static/assets/characters/professor_pixel.png",  # Static asset
-                        "enemies": [f"/public/static/assets/generated/sprites/game_elements/{name}.png" 
-                                   for name in ["enemy_slime", "bug_creature", "error_demon"]],
-                        "items": [f"/public/static/assets/generated/sprites/game_elements/{name}.png"
-                                 for name in ["collectible_gem", "powerup_star", "health_potion"]],
-                        "weapons": [f"/public/static/assets/generated/sprites/weapons/{name}.png"
-                                   for name in ["laser_beam", "plasma_sword", "shield_bubble"]],
-                        "effects": [f"/public/static/assets/generated/sprites/effects/{name}.png"
-                                   for name in ["explosion", "sparkle", "damage_flash"]]
-                    },
-                    "backgrounds": [f"/public/static/assets/generated/backgrounds/environments/{name}.png"
-                                   for name in ["academy_classroom", "digital_realm", "cyberpunk_city", "boss_arena"]],
-                    "audio": {
-                        "effects": {
-                            "jump": "/public/static/assets/generated/audio/gameplay/jump.wav",
-                            "collect": "/public/static/assets/generated/audio/gameplay/collect.wav",
-                            "damage": "/public/static/assets/generated/audio/gameplay/damage.wav",
-                            "levelup": "/public/static/assets/generated/audio/gameplay/levelup.wav",
-                            "shoot": "/public/static/assets/generated/audio/combat/shoot.wav",
-                            "explosion": "/public/static/assets/generated/audio/combat/explosion.wav"
-                        },
-                        "ui": {
-                            "click": "/public/static/assets/audio/button_click_futuristic.wav",  # Static
-                            "hover": "/public/static/assets/audio/hover_beep_cyberpunk.wav",     # Static
-                            "success": "/public/static/assets/audio/success_ding_pleasant.wav",  # Static
-                            "error": "/public/static/assets/audio/error_buzz_warning.wav"        # Static
-                        }
-                    }
-                }
+                # Get asset configuration from registry
+                registry = get_asset_registry()
+                asset_config = registry.get_educational_rpg_assets()
                 
                 # Generate the complete educational RPG with asset paths
                 project = await create_educational_game(
