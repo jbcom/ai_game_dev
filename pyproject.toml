@@ -24,11 +24,12 @@ classifiers = [
 dependencies = [
     # Chainlit UI
     "chainlit>=1.3.0",
-    # OpenAI agents
+    # OpenAI agents and API
     "openai-agents>=0.1.0",
     "openai>=1.0.0",
     # Core dependencies
     "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
     # HTTP and file handling
     "httpx>=0.25.0",
@@ -39,27 +40,13 @@ dependencies = [
     "numpy>=1.24.0",
     # Audio and music generation
     "music21>=9.1.0",
-    # Machine learning and embeddings
-    "torch>=2.0.0",
-    "transformers>=4.36.0",
-    # Data processing and validation
-    "pydantic>=2.0,<2.12",
-    "pydantic-settings>=2.10.1",
-    "python-dotenv>=1.1.1",
-    "pyyaml>=6.0.2",
-    "toml>=0.10.2",
-    "xdg-base-dirs>=6.0.1",
-    # Async and performance
+    # Template engine
+    "jinja2>=3.1.0",
+    # Data formats
+    "pyyaml>=6.0.0",
+    "toml>=0.10.0",
+    # Async performance
     "uvloop>=0.20.0; platform_system != 'Windows'",
-    "xxhash>=3.5.0",
-    # MCP Server dependencies
-    "fastmcp>=2.12.2",
-    "uvicorn[standard]>=0.35.0",
-    "starlette>=0.47.3",
-    "htmy>=0.8.2",
-    "fastapi>=0.116.1",
-    "jinja2>=3.1.6",
-    "typer>=0.17.4",
 ]
 
 [project.optional-dependencies]
@@ -118,11 +105,7 @@ Repository = "https://github.com/ai-game-dev/ai-game-dev"
 Issues = "https://github.com/ai-game-dev/ai-game-dev/issues"
 
 [project.scripts]
-ai-game-dev = "ai_game_dev.cli:app"
-ai-game-dev-server = "ai_game_dev.server.unified_server:run_server"
-ai-game-education = "ai_game_dev.education.run_education:main"
-ai-game-dev-internal = "ai_game_dev.internal_cli:internal_app"
-pygbag-deploy = "ai_game_dev.deployment.pygbag_deploy:main"
+ai-game-dev = "ai_game_dev.__main__:main"
 
 # Hatch testing environment with UV backend - includes E2E dependencies
 [tool.hatch.envs.hatch-test]
