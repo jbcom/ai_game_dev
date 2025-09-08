@@ -162,7 +162,7 @@ async def generate_variants(
 ) -> list[dict[str, str]]:
     """Generate variants of a game feature."""
     
-    from ai_game_dev.tools.openai_tools.template_loader import template_loader
+    # Template loading is now integrated into the variant generation
     
     # Create a temporary agent for variant generation
     variant_agent = Agent(
