@@ -3,51 +3,244 @@ Create a complete Pygame project with this structure:
 ```
 {{ game_spec.title | lower | replace(" ", "_") }}/
 ├── main.py              # Entry point and game loop
-├── game.py              # Core game class
+├── game.py              # Core game class and state management
+├── constants.py         # Game constants and configuration
 ├── states/
 │   ├── __init__.py
-│   ├── menu.py          # Menu state
-│   ├── gameplay.py      # Main gameplay state
-│   └── gameover.py      # Game over state
+│   ├── base_state.py    # Abstract base state class
+│   ├── menu_state.py    # Main menu state
+│   ├── game_state.py    # Gameplay state
+│   ├── pause_state.py   # Pause menu state
+│   └── gameover_state.py # Game over state
 ├── entities/
 │   ├── __init__.py
-│   ├── player.py        # Player class
-│   ├── enemies.py       # Enemy classes
-│   └── items.py         # Collectibles and power-ups
+│   ├── entity.py        # Base entity class
+│   ├── player.py        # Player character
+│   ├── enemy.py         # Enemy base and types
+│   ├── projectile.py    # Bullets/projectiles
+│   └── pickup.py        # Items and power-ups
 ├── systems/
 │   ├── __init__.py
-│   ├── physics.py       # Physics and collision
-│   ├── rendering.py     # Rendering system
-│   └── audio.py         # Audio management
+│   ├── collision.py     # Collision detection system
+│   ├── particles.py     # Particle effects
+│   ├── camera.py        # Camera/viewport system
+│   └── ui.py            # UI rendering system
+├── utils/
+│   ├── __init__.py
+│   ├── assets.py        # Asset loading and caching
+│   ├── audio.py         # Sound manager
+│   └── animation.py     # Animation helper
 ├── assets/
-│   ├── sprites/         # Image files
-│   ├── sounds/          # Sound effects
-│   └── music/           # Background music
-├── config.py            # Game configuration
-└── requirements.txt     # Python dependencies
+│   ├── images/
+│   │   ├── sprites/     # Character sprites
+│   │   ├── tiles/       # Environment tiles
+│   │   └── ui/          # UI elements
+│   ├── audio/
+│   │   ├── sfx/         # Sound effects
+│   │   └── music/       # Background music
+│   └── fonts/           # Game fonts
+├── requirements.txt     # Dependencies
+└── README.md           # Project documentation
 ```
 
 ## Key Implementation Details
 
-1. **main.py** - Initialize Pygame, create game instance, run main loop
-2. **game.py** - Manage states, handle global game logic
-3. **states/** - Each state handles its own update/render/events
-4. **entities/** - Game objects with update/render methods
-5. **systems/** - Reusable game systems
+### main.py - Entry Point
+```python
+import pygame
+import sys
+from game import Game
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TITLE
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption(TITLE)
+    clock = pygame.time.Clock()
+    
+    game = Game(screen, clock)
+    
+    {% if educational_mode %}
+    # LEARN: The game loop is the heart of any game
+    # It runs continuously until the game ends
+    {% endif %}
+    running = True
+    while running:
+        dt = clock.tick(FPS) / 1000.0  # Delta time in seconds
+        
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                running = False
+        
+        game.update(dt, events)
+        game.draw(screen)
+        pygame.display.flip()
+    
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
+```
+
+### constants.py - Configuration
+```python
+# Screen settings
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 60
+TITLE = "{{ game_spec.title }}"
+
+# Colors (R, G, B)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+# Game settings
+PLAYER_SPEED = 300  # Pixels per second
+GRAVITY = 980      # Pixels per second squared
+JUMP_STRENGTH = -500
+
+{% if educational_mode %}
+# LEARN: Constants make your code more maintainable
+# Change these values to see how they affect gameplay!
+{% endif %}
+```
+
+### Base State Pattern
+```python
+from abc import ABC, abstractmethod
+
+class BaseState(ABC):
+    """Abstract base class for game states."""
+    
+    def __init__(self, game):
+        self.game = game
+        self.next_state = None
+        
+    @abstractmethod
+    def handle_events(self, events):
+        """Process input events."""
+        pass
+        
+    @abstractmethod  
+    def update(self, dt):
+        """Update state logic."""
+        pass
+        
+    @abstractmethod
+    def draw(self, screen):
+        """Render the state."""
+        pass
+        
+    def enter(self):
+        """Called when entering this state."""
+        pass
+        
+    def exit(self):
+        """Called when leaving this state."""
+        pass
+```
+
+### Entity System
+```python
+import pygame
+
+class Entity(pygame.sprite.Sprite):
+    """Base class for all game entities."""
+    
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.image = pygame.Surface((width, height))
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.velocity = pygame.math.Vector2(0, 0)
+        
+    def update(self, dt):
+        """Update entity position and state."""
+        {% if educational_mode %}
+        # LEARN: Delta time (dt) makes movement frame-rate independent
+        # Position += Velocity * Time
+        {% endif %}
+        self.rect.x += self.velocity.x * dt
+        self.rect.y += self.velocity.y * dt
+```
 
 {% if educational_mode %}
 ## Educational Features
 
-- Add docstrings explaining each class and method
-- Include inline comments for complex algorithms
-- Create practice challenges in TODO comments
-- Provide multiple solution approaches where applicable
+Each module includes:
+- **LEARN** comments explaining key concepts
+- **TODO** challenges for students to complete
+- **TRY** suggestions for experimentation
+- Clear variable names that explain purpose
+- Progressive complexity from basic to advanced
+
+Example educational pattern:
+```python
+class Player(Entity):
+    def __init__(self, x, y):
+        super().__init__(x, y, 32, 32)
+        self.jump_count = 0
+        self.max_jumps = 2  # Double jump!
+        
+        # LEARN: Player state helps manage complex behaviors
+        self.is_jumping = False
+        self.is_on_ground = False
+        
+        # TODO: Add a dash ability
+        # Hint 1: Create dash_speed and dash_duration variables
+        # Hint 2: Use a cooldown timer to prevent spam
+        # Hint 3: Apply dash_speed in the movement direction
+```
+
+### Interactive Learning Points
+Mark specific code sections as teachable moments:
+```python
+def handle_collision(self, other):
+    # TEACHABLE_MOMENT: collision_detection
+    # CONCEPT: How games detect when objects touch
+    # EXERCISE: Try different collision shapes
+    if self.rect.colliderect(other.rect):
+        # Handle the collision
+        pass
+```
 {% endif %}
 
+### Asset Loading Pattern
+```python
+import pygame
+import os
+
+class AssetManager:
+    """Centralized asset loading and caching."""
+    
+    def __init__(self):
+        self._images = {}
+        self._sounds = {}
+        self._fonts = {}
+        
+    def load_image(self, path, convert_alpha=True):
+        if path not in self._images:
+            image = pygame.image.load(path)
+            if convert_alpha:
+                image = image.convert_alpha()
+            else:
+                image = image.convert()
+            self._images[path] = image
+        return self._images[path]
+```
+
 {% if include_comments %}
-Remember to:
-- Use type hints for better code clarity
-- Follow PEP 8 style guidelines
-- Handle errors gracefully
-- Make controls customizable
+## Best Practices
+
+- Cache all assets at startup
+- Use sprite groups for batch operations
+- Implement object pooling for projectiles/particles
+- Profile performance with clock.get_fps()
+- Handle all possible input states
+- Save game state as JSON
+- Use configuration files for game balance
 {% endif %}
