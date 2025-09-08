@@ -1,9 +1,10 @@
 """
 OpenAI function tools for graphics and image generation.
+Integrates GPT-Image-1, CC0 libraries, and Pillow processing.
 """
-import asyncio
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any
+from PIL import Image
 
 import aiofiles
 import httpx
@@ -13,6 +14,8 @@ from pydantic import BaseModel
 from agents import function_tool
 
 from ai_game_dev.constants import OPENAI_MODELS
+from ai_game_dev.graphics.cc0_libraries import CC0Libraries
+from ai_game_dev.graphics.image_processor import ImageProcessor
 
 
 class GeneratedImage(BaseModel):
