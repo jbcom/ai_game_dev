@@ -504,6 +504,10 @@ chainlit.md
 .replit_history
 .replit_agent_history
 
+# Generated reports
+quality-report.html
+bandit-report.json
+
 # Generated game assets and content
 generated_assets/
 generated_examples/

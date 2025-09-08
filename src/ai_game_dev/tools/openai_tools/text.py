@@ -1,6 +1,6 @@
 """
 OpenAI text generation tools for game content.
-Generates dialogue, quests, and code using GPT-4.
+Generates dialogue, quests, and code using GPT-5.
 """
 from pathlib import Path
 from typing import Any, Literal
@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 
 from agents import function_tool
 
-from .templates import get_engine_template, get_prompt_template
+from ai_game_dev.constants import OPENAI_MODELS
+from .template_loader import template_loader
 
 
 class DialogueNode(BaseModel):
