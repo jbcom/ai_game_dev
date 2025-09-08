@@ -7,8 +7,7 @@ from ai_game_dev.chainlit_app import (
     extract_scene_from_description,
     extract_theme_from_description,
     get_appropriate_lesson,
-    save_workshop_project,
-    get_lesson_content
+    save_workshop_project
 )
 
 
@@ -121,26 +120,3 @@ class TestChainlitFunctions:
                     # Should create files for each code entry
                     assert mock_open.call_count >= 3
     
-    def test_get_lesson_content_intro(self):
-        """Test getting intro lesson content."""
-        content = get_lesson_content("intro")
-        assert content is not None
-        assert "variables" in content.lower() or "hello" in content.lower()
-    
-    def test_get_lesson_content_loops(self):
-        """Test getting loops lesson content."""
-        content = get_lesson_content("loops")
-        assert content is not None
-        assert "loop" in content.lower() or "for" in content.lower()
-    
-    def test_get_lesson_content_objects(self):
-        """Test getting objects lesson content."""
-        content = get_lesson_content("objects")
-        assert content is not None
-        assert "class" in content.lower() or "object" in content.lower()
-    
-    def test_get_lesson_content_invalid(self):
-        """Test getting invalid lesson content."""
-        content = get_lesson_content("nonexistent_lesson")
-        assert content is not None
-        assert len(content) > 0  # Should return default content

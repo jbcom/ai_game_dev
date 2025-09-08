@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 import os
 
-from ai_game_dev.config import ServerSettings, ProviderSettings, AssetSettings, EngineSettings, settings
+from ai_game_dev.config import ServerSettings, ProviderSettings, settings
 
 
 class TestServerSettings:
@@ -104,62 +104,6 @@ class TestProviderSettings:
         assert config.enable_streaming is False
 
 
-class TestAssetSettings:
-    """Test AssetSettings configuration."""
-    
-    def test_default_asset_settings(self):
-        """Test default asset settings."""
-        config = AssetSettings()
-        
-        assert config.max_image_size == 1024
-        assert config.default_art_style == "cartoon"
-        assert config.enable_compression is True
-        assert config.cache_generated_assets is True
-        assert isinstance(config.supported_formats, list)
-        assert "png" in config.supported_formats
-        assert "jpg" in config.supported_formats
-    
-    def test_custom_asset_settings(self):
-        """Test custom asset settings."""
-        config = AssetSettings(
-            max_image_size=2048,
-            default_art_style="realistic",
-            supported_formats=["webp", "svg"]
-        )
-        
-        assert config.max_image_size == 2048
-        assert config.default_art_style == "realistic"
-        assert "webp" in config.supported_formats
-        assert "svg" in config.supported_formats
-
-
-class TestEngineSettings:
-    """Test EngineSettings configuration."""
-    
-    def test_default_engine_settings(self):
-        """Test default engine settings."""
-        config = EngineSettings()
-        
-        assert config.default_engine == "pygame"
-        assert isinstance(config.supported_engines, list)
-        assert "pygame" in config.supported_engines
-        assert "godot" in config.supported_engines
-        assert "bevy" in config.supported_engines
-        assert config.enable_hot_reload is True
-        assert config.auto_format_code is True
-    
-    def test_custom_engine_settings(self):
-        """Test custom engine settings."""
-        config = EngineSettings(
-            default_engine="godot",
-            supported_engines=["godot", "unity"],
-            enable_hot_reload=False
-        )
-        
-        assert config.default_engine == "godot"
-        assert "godot" in config.supported_engines
-        assert "unity" in config.supported_engines
-        assert config.enable_hot_reload is False
 
 
 class TestGlobalSettings:

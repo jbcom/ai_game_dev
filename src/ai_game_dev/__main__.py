@@ -39,12 +39,11 @@ def run_server(port: int):
     # Find the chainlit app relative to this file
     chainlit_app = Path(__file__).parent / "chainlit_app.py"
     
-    # Run Chainlit with custom frontend enabled
+    # Run Chainlit
     cmd = [
         sys.executable, "-m", "chainlit", "run",
         str(chainlit_app),
-        "--port", str(port),
-        "--custom-frontend"
+        "--port", str(port)
     ]
     
     import traceback

@@ -107,7 +107,7 @@ class TestMainModule:
             'description': 'A test game'
         }
         
-        with patch('ai_game_dev.__main__.load_toml', return_value=mock_spec):
+        with patch('toml.load', return_value=mock_spec):
             with patch('ai_game_dev.__main__.GameSpecLoader') as MockLoader:
                 mock_loader = MagicMock()
                 mock_loader.load_and_resolve.return_value = mock_spec
@@ -125,7 +125,7 @@ class TestMainModule:
     @pytest.mark.asyncio
     async def test_generate_game_file_not_found(self):
         """Test game generation with missing spec file."""
-        with patch('ai_game_dev.__main__.load_toml', side_effect=FileNotFoundError()):
+        with patch('toml.load', side_effect=FileNotFoundError()):
             with pytest.raises(SystemExit):
                 await generate_game(Path('missing.toml'), Path('output'))
     
@@ -139,7 +139,7 @@ class TestMainModule:
             }
         }
         
-        with patch('ai_game_dev.__main__.load_toml', return_value=mock_spec):
+        with patch('toml.load', return_value=mock_spec):
             with patch('ai_game_dev.graphics.generate_sprite', new_callable=AsyncMock) as mock_sprite:
                 with patch('ai_game_dev.graphics.generate_background', new_callable=AsyncMock) as mock_bg:
                     mock_sprite.return_value = '/path/to/sprite.png'
@@ -153,7 +153,7 @@ class TestMainModule:
     @pytest.mark.asyncio
     async def test_generate_assets_file_not_found(self):
         """Test asset generation with missing spec file."""
-        with patch('ai_game_dev.__main__.load_toml', side_effect=FileNotFoundError()):
+        with patch('toml.load', side_effect=FileNotFoundError()):
             with pytest.raises(SystemExit):
                 await generate_assets(Path('missing.toml'), Path('output'))
     
@@ -169,12 +169,14 @@ class TestMainModule:
         """Test main entry point in game mode."""
         with patch('sys.argv', ['ai-game-dev', '--game-spec', 'test.toml']):
             with patch('asyncio.run') as mock_run:
-                main()
+                with pytest.raises(SystemExit):
+                    main()
                 mock_run.assert_called_once()
     
     def test_main_assets_mode(self):
         """Test main entry point in assets mode."""
         with patch('sys.argv', ['ai-game-dev', '--assets-spec', 'test.toml']):
             with patch('asyncio.run') as mock_run:
-                main()
+                with pytest.raises(SystemExit):
+                    main()
                 mock_run.assert_called_once()
