@@ -1,6 +1,3 @@
-Below is a production-ready `main.py` file for "NeoTokyo Code Academy: The Binary Rebellion", a cyberpunk educational RPG. This file includes Pygame initialization, a game loop, error handling, and imports for game and player modules. Please ensure you have the `pygame` library installed and that the `game` and `player` modules are properly defined in your project.
-
-```python
 import pygame
 import sys
 from game import Game
@@ -75,18 +72,3 @@ if __name__ == "__main__":
         print(f"An unexpected error occurred: {e}")
         pygame.quit()
         sys.exit()
-```
-
-### Explanation:
-
-1. **Pygame Initialization**: The script initializes Pygame and sets up an 800x600 window with a cyberpunk color scheme.
-
-2. **Game Loop**: The main game loop runs at 60 FPS, handling events, updating game logic, and drawing to the screen.
-
-3. **Error Handling**: The script includes try-except blocks to handle errors during initialization, game updates, and drawing. This ensures that the game can shut down gracefully if an error occurs.
-
-4. **Modules**: The script imports `Game` and `Player` from their respective modules. Ensure these modules are defined and contain the necessary logic for your game.
-
-5. **Graceful Shutdown**: The script ensures Pygame is properly quit and the program exits cleanly in case of an error or when the user closes the window.
-
-This `main.py` file serves as the entry point for your educational RPG, setting up the environment and managing the game loop. Make sure to implement the `Game` and `Player` classes in their respective modules to complete the game functionality.

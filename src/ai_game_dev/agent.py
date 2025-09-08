@@ -197,16 +197,24 @@ async def generate_variants(
     return [{"name": f"variant_{i}", "code": "..."} for i in range(count)]
 
 
-# Dialogue generation function  
+# Note: Dialogue generation is now handled by ai_game_dev.text.generate_dialogue_tree
+# This function is kept for backward compatibility
 async def create_dialogue_tree(
     character: str,
     scenario: str,
     branches: int = 3
 ) -> str:
     """Create an interactive dialogue tree."""
+    from ai_game_dev.text import generate_dialogue_tree
     
-    # For now, return a placeholder - dialogue generation should be added to a text module
-    return f"Dialogue tree for {character} in scenario: {scenario} with {branches} branches"
+    # Use the proper dialogue generation tool
+    return await generate_dialogue_tree(
+        characters=[character],
+        scenario=scenario,
+        branches=branches,
+        dialogue_style="natural",
+        emotion_tags=True
+    )
 
 
 # Main entry point for web UI
