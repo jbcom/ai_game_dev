@@ -9,9 +9,9 @@ from agents import Agent, Runner
 from pydantic import BaseModel
 
 from ai_game_dev.graphics import (
-    generate_game_sprite,
-    generate_game_background,
-    generate_ui_pack,
+    generate_sprite,
+    generate_background,
+    generate_ui_elements,
 )
 from ai_game_dev.audio import (
     generate_voice_acting,
@@ -69,9 +69,9 @@ Your process:
 Be creative but practical. Focus on making fun, complete games.""",
     tools=[
         generate_code_repository,
-        generate_game_sprite,
-        generate_game_background,
-        generate_ui_pack,
+        generate_sprite,
+        generate_background,
+        generate_ui_elements,
         generate_sound_effect,
         generate_background_music,
         generate_voice_acting,
@@ -101,7 +101,7 @@ Always be encouraging and explain concepts clearly.""",
         create_lesson_plan,
         identify_teachable_moment,
         create_educational_dialogue,
-        generate_game_sprite,
+        generate_sprite,
         generate_voice_acting,
         generate_mechanic_variants,  # For educational variants
     ]

@@ -29,12 +29,13 @@ except ImportError:
 __all__ = [
     "CC0Libraries",
     "ImageProcessor",
-    "generate_game_sprite",
-    "generate_game_background", 
-    "generate_ui_pack",
-    "find_cc0_assets",
-    "process_game_image",
-    "generate_complete_graphics_pack",
+    "generate_sprite",
+    "generate_tileset",
+    "generate_background",
+    "generate_ui_elements",
+    "find_or_generate_sprite",
+    "process_spritesheet",
+    "generate_graphics_pack",
 ]
 
 # Add 3D tools if available

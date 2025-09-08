@@ -6,7 +6,7 @@ Includes both Pydantic models for structured data and dataclasses for game speci
 from enum import Enum
 from typing import Any, Literal, Union
 from dataclasses import dataclass, field
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class GameEngine(str, Enum):
@@ -91,8 +91,7 @@ class GameResult(BaseModel):
     generation_time: float = 0.0
     stats: dict[str, Any] = field(default_factory=dict)
     
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 @dataclass

@@ -26,6 +26,19 @@ class GeneratedAudio(BaseModel):
     duration: float | None
 
 
+class VoiceLineMapping(BaseModel):
+    """Voice line mapping for characters."""
+    character_name: str
+    line: str
+
+
+class AudioPackResult(BaseModel):
+    """Result of audio pack generation."""
+    music: list[GeneratedAudio]
+    effects: list[GeneratedAudio]
+    voices: list[GeneratedAudio]
+
+
 @function_tool
 async def generate_voice_acting(
     text: str,
