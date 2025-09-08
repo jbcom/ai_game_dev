@@ -21,7 +21,7 @@ from ai_game_dev.variants import generate_mechanic_variants
 from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
 from ai_game_dev.project_manager import ProjectManager
 from ai_game_dev.constants import CHAINLIT_CONFIG
-from ai_game_dev.startup import run_startup_generation
+# Startup generation now handled via Justfile
 from ai_game_dev.specs.game_spec_loader import GameSpecLoader, GameSpec
 from ai_game_dev.assets.asset_registry import get_asset_registry
 
