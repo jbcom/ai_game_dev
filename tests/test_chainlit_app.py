@@ -3,261 +3,280 @@ Tests for Chainlit-based AI Game Development Platform
 """
 import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch
-import sys
+from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from pathlib import Path
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+import chainlit as cl
 
 from ai_game_dev.chainlit_app import (
-    detect_features,
-    detect_art_style,
-    handle_create_game,
-    initialize_subgraphs,
-    enter_workshop_mode,
-    enter_academy_mode
+    start,
+    main,
+    handle_mode_selection,
+    handle_workshop_message,
+    generate_game_workshop,
+    handle_academy_message,
+    handle_skill_assessment,
+    start_academy_lesson,
+    determine_sprites_needed,
+    extract_scene_from_description,
+    extract_theme_from_description,
+    get_appropriate_lesson,
+    save_workshop_project,
+    send_progress_update,
+    handle_workshop_customization,
+    handle_lesson_interaction,
+    handle_challenge_submission
 )
 
 
-class TestFeatureDetection:
-    """Test feature detection from user descriptions."""
-    
-    def test_detect_dialogue_features(self):
-        """Test dialogue feature detection."""
-        descriptions = [
-            "RPG with dialogue system",
-            "game with conversations",
-            "adventure with talking NPCs",
-            "story-driven game"
-        ]
-        
-        for desc in descriptions:
-            features = detect_features(desc)
-            assert "dialogue" in features
-    
-    def test_detect_combat_features(self):
-        """Test combat feature detection."""
-        descriptions = [
-            "action game with fighting",
-            "battle royale",
-            "space shooter",
-            "combat system"
-        ]
-        
-        for desc in descriptions:
-            features = detect_features(desc)
-            assert "combat" in features
-    
-    def test_detect_multiple_features(self):
-        """Test detection of multiple features."""
-        desc = "RPG with dialogue, puzzles, and combat"
-        features = detect_features(desc)
-        
-        assert "rpg" in features
-        assert "dialogue" in features
-        assert "puzzles" in features
-        assert "combat" in features
-    
-    def test_default_features(self):
-        """Test default features when none detected."""
-        desc = "a simple game"
-        features = detect_features(desc)
-        
-        assert "graphics" in features
-        assert "audio" in features
-        assert "gameplay" in features
-
-
-class TestArtStyleDetection:
-    """Test art style detection from descriptions."""
-    
-    def test_detect_pixel_art(self):
-        """Test pixel art style detection."""
-        descriptions = [
-            "8-bit platformer",
-            "pixel art RPG",
-            "retro arcade game"
-        ]
-        
-        for desc in descriptions:
-            style = detect_art_style(desc)
-            assert style == "pixel"
-    
-    def test_detect_cyberpunk_style(self):
-        """Test cyberpunk style detection."""
-        descriptions = [
-            "cyberpunk RPG",
-            "futuristic cyber game",
-            "neon city adventure"
-        ]
-        
-        for desc in descriptions:
-            style = detect_art_style(desc)
-            assert style == "cyberpunk"
-    
-    def test_default_style(self):
-        """Test default style when none detected."""
-        style = detect_art_style("a simple game")
-        assert style == "modern"
-
-
-class TestChainlitIntegration:
-    """Test Chainlit app integration."""
+class TestChainlitApp:
+    """Test the Chainlit application functions."""
     
     @pytest.mark.asyncio
-    async def test_initialize_subgraphs(self):
-        """Test subgraph initialization."""
-        with patch('ai_game_dev.chainlit_app.subgraphs', {
-            "dialogue": None,
-            "quest": None,
-            "graphics": None,
-            "audio": None
-        }):
-            # Mock subgraph classes
-            with patch('ai_game_dev.chainlit_app.DialogueSubgraph') as MockDialogue, \
-                 patch('ai_game_dev.chainlit_app.QuestSubgraph') as MockQuest, \
-                 patch('ai_game_dev.chainlit_app.GraphicsSubgraph') as MockGraphics, \
-                 patch('ai_game_dev.chainlit_app.AudioSubgraph') as MockAudio:
-                
-                # Create mock instances
-                mock_dialogue = AsyncMock()
-                mock_quest = AsyncMock()
-                mock_graphics = AsyncMock()
-                mock_audio = AsyncMock()
-                
-                MockDialogue.return_value = mock_dialogue
-                MockQuest.return_value = mock_quest
-                MockGraphics.return_value = mock_graphics
-                MockAudio.return_value = mock_audio
-                
-                await initialize_subgraphs()
-                
-                # Verify all subgraphs were created
-                MockDialogue.assert_called_once()
-                MockQuest.assert_called_once()
-                MockGraphics.assert_called_once()
-                MockAudio.assert_called_once()
-                
-                # Verify initialize was called on each
-                mock_dialogue.initialize.assert_called_once()
-                mock_quest.initialize.assert_called_once()
-                mock_graphics.initialize.assert_called_once()
-                mock_audio.initialize.assert_called_once()
+    async def test_start(self):
+        """Test session initialization."""
+        with patch('chainlit.user_session.set') as mock_set:
+            await start()
+            assert mock_set.called
+            mock_set.assert_any_call("mode", None)
+            mock_set.assert_any_call("state", {})
     
     @pytest.mark.asyncio
-    async def test_enter_workshop_mode(self):
-        """Test entering workshop mode."""
-        # Mock Chainlit session
-        mock_session = Mock()
-        mock_session.set = Mock()
+    async def test_main_no_mode(self):
+        """Test main handler without mode selected."""
+        message = Mock(spec=cl.Message)
+        message.content = "Hello"
         
-        with patch('chainlit.user_session', mock_session), \
-             patch('chainlit.Message') as MockMessage:
-            
-            mock_message = AsyncMock()
-            MockMessage.return_value = mock_message
-            
-            await enter_workshop_mode()
-            
-            # Verify mode was set
-            mock_session.set.assert_called_with("mode", "workshop")
-            
-            # Verify message was sent
-            mock_message.send.assert_called_once()
+        with patch('chainlit.user_session.get', return_value=None):
+            with patch('chainlit.Message.send', new_callable=AsyncMock) as mock_send:
+                await main(message)
+                # Should show welcome message when no mode selected
+                assert mock_send.called
     
     @pytest.mark.asyncio
-    async def test_enter_academy_mode(self):
-        """Test entering academy mode."""
-        # Mock Chainlit session
-        mock_session = Mock()
-        mock_session.set = Mock()
+    async def test_handle_mode_selection_workshop(self):
+        """Test workshop mode selection."""
+        with patch('chainlit.user_session.set') as mock_set:
+            with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+                await handle_mode_selection("workshop")
+                mock_set.assert_called_with("mode", "workshop")
+                assert mock_msg.called
+    
+    @pytest.mark.asyncio
+    async def test_handle_mode_selection_academy(self):
+        """Test academy mode selection."""
+        with patch('chainlit.user_session.set') as mock_set:
+            with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+                await handle_mode_selection("academy")
+                mock_set.assert_called_with("mode", "academy")
+                assert mock_msg.called
+    
+    def test_determine_sprites_needed(self):
+        """Test sprite determination from description."""
+        # Test platformer
+        sprites = determine_sprites_needed("A platformer game with a hero", "pygame")
+        assert "player" in sprites
+        assert "platform" in sprites
         
-        with patch('chainlit.user_session', mock_session), \
-             patch('chainlit.Message') as MockMessage:
-            
-            mock_message = AsyncMock()
-            MockMessage.return_value = mock_message
-            
-            await enter_academy_mode()
-            
-            # Verify mode was set
-            mock_session.set.assert_called_with("mode", "academy")
-            
-            # Verify message was sent
-            mock_message.send.assert_called_once()
-
-
-class TestGameCreation:
-    """Test game creation workflow."""
+        # Test RPG
+        sprites = determine_sprites_needed("An RPG with enemies and NPCs", "pygame")
+        assert "player" in sprites
+        assert "enemy" in sprites
+        assert "npc" in sprites
     
-    @pytest.mark.asyncio
-    async def test_parse_create_command(self):
-        """Test parsing create game commands."""
-        test_cases = [
-            ("create a puzzle game", "a puzzle game", None),
-            ("create a platformer with pygame", "a platformer", "pygame"),
-            ("create RPG using godot", "RPG using", "godot"),
-            ("create a bevy racing game", "a racing game", "bevy")
-        ]
+    def test_extract_scene_from_description(self):
+        """Test scene extraction."""
+        scene = extract_scene_from_description("A space shooter game")
+        assert "space" in scene.lower()
         
-        for command, expected_desc, expected_engine in test_cases:
-            # Extract description (simplified version of actual logic)
-            desc = command[6:].strip()  # Remove "create"
-            
-            # Check for engine
-            engine = None
-            for eng in ["pygame", "godot", "bevy"]:
-                if eng in desc.lower():
-                    engine = eng
-                    break
-            
-            assert desc.startswith(expected_desc[:5])  # Check beginning matches
-            if expected_engine:
-                assert engine == expected_engine
-
-
-class TestSubgraphOrchestration:
-    """Test direct subgraph orchestration."""
+        scene = extract_scene_from_description("A fantasy RPG in a forest")
+        assert "forest" in scene.lower()
+    
+    def test_extract_theme_from_description(self):
+        """Test UI theme extraction."""
+        theme = extract_theme_from_description("A dark cyberpunk game")
+        assert "cyberpunk" in theme.lower()
+        
+        theme = extract_theme_from_description("A cute pixel art game")
+        assert "pixel" in theme.lower()
+    
+    def test_get_appropriate_lesson(self):
+        """Test lesson selection based on skill level."""
+        lesson = get_appropriate_lesson("beginner")
+        assert lesson["level"] == "beginner"
+        assert "pygame" in lesson["engine"]
+        
+        lesson = get_appropriate_lesson("intermediate")
+        assert lesson["level"] == "intermediate"
+        
+        lesson = get_appropriate_lesson("advanced")
+        assert lesson["level"] == "advanced"
     
     @pytest.mark.asyncio
-    async def test_dialogue_subgraph_called_for_rpg(self):
-        """Test dialogue subgraph is called for RPG games."""
-        game_spec = {
-            "description": "RPG with story",
-            "features": ["dialogue", "rpg"]
+    async def test_save_workshop_project(self):
+        """Test project saving."""
+        state = {
+            "game_title": "Test Game",
+            "engine": "pygame",
+            "code": "print('hello')"
         }
         
-        # This would be tested in actual handle_create_game
-        # but we verify the logic here
-        assert "dialogue" in game_spec["features"]
-        assert "rpg" in game_spec["description"].lower()
+        with patch('pathlib.Path.mkdir') as mock_mkdir:
+            with patch('builtins.open', create=True) as mock_open:
+                path = save_workshop_project(state)
+                assert "Test_Game" in str(path)
+                assert mock_mkdir.called
     
     @pytest.mark.asyncio
-    async def test_graphics_subgraph_always_called(self):
-        """Test graphics subgraph is always called."""
-        # Graphics should be generated for any game
-        game_specs = [
-            {"features": []},
-            {"features": ["combat"]},
-            {"features": ["puzzle", "platform"]}
-        ]
-        
-        for spec in game_specs:
-            # In actual implementation, graphics subgraph
-            # would always be called
-            assert True  # Placeholder for actual test
-
-
-class TestProjectManagement:
-    """Test project manager integration."""
+    async def test_send_progress_update(self):
+        """Test progress update sending."""
+        with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+            await send_progress_update("Generating sprites...", 50)
+            assert mock_msg.called
+            call_args = mock_msg.call_args[1]
+            assert "Generating sprites..." in call_args["content"]
     
-    def test_project_creation(self):
-        """Test project creation through manager."""
-        from ai_game_dev.project_manager import ProjectManager
+    @pytest.mark.asyncio
+    async def test_handle_workshop_message_description(self):
+        """Test workshop message handling with game description."""
+        message = Mock(spec=cl.Message)
+        message.content = "I want to make a space shooter"
         
-        # This would normally be mocked
-        # but we test the interface exists
-        assert hasattr(ProjectManager, 'create_project')
-        assert hasattr(ProjectManager, 'list_projects')
-        assert hasattr(ProjectManager, 'get_project')
+        with patch('chainlit.user_session.get') as mock_get:
+            mock_get.side_effect = lambda key: {
+                "mode": "workshop",
+                "state": {"step": "description"}
+            }.get(key)
+            
+            with patch('chainlit.user_session.set') as mock_set:
+                with patch('chainlit.Message', return_value=AsyncMock()):
+                    await handle_workshop_message(message)
+                    # Should update state with description
+                    calls = mock_set.call_args_list
+                    state_call = [c for c in calls if c[0][0] == "state"][0]
+                    assert state_call[0][1]["game_description"] == "I want to make a space shooter"
+    
+    @pytest.mark.asyncio
+    async def test_generate_game_workshop(self):
+        """Test full game generation workflow."""
+        state = {
+            "game_title": "Test Game",
+            "game_description": "A simple platformer",
+            "engine": "pygame",
+            "art_style": "pixel",
+            "features": ["movement", "jumping"],
+            "sprites": ["player", "platform"]
+        }
+        
+        with patch('ai_game_dev.text.tool.generate_code_repository', new_callable=AsyncMock) as mock_gen:
+            with patch('ai_game_dev.graphics.tool.generate_sprite', new_callable=AsyncMock) as mock_sprite:
+                with patch('ai_game_dev.audio.tool.generate_sound_effect', new_callable=AsyncMock) as mock_audio:
+                    with patch('chainlit.Message', return_value=AsyncMock()):
+                        mock_gen.return_value = {"files": {"main.py": "print('game')"}}
+                        mock_sprite.return_value = Mock(path="sprite.png")
+                        mock_audio.return_value = Mock(path="sound.wav")
+                        
+                        result = await generate_game_workshop(state)
+                        assert mock_gen.called
+                        assert result is not None
+
+
+class TestAcademyFlow:
+    """Test academy mode functionality."""
+    
+    @pytest.mark.asyncio
+    async def test_handle_academy_message_assessment(self):
+        """Test academy assessment handling."""
+        message = Mock(spec=cl.Message)
+        message.content = "beginner"
+        
+        with patch('chainlit.user_session.get') as mock_get:
+            mock_get.side_effect = lambda key: {
+                "mode": "academy",
+                "state": {"step": "assessment"}
+            }.get(key)
+            
+            with patch('chainlit.user_session.set'):
+                with patch('ai_game_dev.chainlit_app.handle_skill_assessment', new_callable=AsyncMock) as mock_assess:
+                    await handle_academy_message(message)
+                    mock_assess.assert_called_once_with("beginner", {"step": "assessment"})
+    
+    @pytest.mark.asyncio
+    async def test_handle_skill_assessment(self):
+        """Test skill assessment."""
+        state = {}
+        
+        with patch('chainlit.user_session.set') as mock_set:
+            with patch('ai_game_dev.chainlit_app.get_appropriate_lesson') as mock_lesson:
+                with patch('ai_game_dev.chainlit_app.start_academy_lesson', new_callable=AsyncMock) as mock_start:
+                    mock_lesson.return_value = {"title": "Test Lesson"}
+                    
+                    await handle_skill_assessment("intermediate", state)
+                    
+                    # Should update state with skill level
+                    calls = mock_set.call_args_list
+                    state_call = [c for c in calls if c[0][0] == "state"][0]
+                    assert state_call[0][1]["skill_level"] == "intermediate"
+                    assert mock_start.called
+    
+    @pytest.mark.asyncio
+    async def test_start_academy_lesson(self):
+        """Test starting an academy lesson."""
+        lesson = {
+            "title": "Introduction to Pygame",
+            "description": "Learn the basics",
+            "objectives": ["Create window", "Draw shapes"]
+        }
+        state = {}
+        
+        with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+            with patch('chainlit.user_session.set'):
+                await start_academy_lesson(lesson, state)
+                assert mock_msg.called
+                # Should show lesson intro
+    
+    @pytest.mark.asyncio
+    async def test_handle_lesson_interaction(self):
+        """Test lesson code interaction."""
+        code = "import pygame\npygame.init()"
+        state = {
+            "lesson": {"validation": "pygame.init"},
+            "challenge": None
+        }
+        
+        with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+            await handle_lesson_interaction(code, state)
+            assert mock_msg.called
+    
+    @pytest.mark.asyncio
+    async def test_handle_challenge_submission(self):
+        """Test challenge submission."""
+        code = "def move_player(x, y): return x + 1, y"
+        state = {
+            "challenge": {
+                "test": "move_player",
+                "expected": "movement"
+            }
+        }
+        
+        with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+            await handle_challenge_submission(code, state)
+            assert mock_msg.called
+
+
+class TestCustomization:
+    """Test customization features."""
+    
+    @pytest.mark.asyncio
+    async def test_handle_workshop_customization(self):
+        """Test workshop customization."""
+        state = {
+            "generated_code": {"main.py": "print('game')"},
+            "sprites": {"player": "player.png"}
+        }
+        
+        with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+            with patch('ai_game_dev.graphics.tool.generate_sprite', new_callable=AsyncMock) as mock_sprite:
+                mock_sprite.return_value = Mock(path="new_sprite.png")
+                
+                await handle_workshop_customization("Make the player sprite bigger", state)
+                assert mock_msg.called
