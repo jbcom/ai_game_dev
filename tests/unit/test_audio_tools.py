@@ -62,9 +62,9 @@ class TestAudioTools:
 
     def test_audio_tools_init_with_keys(self):
         """Test AudioTools initialization with API keys."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.TTSGenerator") as mock_tts, \
-             patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.MusicGenerator") as mock_music, \
-             patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.FreesoundClient") as mock_freesound:
+        with patch("ai_game_dev.audio.audio_tools.TTSGenerator") as mock_tts, \
+             patch("ai_game_dev.audio.audio_tools.MusicGenerator") as mock_music, \
+             patch("ai_game_dev.audio.audio_tools.FreesoundClient") as mock_freesound:
             
             mock_tts_instance = MagicMock()
             mock_music_instance = MagicMock()

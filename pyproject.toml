@@ -47,6 +47,9 @@ dependencies = [
     "toml>=0.10.0",
     # Async performance
     "uvloop>=0.20.0; platform_system != 'Windows'",
+    # Utilities
+    "xdg-base-dirs>=6.0.0",
+    "typing-extensions>=4.0.0",
     # LangChain dependencies (for legacy code)
     "langchain>=0.3.0",
     "langchain-core>=0.3.0",
