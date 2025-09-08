@@ -178,6 +178,8 @@ class ChainlitApp {
         this.audioManager.play('notification');
         
         if (this.pendingView) {
+            // Send mode selection to backend
+            this.sendMessage(this.pendingView);
             this.loadView(this.pendingView);
             this.pendingView = null;
         }
@@ -216,11 +218,62 @@ class ChainlitApp {
     }
 
     handleChainlitMessage(message) {
+        // Check for UI state updates
+        if (message.elements) {
+            const uiUpdate = message.elements.find(el => el.name === 'ui_state');
+            if (uiUpdate && uiUpdate.content) {
+                try {
+                    const state = JSON.parse(uiUpdate.content);
+                    this.handleUIStateUpdate(state);
+                } catch (e) {
+                    console.error('Failed to parse UI state:', e);
+                }
+            }
+        }
+        
         // Route messages to appropriate component
         if (this.currentView === 'workshop' && this.workshop) {
             this.workshop.handleMessage(message);
         } else if (this.currentView === 'academy' && this.academy) {
             this.academy.handleMessage(message);
+        }
+    }
+    
+    handleUIStateUpdate(state) {
+        switch (state.type) {
+            case 'workshop_start':
+            case 'workshop_update':
+                if (this.workshop) {
+                    this.workshop.updateState(state);
+                }
+                break;
+            case 'academy_start':
+            case 'academy_update':
+            case 'academy_lesson':
+            case 'academy_progress':
+                if (this.academy) {
+                    this.academy.updateState(state);
+                }
+                break;
+            case 'progress':
+                // Handle progress updates
+                if (state.progress !== undefined) {
+                    this.updateProgress(state.message, state.progress);
+                }
+                break;
+        }
+    }
+    
+    updateProgress(message, progress) {
+        // Update progress bar if visible
+        const progressBar = document.querySelector('.progress-bar');
+        const progressStage = document.querySelector('#progressStage');
+        
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+        }
+        if (progressStage) {
+            progressStage.textContent = message;
         }
     }
 

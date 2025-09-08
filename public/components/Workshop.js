@@ -113,16 +113,26 @@ class Workshop {
 
     handleGenerate() {
         const description = this.element.querySelector('#gameDescription').value.trim();
-        if (!description) return;
+        if (!description) {
+            alert('Please describe your game first!');
+            return;
+        }
+        
+        if (!this.selectedEngine) {
+            alert('Please select an engine first!');
+            return;
+        }
 
         this.isGenerating = true;
         this.showProgress();
 
-        const command = this.selectedEngine 
-            ? `create ${description} with ${this.selectedEngine}`
-            : `create ${description}`;
-
-        this.sendMessage(command);
+        // First send the engine selection
+        this.sendMessage(this.selectedEngine);
+        
+        // Then send the description after a short delay
+        setTimeout(() => {
+            this.sendMessage(description);
+        }, 100);
     }
 
     showProgress() {
@@ -164,6 +174,30 @@ class Workshop {
         // Handle incoming messages from Chainlit
         if (message.type === 'generation_complete') {
             this.showResults(message.data);
+        }
+    }
+    
+    updateState(state) {
+        // Handle UI state updates from backend
+        switch (state.type) {
+            case 'workshop_start':
+                // Workshop flow started
+                break;
+            case 'workshop_update':
+                if (state.stage === 'game_description') {
+                    // Engine was accepted, ready for description
+                    const engineCards = this.element.querySelectorAll('.engine-card');
+                    engineCards.forEach(card => {
+                        card.style.opacity = '0.5';
+                        card.style.pointerEvents = 'none';
+                    });
+                }
+                break;
+            case 'workshop_complete':
+                // Game generation complete
+                this.isGenerating = false;
+                this.showResults(state);
+                break;
         }
     }
 

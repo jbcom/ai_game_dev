@@ -242,6 +242,35 @@ class Academy {
         this.sendMessage(`run_code: ${code}`);
     }
 
+    updateState(state) {
+        // Handle UI state updates from backend
+        switch (state.type) {
+            case 'academy_start':
+                // Academy flow started
+                this.showWelcome();
+                break;
+            case 'academy_update':
+                if (state.stage === 'skill_assessment') {
+                    // Show skill assessment
+                    this.showSkillAssessment(state.question);
+                }
+                break;
+            case 'academy_lesson':
+                // Lesson started
+                this.currentLesson = state.lesson;
+                this.updateProgressDisplay(state.progress);
+                break;
+            case 'academy_progress':
+                // Progress update
+                this.progress = state.progress;
+                this.updateProgressDisplay(state.progress);
+                if (state.stage === 'lesson_complete') {
+                    this.showLessonComplete();
+                }
+                break;
+        }
+    }
+    
     handleMessage(message) {
         // Handle incoming messages from Chainlit
         if (message.type === 'dialogue') {
@@ -258,6 +287,58 @@ class Academy {
         } else if (message.type === 'progress_update') {
             this.updateProgress(message.progress);
         }
+    }
+    
+    showWelcome() {
+        // Show welcome screen with start button
+        const gameScreen = this.element.querySelector('#gameScreen');
+        gameScreen.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full">
+                <h2 class="text-2xl font-bold mb-4">Welcome to Arcade Academy!</h2>
+                <p class="mb-6">Ready to learn programming through game creation?</p>
+                <button class="custom-button px-6 py-3" onclick="app.academy.sendMessage('start')">
+                    Start Learning!
+                </button>
+            </div>
+        `;
+    }
+    
+    showSkillAssessment(question) {
+        // Show skill assessment question
+        const gameScreen = this.element.querySelector('#gameScreen');
+        // Implementation handled by existing dialogue system
+    }
+    
+    updateProgressDisplay(progress) {
+        // Update the progress displays
+        if (progress) {
+            this.progress = progress;
+            // Update level
+            const levelDisplay = this.element.querySelector('.text-3xl.text-cyan-300');
+            if (levelDisplay) levelDisplay.textContent = progress.level;
+            // Update XP
+            const xpDisplay = this.element.querySelector('.text-3xl.text-purple-300');
+            if (xpDisplay) xpDisplay.textContent = progress.xp;
+            // Update lessons
+            const lessonsDisplay = this.element.querySelector('.text-3xl.text-green-300');
+            if (lessonsDisplay) lessonsDisplay.textContent = progress.lessons.length;
+        }
+    }
+    
+    showLessonComplete() {
+        // Show lesson complete celebration
+        const gameScreen = this.element.querySelector('#gameScreen');
+        gameScreen.innerHTML += `
+            <div class="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div class="glass-panel p-8 text-center">
+                    <h2 class="text-3xl font-bold mb-4 text-green-400">🎉 Lesson Complete!</h2>
+                    <p class="text-xl mb-4">Great job! You've earned XP!</p>
+                    <button class="custom-button" onclick="app.academy.sendMessage('continue')">
+                        Next Lesson
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     showCodeOutput(output, success) {
