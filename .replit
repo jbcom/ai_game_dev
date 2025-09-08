@@ -37,7 +37,7 @@ packages = [
 ]
 
 [deployment]
-run = ["sh", "-c", "python -m __main__"]
+run = ["sh", "-c", "just run"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
@@ -49,8 +49,8 @@ PYTHONPATH = "/home/runner/$REPL_SLUG"
 AI_GAME_DEV_PORT = "8000"
 
 # Run button configuration
-run = "python -m __main__"
-entrypoint = "__main__.py"
+run = "just run"
+entrypoint = "justfile"
 
 [unitTest]
 language = "python3"
