@@ -1,0 +1,94 @@
+# Gemini Code Assist Configuration
+# https://developers.google.com/gemini-code-assist/docs/customize-gemini-behavior-github
+
+version: 1.0
+
+project:
+  name: "AI Game Dev Platform"
+  description: "OpenAI-powered game development platform with educational features"
+  languages: ["python", "typescript", "javascript"]
+  frameworks: ["chainlit", "openai-agents", "pygame", "godot", "bevy"]
+
+context:
+  include_patterns:
+    - "src/**/*.py"
+    - "public/**/*.js"
+    - "public/**/*.css"
+    - "*.toml"
+    - "*.md"
+    - ".cursor/**"
+    - ".gemini/**"
+  exclude_patterns:
+    - "**/__pycache__/**"
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "generated_games/**"
+    - "public/static/assets/generated/**"
+
+code_generation:
+  style:
+    python:
+      type_hints: true
+      docstring_format: "google"
+      import_style: "absolute"
+      modern_types: true  # Use T | None instead of Optional[T]
+    javascript:
+      use_semicolons: true
+      quote_style: "double"
+      
+  patterns:
+    - pattern: "OpenAI tool function"
+      template: |
+        @function_tool
+        async def {function_name}(
+            {parameters}
+        ) -> {return_type}:
+            """{description}"""
+            client = AsyncOpenAI()
+            # Implementation
+            
+    - pattern: "Chainlit handler"
+      template: |
+        @cl.on_message
+        async def {handler_name}(message: cl.Message):
+            """{description}"""
+            # Handler implementation
+
+review_focus:
+  security:
+    - "No hardcoded API keys or secrets"
+    - "Validate and sanitize all user inputs"
+    - "Use environment variables for configuration"
+    
+  performance:
+    - "Use async/await for all I/O operations"
+    - "Batch API calls when possible"
+    - "Implement proper caching strategies"
+    
+  best_practices:
+    - "Follow PEP 8 style guide"
+    - "Use type hints consistently"
+    - "Write comprehensive docstrings"
+    - "Handle errors gracefully with fallbacks"
+    
+  architecture:
+    - "Maintain separation between UI and business logic"
+    - "Use dependency injection patterns"
+    - "Keep functions focused and testable"
+
+ai_behavior:
+  suggestions:
+    - "Prefer OpenAI's latest models (GPT-5, GPT-Image-1)"
+    - "Use structured tools with @function_tool decorator"
+    - "Implement wizard-style flows for complex operations"
+    - "Maintain cyberpunk UI theme consistency"
+    
+  code_completion:
+    - "Import from ai_game_dev.constants for configuration"
+    - "Use pathlib.Path for file operations"
+    - "Add proper error handling for API calls"
+    
+  refactoring:
+    - "Convert callback-based code to async/await"
+    - "Extract magic numbers to constants.py"
+    - "Break large functions into smaller, testable units"
