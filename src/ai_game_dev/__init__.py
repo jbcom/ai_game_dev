@@ -1,54 +1,21 @@
 """AI Game Development Library.
 
 A revolutionary unified Python package for AI-powered game development
-featuring multi-LLM support, comprehensive asset generation, and 
-engine-specific TOML specifications.
+using OpenAI agents for comprehensive asset generation and multi-engine support.
 """
 
-# Core imports without dependency chains
-try:
-    from ai_game_dev.models import (
-        GameSpec,
-        GameEngine,
-        GameType,
-        ComplexityLevel
-    )
-    MODELS_AVAILABLE = True
-except ImportError:
-    MODELS_AVAILABLE = False
-
-try:
-    from ai_game_dev.providers import (
-        LLMProvider,
-        ModelConfig,
-        setup_openai,
-        setup_anthropic,
-        setup_google,
-        setup_ollama,
-        create_default_manager
-    )
-    PROVIDERS_AVAILABLE = True
-except ImportError:
-    PROVIDERS_AVAILABLE = False
-
-try:
-    from ai_game_dev.library import AIGameDev
-    LIBRARY_AVAILABLE = True
-except ImportError:
-    AIGameDev = None
-    LIBRARY_AVAILABLE = False
-
-# Audio tools
-from ai_game_dev.audio import AudioTools
-
-# Cache and memory configuration available on demand
-
-# Asset management
-# Asset generation now handled by LangChain DALLE in subgraphs
-
-# Graphics and fonts
-from ai_game_dev.graphics import CC0Libraries
-from ai_game_dev.fonts import GoogleFonts
+from ai_game_dev.models import (
+    ComplexityLevel,
+    GameEngine,
+    GameSpec,
+    GameType,
+)
+# Provider functionality now handled by OpenAI agents directly
+from ai_game_dev.agent import (
+    create_game,
+    create_educational_game,
+    process_request,
+)
 
 # Version info
 __version__ = "1.0.0"
@@ -64,7 +31,6 @@ __all__ = [
     "ComplexityLevel",
     
     # LLM providers
-    "LLMProviderManager",
     "LLMProvider",
     "ModelConfig",
     "setup_openai",
@@ -73,20 +39,14 @@ __all__ = [
     "setup_ollama",
     "create_default_manager",
     
-    # Audio tools
-    "AudioTools",
-    
-    # Asset tools
-    "AssetTools",
-    "ArchiveSeeder",
-    
-    # Graphics and fonts
-    "CC0Libraries",
-    "GoogleFonts",
+    # Agent functions
+    "create_game",
+    "create_educational_game",
+    "process_request",
     
     # Version
     "__version__",
-] + (["AIGameDev"] if AIGameDev is not None else [])
+]
 
 
 def get_version() -> str:

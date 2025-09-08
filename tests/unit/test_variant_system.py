@@ -433,26 +433,23 @@ class TestCreateVariantEnabledGame:
             assert result["engine"] == "pygame"
             MockSystem.assert_called_once_with(mock_llm_manager)
     
-    @pytest.mark.asyncio 
-    async def test_create_variant_enabled_game_default_llm_manager(self):
-        """Test factory function with default LLM manager."""
+    @pytest.mark.asyncio
+    async def test_create_variant_enabled_game_with_llm_manager(self):
+        """Test factory function with provided LLM manager."""
         with patch('ai_game_dev.variants.variant_system.InteractiveVariantSystem') as MockSystem:
-            with patch('ai_game_dev.variants.variant_system.LLMManager') as MockLLMManager:
-                mock_llm_instance = AsyncMock()
-                MockLLMManager.return_value = mock_llm_instance
-                
-                mock_system_instance = AsyncMock()
-                mock_system_instance.generate_interactive_game_with_variants.return_value = {
-                    "enhanced_code": "# Default enhanced code",
-                    "engine": "pygame"
-                }
-                MockSystem.return_value = mock_system_instance
-                
-                result = await create_variant_enabled_game("def game(): pass")
-                
-                assert result["enhanced_code"] == "# Default enhanced code"
-                MockLLMManager.assert_called_once()
-                MockSystem.assert_called_once_with(mock_llm_instance)
+            mock_llm = AsyncMock()
+            
+            mock_system_instance = AsyncMock()
+            mock_system_instance.generate_interactive_game_with_variants.return_value = {
+                "enhanced_code": "# Enhanced code with LLM",
+                "engine": "pygame"
+            }
+            MockSystem.return_value = mock_system_instance
+            
+            result = await create_variant_enabled_game("def game(): pass", llm_manager=mock_llm)
+            
+            assert result["enhanced_code"] == "# Enhanced code with LLM"
+            MockSystem.assert_called_once_with(mock_llm)
 
 
 # Integration tests for common variant patterns

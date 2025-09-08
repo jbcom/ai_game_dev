@@ -4,9 +4,9 @@ Includes both Pydantic models for structured data and dataclasses for game speci
 """
 
 from enum import Enum
-from typing import List, Dict, Any, Optional, Literal, Union
+from typing import Any, Literal, Union
 from dataclasses import dataclass, field
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class GameEngine(str, Enum):
@@ -43,13 +43,13 @@ class GameSpec:
     game_type: GameType
     complexity: ComplexityLevel
     target_engine: GameEngine
-    features: List[str] = field(default_factory=list)
-    theme: Optional[str] = None
-    target_audience: Optional[str] = None
-    estimated_playtime: Optional[int] = None  # in minutes
-    monetization: Optional[str] = None
-    platform_targets: List[str] = field(default_factory=list)
-    technical_requirements: Dict[str, Any] = field(default_factory=dict)
+    features: list[str] = field(default_factory=list)
+    theme: str | None = None
+    target_audience: str | None = None
+    estimated_playtime: int | None = None  # in minutes
+    monetization: str | None = None
+    platform_targets: list[str] = field(default_factory=list)
+    technical_requirements: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -58,23 +58,23 @@ class ProjectFile:
     path: str
     content: str
     file_type: str
-    language: Optional[str] = None
+    language: str | None = None
     is_executable: bool = False
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
 
 
 @dataclass
 class GameProject:
     """Complete generated game project."""
     spec: GameSpec
-    files: List[ProjectFile]
-    assets: List[Any] = field(default_factory=list)  # Will be GeneratedAsset
-    dependencies: Dict[str, str] = field(default_factory=dict)
-    build_instructions: List[str] = field(default_factory=list)
-    deployment_config: Dict[str, Any] = field(default_factory=dict)
+    files: list[ProjectFile]
+    assets: list[Any] = field(default_factory=list)  # Will be GeneratedAsset
+    dependencies: dict[str, str] = field(default_factory=dict)
+    build_instructions: list[str] = field(default_factory=list)
+    deployment_config: dict[str, Any] = field(default_factory=dict)
     
     @property
-    def main_file(self) -> Optional[ProjectFile]:
+    def main_file(self) -> ProjectFile | None:
         """Get the main executable file."""
         for file in self.files:
             if file.is_executable and "main" in file.path.lower():
@@ -85,20 +85,19 @@ class GameProject:
 class GameResult(BaseModel):
     """Result of game generation process."""
     success: bool
-    project: Optional[GameProject] = None
-    error_message: Optional[str] = None
-    warnings: List[str] = field(default_factory=list)
+    project: GameProject | None = None
+    error_message: str | None = None
+    warnings: list[str] = field(default_factory=list)
     generation_time: float = 0.0
-    stats: Dict[str, Any] = field(default_factory=dict)
+    stats: dict[str, Any] = field(default_factory=dict)
     
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 @dataclass
 class GameConfig:
     """Configuration for game generation system."""
-    openai_api_key: Optional[str] = None
+    openai_api_key: str | None = None
     default_engine: GameEngine = GameEngine.PYGAME
     default_complexity: ComplexityLevel = ComplexityLevel.INTERMEDIATE
     asset_cache_dir: str = "./cache/assets"
@@ -131,7 +130,7 @@ class NPCCharacter:
     """Non-player character specification."""
     name: str
     description: str
-    dialogue: Optional[List[str]] = None
+    dialogue: list[str | None] = None
     
 
 @dataclass
@@ -139,7 +138,7 @@ class DialogueNode:
     """Dialogue node for conversations."""
     text: str
     character: str
-    options: List[str] = field(default_factory=list)
+    options: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -155,15 +154,15 @@ class GameWorld:
     """Game world specification."""
     name: str
     description: str
-    locations: List[str] = field(default_factory=list)
-    npcs: List[NPCCharacter] = field(default_factory=list)
+    locations: list[str] = field(default_factory=list)
+    npcs: list[NPCCharacter] = field(default_factory=list)
 
 
 @dataclass
 class EngineConfig:
     """Engine-specific configuration."""
     engine: GameEngine
-    settings: Dict[str, Any] = field(default_factory=dict)
+    settings: dict[str, Any] = field(default_factory=dict)
     target_fps: int = 60
 
 # Type definitions for OpenAI API
@@ -238,7 +237,7 @@ class ImageEditRequest(BaseModel):
     mask_regions: list[MaskRegion] = Field(description="Regions to edit", default_factory=list)
     operation: EditOperation = Field(description="Primary edit operation")
     preserve_areas: list[str] = Field(description="Areas to preserve unchanged", default_factory=list)
-    style_reference: Optional[str] = Field(description="Path to style reference image", default=None)
+    style_reference: str | None = Field(description="Path to style reference image", default=None)
     iterations: int = Field(description="Number of edit iterations", ge=1, le=5, default=1)
 
 
@@ -260,7 +259,7 @@ class GenerationResult(BaseModel):
     file_path: str
     metadata: dict[str, Any]
     cached: bool = False
-    verification_result: Optional[dict[str, Any]] = None
+    verification_result: dict[str, Any | None] = None
     regeneration_count: int = 0
     edit_history: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -272,7 +271,7 @@ class UIElementSpec(BaseModel):
     size: ImageSize = Field(description="Element size")
     color_scheme: list[str] = Field(description="Color palette", default_factory=list)
     state_variants: list[str] = Field(description="Different states (normal, hover, pressed, etc.)", default_factory=list)
-    text_content: Optional[str] = Field(description="Text to include in element", default=None)
+    text_content: str | None = Field(description="Text to include in element", default=None)
     special_effects: list[str] = Field(description="Special effects or decorations", default_factory=list)
 
 

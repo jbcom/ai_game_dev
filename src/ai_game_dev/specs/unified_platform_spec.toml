@@ -1,0 +1,113 @@
+# Unified Platform Specification
+# This file defines all assets and game specs for the AI Game Development Platform
+
+[platform]
+name = "AI Game Development Platform"
+version = "1.0.0"
+modes = ["workshop", "academy"]
+
+# Static assets that already exist - do not regenerate
+[static_assets]
+
+[static_assets.audio]
+ui = [
+    "button_click_futuristic",
+    "hover_beep_cyberpunk", 
+    "error_buzz_warning",
+    "success_ding_pleasant",
+    "notification_chime_tech"
+]
+menu = ["menu_open_whoosh", "menu_close_whoosh_reverse"]
+ambient = ["typing_mechanical_keyboard"]
+
+[static_assets.sprites]
+characters = ["professor_pixel"]
+mascots = [
+    "ai-orb-mascot",
+    "professor-pixel-mascot",
+    "ai-orb-transparent",
+    "professor-pixel-transparent"
+]
+panels = [
+    "arcade-academy-panel",
+    "game-workshop-panel",
+    "bevy-panel",
+    "godot-panel",
+    "pygame-panel"
+]
+
+[static_assets.ui]
+buttons = ["play-button", "pause-button", "stop-button", "skip-button", "volume-slider"]
+frames = ["tech-frame"]
+logos = ["arcade-academy-condensed", "game-workshop-condensed", "main-logo", "platform-logo"]
+
+# Assets to generate on startup
+[generated_assets]
+
+[generated_assets.sprites.game_elements]
+items = ["collectible_gem", "enemy_slime", "platform_tile", "powerup_star", "health_potion"]
+enemies = ["bug_creature", "error_demon"]
+
+[generated_assets.sprites.weapons]
+items = ["laser_beam", "plasma_sword", "shield_bubble"]
+
+[generated_assets.sprites.effects]
+items = ["explosion", "sparkle", "damage_flash"]
+
+[generated_assets.sprites.characters]
+items = ["mentor_ai", "student_coder", "bug_boss"]
+
+[generated_assets.audio.gameplay]
+effects = ["jump", "collect", "damage", "levelup"]
+
+[generated_assets.audio.combat]
+effects = ["shoot", "explosion", "shield_activate"]
+
+[generated_assets.audio.ui]
+effects = ["dialogue_beep"]
+
+[generated_assets.audio.music]
+tracks = [
+    {name = "menu_theme", style = "electronic", tempo = 120},
+    {name = "exploration_theme", style = "ambient", tempo = 80},
+    {name = "battle_theme", style = "orchestral", tempo = 140},
+    {name = "victory_theme", style = "chiptune", tempo = 100}
+]
+
+[generated_assets.backgrounds.environments]
+scenes = [
+    {name = "cyberpunk_city", style = "cyberpunk", description = "Neon-lit futuristic cityscape"},
+    {name = "digital_realm", style = "digital", description = "Abstract digital space with code elements"},
+    {name = "academy_classroom", style = "modern", description = "High-tech classroom with holographic displays"},
+    {name = "boss_arena", style = "dramatic", description = "Epic battle arena with dramatic lighting"}
+]
+
+# Game specifications to load on startup
+[game_specs]
+# Server assets that need to be generated
+server_assets = "server_assets.toml"
+
+# Educational game progression (Beginner -> Intermediate -> Advanced)
+neotokyo_code_academy = "../../../games/pygame/neotokyo_code_academy.toml"  # Beginner: 2D RPG
+retro_raycast_revolution = "../../../games/bevy/retro_raycast_revolution.toml"  # Intermediate: Raycasting FPS
+neural_nexus_3d = "../../../games/godot/neural_nexus_3d.toml"  # Advanced: Full 3D
+
+# These games form a cohesive learning journey through the cyberpunk universe
+
+# Asset path mappings
+[asset_paths]
+static_root = "/public/static/assets"
+generated_root = "/public/static/assets/generated"
+games_root = "/generated_games"
+
+# Code generation should use these paths
+[asset_paths.mapping]
+# For web/Chainlit UI
+web_sprites = "${static_root}/sprites"
+web_audio = "${static_root}/audio"
+web_backgrounds = "${static_root}/backgrounds"
+
+# For generated games (relative to game directory)
+game_sprites = "../../public/static/assets/sprites"
+game_audio = "../../public/static/assets/audio"
+game_backgrounds = "../../public/static/assets/backgrounds"

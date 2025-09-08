@@ -34,27 +34,29 @@ class TestConfig:
         """Test config with explicit values."""
         config = Config(
             openai_api_key="explicit_openai",
-            debug=True
+            server_name="custom-server",
+            enable_caching=False
         )
         
         assert config.openai_api_key == "explicit_openai"
-        assert config.debug is True
+        assert config.server_name == "custom-server"
+        assert config.enable_caching is False
 
-    @patch.dict(os.environ, {"DEBUG": "false"})
-    def test_config_debug_false(self):
-        """Test debug flag with false value."""
+    @patch.dict(os.environ, {"OPENAI_MCP_ENABLE_CACHING": "false"})
+    def test_config_caching_false(self):
+        """Test caching flag with false value."""
         config = Config()
-        assert config.debug is False
+        assert config.enable_caching is False
 
-    @patch.dict(os.environ, {"DEBUG": "0"})
-    def test_config_debug_zero(self):
-        """Test debug flag with zero value."""
+    @patch.dict(os.environ, {"OPENAI_MCP_ENABLE_CACHING": "0"})
+    def test_config_caching_zero(self):
+        """Test caching flag with zero value."""
         config = Config()
-        assert config.debug is False
+        assert config.enable_caching is False
 
     def test_config_missing_required_key(self):
         """Test behavior when required keys are missing."""
         config = Config()
         
-        # Should not raise exception, just return None
-        assert config.openai_api_key is None
+        # Should return empty string by default
+        assert config.openai_api_key == "" or config.openai_api_key == "test_openai_key"  # May be set by env

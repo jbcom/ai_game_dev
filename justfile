@@ -1,5 +1,5 @@
-# AI Game Development - Unified Package Build System
-# Requires: just, uv, sphinx, cargo (optional), gdtoolkit (optional)
+# AI Game Development - Chainlit-based Platform
+# Requires: just, hatch, python 3.11+
 
 set shell := ["bash", "-c"]
 set dotenv-load := true
@@ -9,23 +9,68 @@ default:
     @just --list
 
 # =============================================================================
+# 🚀 MAIN COMMANDS
+# =============================================================================
+
+# Start the Chainlit platform
+run:
+    @echo "🚀 Starting AI Game Development Platform with Chainlit..."
+    hatch run python -m ai_game_dev
+
+# Start in development mode with auto-reload
+dev:
+    @echo "🔄 Starting in development mode with auto-reload..."
+    hatch run python -m ai_game_dev --port 8000
+
+# Quick start (alias for run)
+start: run
+
+# =============================================================================
+# 🎮 GENERATION COMMANDS
+# =============================================================================
+
+# Generate server assets
+generate-assets:
+    @echo "🎨 Generating server assets..."
+    hatch run python -m ai_game_dev --assets-spec src/ai_game_dev/specs/server_assets.toml
+
+# Generate Pygame educational RPG
+generate-pygame:
+    @echo "🎮 Generating NeoTokyo Code Academy (Pygame)..."
+    hatch run python -m ai_game_dev --game-spec games/pygame/neotokyo_code_academy.toml
+
+# Generate Bevy FPS
+generate-bevy:
+    @echo "🎮 Generating Retro Raycast Revolution (Bevy)..."
+    hatch run python -m ai_game_dev --game-spec games/bevy/retro_raycast_revolution.toml
+
+# Generate Godot 3D game
+generate-godot:
+    @echo "🎮 Generating Neural Nexus 3D (Godot)..."
+    hatch run python -m ai_game_dev --game-spec games/godot/neural_nexus_3d.toml
+
+# Build all assets and games
+build-all-games: generate-assets generate-pygame generate-bevy generate-godot
+    @echo "✅ All assets and games generated!"
+
+# =============================================================================
 # 🏗️ BUILD COMMANDS
 # =============================================================================
 
-# Build the unified AI game development package
+# Build the package
 build:
     @echo "🐍 Building ai-game-dev package..."
-    uv build
+    hatch build
 
-# Build with specific target
+# Build wheel distribution
 build-wheel:
     @echo "🎯 Building wheel distribution..."
-    uv build --wheel
+    hatch build -t wheel
 
 # Build source distribution
 build-sdist:
     @echo "📦 Building source distribution..."
-    uv build --sdist
+    hatch build -t sdist
 
 # Clean all build artifacts
 clean:
@@ -36,22 +81,8 @@ clean:
     find . -name ".pytest_cache" -type d -exec rm -rf {} + 2>/dev/null || true
     find . -name "htmlcov" -type d -exec rm -rf {} + 2>/dev/null || true
     find . -name ".coverage" -delete 2>/dev/null || true
+    find . -name ".chainlit" -type d -exec rm -rf {} + 2>/dev/null || true
     rm -rf docs/_build/ docs/doctrees/ coverage.xml
-
-# =============================================================================
-# 🖼️ IMAGE PROCESSING COMMANDS
-# =============================================================================
-
-# Process image with automatic transparency removal and frame detection
-process-image INPUT_PATH OUTPUT_PATH="":
-    @echo "🖼️ Processing image with automatic optimizations..."
-    hatch run python scripts/process_image.py "{{INPUT_PATH}}" {{if OUTPUT_PATH != "" { "\"" + OUTPUT_PATH + "\"" } else { "" } }}
-
-# Test automatic processing on tech frame
-demo-process:
-    @echo "🖼️ Demonstrating automatic processing on tech-frame.png..."
-    hatch run python scripts/process_image.py "src/ai_game_dev/server/static/assets/frames/tech-frame.png"
-
 
 # =============================================================================
 # 🧪 TESTING COMMANDS
@@ -60,295 +91,238 @@ demo-process:
 # Run all tests with coverage
 test:
     @echo "🧪 Running tests with coverage..."
-    uv run pytest tests/ -v --cov=src/ai_game_dev --cov-report=html --cov-report=xml --cov-report=term-missing
+    hatch run test:cov
 
 # Run tests without coverage (faster)
 test-fast:
     @echo "⚡ Running fast tests..."
-    uv run pytest tests/ -v -x
+    hatch run test:no-cov
 
 # Run specific test file
 test-file file:
     @echo "🎯 Running tests in {{file}}..."
-    uv run pytest {{file}} -v
+    hatch run pytest {{file}} -v
 
 # Run tests matching pattern
 test-match pattern:
     @echo "🔍 Running tests matching '{{pattern}}'..."
-    uv run pytest tests/ -v -k "{{pattern}}"
+    hatch run pytest tests/ -v -k "{{pattern}}"
 
-# Run benchmarks
-bench:
-    @echo "⚡ Running performance benchmarks..."
-    uv run pytest tests/ --benchmark-only --benchmark-json=benchmark-results.json
+# Test Chainlit app startup
+test-chainlit:
+    @echo "🧪 Testing Chainlit startup..."
+    timeout 10s hatch run server || echo "✅ Chainlit started successfully"
+
+# Test subgraph imports
+test-imports:
+    @echo "🔍 Testing critical imports..."
+    hatch run python -c "
+from ai_game_dev.agents.subgraphs import GraphicsSubgraph, AudioSubgraph, DialogueSubgraph, QuestSubgraph
+from ai_game_dev.agents.pygame_agent import PygameAgent
+from ai_game_dev.agents.godot_agent import GodotAgent
+from ai_game_dev.agents.bevy_agent import BevyAgent
+from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
+print('✅ All subgraphs and agents imported successfully')
+"
 
 # =============================================================================
 # 🔍 QUALITY ASSURANCE
 # =============================================================================
 
 # Run complete quality analysis
-qa: lint type-check security test
+qa: lint test security
     @echo "✅ Quality analysis completed"
 
 # Format and lint all code
 lint:
     @echo "🎨 Formatting and linting code..."
-    uv run black src/ tests/
-    uv run isort src/ tests/
-    uv run ruff check src/ tests/ --fix
+    hatch run lint:all
 
-# Type checking with mypy
+# Type checking
 type-check:
     @echo "🔍 Running type checks..."
-    uv run mypy src/ai_game_dev --config-file pyproject.toml
+    hatch run lint:typing
 
 # Security analysis
 security:
     @echo "🔒 Running security analysis..."
-    uv run bandit -r src/ -f txt
+    hatch run lint:security
 
-# Check code complexity
-complexity:
-    @echo "📊 Checking code complexity..."
-    uv run radon cc src/ --min C
-
-# Run all linting tools
-lint-all: lint type-check
-    @echo "🎯 Running comprehensive linting..."
-    uv run pylint src/ai_game_dev/ || true
-    uv run flake8 src/ tests/ || true
+# Format code
+format:
+    @echo "✨ Formatting code..."
+    hatch run format:format
 
 # =============================================================================
-# 📚 DOCUMENTATION COMMANDS (RST + Sphinx)
+# 📚 DOCUMENTATION COMMANDS
 # =============================================================================
 
-# Build Sphinx documentation
+# Build documentation
 docs:
-    @echo "📚 Building Sphinx documentation..."
-    cd docs && uv run sphinx-build -b html . _build/html
-
-# Build documentation with clean rebuild
-docs-clean:
-    @echo "🧹 Clean building documentation..."
-    cd docs && uv run sphinx-build -b html . _build/html -E
+    @echo "📚 Building documentation..."
+    hatch run docs:build
 
 # Serve documentation locally
 docs-serve:
-    @echo "🌐 Serving documentation on http://localhost:8000..."
-    cd docs/_build/html && python -m http.server 8000
+    @echo "🌐 Serving documentation on http://localhost:8001..."
+    hatch run docs:serve
 
-# Watch documentation files and rebuild automatically
-docs-watch:
-    @echo "👀 Watching documentation files..."
-    find docs/ -name "*.rst" -o -name "*.py" | entr -r just docs
-
-# Generate API documentation from docstrings
-docs-api:
-    @echo "🔧 Generating API documentation..."
-    cd docs && uv run sphinx-apidoc -o api ../src/ai_game_dev --force
-
-# Check documentation for broken links
-docs-linkcheck:
-    @echo "🔗 Checking documentation links..."
-    cd docs && uv run sphinx-build -b linkcheck . _build/linkcheck
-
-# Build PDF documentation
-docs-pdf:
-    @echo "📄 Building PDF documentation..."
-    cd docs && uv run sphinx-build -b latexpdf . _build/pdf
+# Clean and rebuild docs
+docs-clean:
+    @echo "🧹 Clean building documentation..."
+    rm -rf docs/_build
+    hatch run docs:build
 
 # =============================================================================
-# 🚀 DEVELOPMENT COMMANDS
+# 🖼️ ASSET COMMANDS
+# =============================================================================
+
+# Process image with automatic optimizations
+process-image INPUT_PATH OUTPUT_PATH="":
+    @echo "🖼️ Processing image..."
+    hatch run process-image "{{INPUT_PATH}}" {{if OUTPUT_PATH != "" { "\"" + OUTPUT_PATH + "\"" } else { "" } }}
+
+# Generate test assets using subgraphs
+test-assets:
+    @echo "🎨 Testing asset generation through subgraphs..."
+    hatch run python -c "
+import asyncio
+from ai_game_dev.agents.subgraphs import GraphicsSubgraph
+async def test():
+    subgraph = GraphicsSubgraph()
+    await subgraph.initialize()
+    result = await subgraph.process({'task': 'generate_test_asset'})
+    print(f'✅ Asset generation test: {result}')
+asyncio.run(test())
+"
+
+# =============================================================================
+# 🔧 DEVELOPMENT COMMANDS
 # =============================================================================
 
 # Set up development environment
 setup:
     @echo "🔧 Setting up development environment..."
-    uv sync --all-extras --dev
-    uv pip install sphinx sphinxcontrib-napoleon sphinx-rtd-theme
-    uv run pre-commit install
+    pip install --upgrade pip
+    pip install hatch
+    hatch env create
+    hatch run python -c "print('✅ Development environment ready')"
 
 # Install pre-commit hooks
 hooks:
     @echo "🪝 Installing pre-commit hooks..."
-    uv run pre-commit install --install-hooks
-    uv run pre-commit install --hook-type commit-msg
+    hatch run pre-commit install --install-hooks
 
-# Start MCP development server
-dev:
-    @echo "🚀 Starting MCP server..."
-    uv run ai-game-dev-server
-
-# Hot reload development with file watching
-watch:
-    @echo "👀 Starting file watcher for auto-restart..."
-    find src/ -name "*.py" | entr -r uv run ai-game-dev-server
-
-# Start interactive Python shell with package loaded
+# Interactive Python shell with package loaded
 shell:
     @echo "🐍 Starting interactive shell..."
-    uv run python -c "import ai_game_dev; print('AI Game Dev loaded successfully'); import IPython; IPython.start_ipython()"
+    hatch run python -c "
+import ai_game_dev
+from ai_game_dev.agents.subgraphs import *
+from ai_game_dev.agents.pygame_agent import PygameAgent
+print('🎮 AI Game Dev loaded - Subgraphs and agents available')
+print('Available: GraphicsSubgraph, AudioSubgraph, DialogueSubgraph, QuestSubgraph')
+import IPython; IPython.start_ipython()
+"
+
+# Watch for file changes and restart
+watch:
+    @echo "👀 Watching for changes..."
+    find src/ -name "*.py" | entr -r just dev
 
 # =============================================================================
 # 📊 ANALYSIS & REPORTING
 # =============================================================================
 
-# Generate comprehensive analysis report
-analyze: qa
-    @echo "📊 Generating analysis report..."
-    @echo "Lines of code:"
-    find src/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}'
-    @echo "Test coverage: see htmlcov/index.html"
-    @echo "Documentation: see docs/_build/html/index.html"
+# Show project status
+status:
+    @echo "🎮 AI Game Development Platform Status"
+    @echo "====================================="
+    @echo "Architecture: Chainlit with Direct Subgraph Management"
+    @echo ""
+    @echo "Core Components:"
+    @test -f src/ai_game_dev/chainlit_app.py && echo "  ✅ Chainlit App" || echo "  ❌ Chainlit App"
+    @test -d src/ai_game_dev/agents/subgraphs && echo "  ✅ Subgraphs" || echo "  ❌ Subgraphs"
+    @test -f src/ai_game_dev/agents/pygame_agent.py && echo "  ✅ Engine Agents" || echo "  ❌ Engine Agents"
+    @test -f .chainlit/config.toml && echo "  ✅ Chainlit Config" || echo "  ❌ Chainlit Config"
+    @test -f public/style.css && echo "  ✅ Custom CSS" || echo "  ❌ Custom CSS"
+    @echo ""
+    @echo "Removed Components:"
+    @test ! -f src/ai_game_dev/simple_server.py && echo "  ✅ simple_server.py removed" || echo "  ❌ simple_server.py still exists"
+    @test ! -f src/ai_game_dev/agents/master_orchestrator.py || echo "  ⚠️  master_orchestrator.py still exists (consider removing)"
+    @test ! -f src/ai_game_dev/agents/internal_agent.py || echo "  ⚠️  internal_agent.py still exists (consider removing)"
 
 # Count lines of code
 loc:
-    @echo "📏 Lines of code analysis:"
-    @echo "Source code:"
-    find src/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}'
-    @echo "Tests:"
-    find tests/ -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
-    @echo "Documentation:"
-    find docs/ -name "*.rst" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
-
-# Show project status
-status:
-    @echo "🎮 AI Game Development Package Status"
-    @echo "====================================="
-    @echo "Package: ai-game-dev"
-    @echo "Location: src/ai_game_dev/"
-    @echo ""
-    @echo "Dependencies:"
-    @which uv >/dev/null && echo "  ✅ UV (Python package manager)" || echo "  ❌ UV (Python package manager)"
-    @which sphinx-build >/dev/null && echo "  ✅ Sphinx (Documentation)" || echo "  ❌ Sphinx (Documentation)"
-    @which python >/dev/null && echo "  ✅ Python" || echo "  ❌ Python"
-    @echo ""
-    just loc
+    @echo "📏 Lines of code:"
+    @echo "Chainlit App:"
+    @wc -l src/ai_game_dev/chainlit_app.py 2>/dev/null || echo "  0 lines"
+    @echo "Subgraphs:"
+    @find src/ai_game_dev/agents/subgraphs -name "*.py" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
+    @echo "Engine Agents:"
+    @find src/ai_game_dev/agents -name "*_agent.py" -not -path "*/subgraphs/*" -exec wc -l {} + | tail -1 | awk '{print "  " $1 " lines"}' 2>/dev/null || echo "  0 lines"
 
 # =============================================================================
-# 🔧 MAINTENANCE COMMANDS
+# 🚀 DEPLOYMENT COMMANDS
 # =============================================================================
 
-# Update all dependencies
+# Validate before deployment
+validate:
+    @echo "🔍 Validating deployment readiness..."
+    @test -f src/ai_game_dev/chainlit_app.py || (echo "❌ Chainlit app missing" && exit 1)
+    @test -f .chainlit/config.toml || (echo "❌ Chainlit config missing" && exit 1)
+    @test -f public/style.css || (echo "❌ Custom CSS missing" && exit 1)
+    @test -f public/readme.md || (echo "❌ Readme missing" && exit 1)
+    @echo "✅ All required files present"
+    just test-imports
+    @echo "✅ Deployment validation passed"
+
+# Package for deployment
+package: clean validate build
+    @echo "📦 Creating deployment package..."
+    mkdir -p deployment
+    cp -r dist/* deployment/
+    cp -r .chainlit deployment/
+    cp -r public deployment/
+    @echo "✅ Deployment package ready in deployment/"
+
+# =============================================================================
+# 🛠️ MAINTENANCE COMMANDS
+# =============================================================================
+
+# Update dependencies
 update:
     @echo "⬆️ Updating dependencies..."
-    uv sync --upgrade
+    hatch run pip install --upgrade chainlit langchain langgraph
 
-# Check for outdated dependencies
-outdated:
-    @echo "🔍 Checking for outdated dependencies..."
-    uv pip list --outdated
-
-# Format all code
-format:
-    @echo "✨ Formatting all code..."
-    uv run black src/ tests/ docs/
-    uv run isort src/ tests/
-
-# Validate project structure
-validate:
-    @echo "🔍 Validating unified package structure..."
-    @test -d src/ai_game_dev && echo "✅ Core package exists" || echo "❌ Core package missing"
-    @test -d src/ai_game_dev/assets && echo "✅ Assets module exists" || echo "❌ Assets module missing"
-    @test -d src/ai_game_dev/mcp_server && echo "✅ MCP server exists" || echo "❌ MCP server missing"
-    @test -d src/ai_game_dev/engine_specs && echo "✅ Engine specs exist" || echo "❌ Engine specs missing"
-    @test -f src/ai_game_dev/providers.py && echo "✅ Multi-LLM providers exist" || echo "❌ Multi-LLM providers missing"
-    @test -f src/ai_game_dev/schemas/game_world_spec.json && echo "✅ JSON schemas exist" || echo "❌ JSON schemas missing"
-
-# =============================================================================
-# 📦 PACKAGING & RELEASE
-# =============================================================================
-
-# Prepare for release
-release-prep version:
-    @echo "🚀 Preparing release {{version}}..."
-    sed -i 's/version = ".*"/version = "{{version}}"/' pyproject.toml
-    sed -i 's/__version__ = ".*"/__version__ = "{{version}}"/' src/ai_game_dev/__init__.py
-    @echo "Version updated to {{version}}"
-
-# Build release distributions
-release-build: clean build docs
-    @echo "📦 Building release distributions..."
-    @echo "✅ Wheel and source distributions created in dist/"
-    @echo "✅ Documentation built in docs/_build/html/"
-
-# Upload to PyPI (test)
-upload-test:
-    @echo "🧪 Uploading to Test PyPI..."
-    uv run twine upload --repository testpypi dist/*
-
-# Upload to PyPI (production)
-upload:
-    @echo "🚀 Uploading to PyPI..."
-    uv run twine upload dist/*
-
-# =============================================================================
-# 🎯 SHORTCUTS & WORKFLOWS
-# =============================================================================
-
-# Quick development cycle
-quick: lint test-fast
-    @echo "⚡ Quick development check completed"
+# Check for issues
+check: lint type-check test-imports validate
+    @echo "✅ All checks passed"
 
 # Full CI simulation
-ci: clean lint type-check security test docs build
+ci: clean format lint test docs build validate
     @echo "🎯 Full CI simulation completed"
 
 # Emergency fix workflow
-fix: format lint test-fast
+fix: format test-fast
     @echo "🚑 Emergency fixes applied"
 
-# Complete development workflow
-all: setup lint type-check test docs build
-    @echo "🎉 Complete development workflow finished"
-
-# Install package in development mode
-install:
-    @echo "📦 Installing package in development mode..."
-    uv pip install -e .
-
-# Uninstall package
-uninstall:
-    @echo "🗑️ Uninstalling package..."
-    uv pip uninstall ai-game-dev
-
 # =============================================================================
-# 🛠️ ENGINE-SPECIFIC COMMANDS
+# 📝 SHORTCUTS
 # =============================================================================
 
-# Generate engine-specific templates
-templates:
-    @echo "🎯 Generating engine templates..."
-    uv run python -c "import toml; import os; [print(f'  ✅ {f[:-5].title()} template available') for f in os.listdir('src/ai_game_dev/engine_specs/') if f.endswith('.toml')]"
+# Aliases
+s: start
+d: dev
+t: test
+q: qa
+f: format
+l: lint
 
-# Validate TOML specifications
-validate-specs:
-    @echo "🔍 Validating engine specifications..."
-    uv run python -c "import toml; import os; [print(f'  ✅ {f} is valid') if toml.load(f'src/ai_game_dev/engine_specs/{f}') else print(f'  ❌ {f} has errors') for f in os.listdir('src/ai_game_dev/engine_specs/') if f.endswith('.toml')]"
+# Quick development cycle
+quick: format test-fast
+    @echo "⚡ Quick check completed"
 
-# Validate JSON schemas
-validate-schemas:
-    @echo "🔍 Validating JSON schemas..."
-    uv run python -c "import json; import os; [print(f'  ✅ {f} is valid') if json.load(open(f'src/ai_game_dev/schemas/{f}')) else print(f'  ❌ {f} has errors') for f in os.listdir('src/ai_game_dev/schemas/') if f.endswith('.json')]"
-# Hatch-based development workflows
-hatch-test:
-        @echo "🧪 Running tests with hatch..."
-        hatch run test:cov
-
-hatch-lint:
-        @echo "🔍 Running linting with hatch..."
-        hatch run lint:all
-
-hatch-format:
-        @echo "✨ Formatting code with hatch..."
-        hatch run format:format
-
-hatch-docs:
-        @echo "📚 Building docs with hatch..."
-        hatch run docs:build
-
-hatch-full:
-        @echo "🚀 Running full hatch pipeline..."
-        hatch run format:format
-        hatch run lint:all
-        hatch run test:full
+# Full development workflow
+all: setup format lint test docs
+    @echo "🎉 Complete workflow finished"

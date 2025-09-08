@@ -491,10 +491,32 @@ $RECYCLE.BIN/
 # Project-Specific Ignores
 # =============================================================================
 
+# Chainlit specific
+.chainlit/
+chainlit.md
+.chainlit.config
+
+# Replit specific
+.upm/
+.config/
+.cache/
+.local/
+.replit_history
+.replit_agent_history
+
+# Generated reports
+quality-report.html
+bandit-report.json
+
 # Generated game assets and content
 generated_assets/
 generated_examples/
 generated_content/
+/generated_games/
+/public/static/assets/generated/
+**/asset_registry.json
+**/generation_manifest.json
+**/manifest.json
 
 # AI model outputs and caches
 *.pkl

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cyberdark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Game Development Platform</title>
+    
+    <!-- Tailwind CSS + DaisyUI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.11/dist/full.min.css" rel="stylesheet">
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(100, 255, 218, 0.3)' },
+                            '100%': { boxShadow: '0 0 20px rgba(100, 255, 218, 0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Load existing style.css -->
+    <link rel="stylesheet" href="/public/style.css">
+    
+    <!-- Additional custom styles for full HTMX experience -->
+    <style>
+        .game-dev-gradient { 
+            background: 
+                url('/public/static/assets/textures/circuit-pattern.png'),
+                linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 30%, #16213e 70%, #0f3460 100%);
+            background-size: 300px 300px, cover;
+            background-repeat: repeat, no-repeat;
+            background-blend-mode: soft-light, normal;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .engine-icon {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+        }
+        .custom-button {
+            background: linear-gradient(135deg, #64ffda 0%, #1976d2 100%);
+            border: none;
+            color: #0a0a0f;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .custom-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.4);
+            background: linear-gradient(135deg, #4dd0e1 0%, #1565c0 100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- Load component scripts first -->
+    <script src="/public/components/Workshop.js"></script>
+    <script src="/public/components/Academy.js"></script>
+    
+    <!-- Load the main app JavaScript -->
+    <script src="/public/chainlit-app.js"></script>
+    
+    <!-- Initialize the app -->
+    <script>
+        // Initialize the app
+        const app = new ChainlitApp();
+        
+        // Global helper functions
+        function toggleAudio() {
+            app.audioManager.toggleMute();
+        }
+    </script>
+</body>
+</html>

@@ -1,39 +1,108 @@
-modules = ["python-3.11", "nodejs-20", "bash", "go-1.24", "nix", "nodejs-24", "docker", "pyright-extended", "pyright", "typescript-language-server", "rust-stable", "ruby-3.2", "python-base-3.13"]
-[agent]
-expertMode = true
+modules = ["python-3.11", "nodejs-20", "bash", "nix"]
 
 [nix]
-channel = "stable-25_05"
-packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "bash", "cargo", "cargo-edit", "chrpath", "fontconfig", "freetype", "glibcLocales", "godot_4", "hatch", "lcms2", "libffi", "libiconv", "libimagequant", "libjpeg", "libpng", "libtiff", "libwebp", "libxcrypt", "libyaml", "openjpeg", "pkg-config", "portmidi", "rustc", "scons", "tcl", "tk", "uv", "zlib"]
-
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "AI Game Dev Streamlit Server"
-
-[[workflows.workflow]]
-name = "AI Game Dev Streamlit Server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python __main__.py"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[ports]]
-localPort = 5000
-externalPort = 80
+channel = "stable-24_05"
+packages = [
+  # Core Python and development tools
+  "python311",
+  "python311Packages.pip",
+  "hatch",
+  "uv",
+  "just",
+  
+  # Pygame dependencies
+  "SDL2",
+  "SDL2_image", 
+  "SDL2_mixer",
+  "SDL2_ttf",
+  "portmidi",
+  
+  # Image processing
+  "imagemagick",
+  "libpng",
+  "libjpeg",
+  "libtiff",
+  "libwebp",
+  "openjpeg",
+  
+  # System libraries
+  "pkg-config",
+  "fontconfig",
+  "freetype",
+  "zlib",
+  "libffi",
+  
+  # Optional: Game engines
+  "godot_4"
+]
 
 [deployment]
-deploymentTarget = "autoscale"
-run = ["python", "packages/mcp_server/main.py"]
+run = ["sh", "-c", "just run"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[env]
+PYTHONPATH = "/home/runner/$REPL_SLUG"
+AI_GAME_DEV_PORT = "8000"
+
+# Run button configuration
+run = "just run"
+entrypoint = "justfile"
+
+[unitTest]
+language = "python3"
+
+[packager]
+language = "python3"
+ignoredPackages = ["unit_tests"]
+
+[packager.features]
+enabledForHosting = false
+packageSearch = true
+guessImports = true
+
+[languages]
+
+[languages.python3]
+pattern = "**/*.py"
+
+[languages.python3.languageServer]
+start = "pylsp"
+
+[debugger]
+support = true
+
+[debugger.interactive]
+transport = "localhost:0"
+startCommand = ["dap-python", "main.py"]
+
+[debugger.interactive.integratedAdapter]
+dapTcpAddress = "localhost:0"
+
+[debugger.interactive.initializeMessage]
+command = "initialize"
+type = "request"
+
+[debugger.interactive.initializeMessage.arguments]
+adapterID = "debugpy"
+clientID = "replit"
+clientName = "replit.com"
+columnsStartAt1 = true
+linesStartAt1 = true
+locale = "en-us"
+pathFormat = "path"
+supportsInvalidatedEvent = true
+supportsProgressReporting = true
+supportsRunInTerminalRequest = true
+supportsVariablePaging = true
+supportsVariableType = true
+
+[debugger.interactive.launchMessage]
+command = "attach"
+type = "request"
+
+[debugger.interactive.launchMessage.arguments]
+logging = {}

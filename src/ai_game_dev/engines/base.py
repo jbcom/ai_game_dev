@@ -31,7 +31,11 @@ class BaseEngineAdapter(ABC):
     def __init__(self):
         self.llm_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.output_dir = settings.cache_dir / "generated_projects"
-        self.output_dir.mkdir(exist_ok=True)
+        # Don't create directories on init - defer until needed
+    
+    def _ensure_output_dir(self) -> None:
+        """Ensure output directory exists."""
+        self.output_dir.mkdir(parents=True, exist_ok=True)
     
     @property
     @abstractmethod

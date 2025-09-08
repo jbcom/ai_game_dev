@@ -6,12 +6,12 @@
 name = "AI Game Dev Web Platform"
 type = "web_server"
 language = "python"
-framework = "fastapi"
+framework = "chainlit"
 version = "1.0.0"
 description = "Unified AI-powered game development platform with real-time generation"
 
 [platform.dependencies]
-core = ["fastapi", "uvicorn", "jinja2", "python-multipart"]
+core = ["chainlit", "openai", "jinja2", "python-multipart"]
 ai = ["langchain", "langchain-openai", "langchain-anthropic", "openai"]
 assets = ["pillow", "numpy", "librosa", "soundfile"]
 database = ["sqlalchemy", "alembic", "psycopg2-binary"]

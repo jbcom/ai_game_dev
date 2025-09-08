@@ -12,10 +12,6 @@ from ai_game_dev.models import (
     DialogueNode, QuestObjective, GameWorld, EngineConfig
 )
 from ai_game_dev.config import AppConfig, ServerSettings, ProviderSettings, create_config
-from ai_game_dev.providers import (
-    LLMProvider, ModelConfig, LLMProviderManager,
-    create_default_manager
-)
 
 
 class TestGameModels:
@@ -200,68 +196,6 @@ class TestConfigSystem:
         """Test config creation function."""
         config = create_config()
         assert isinstance(config, AppConfig)
-
-
-class TestProviderSystem:
-    """Comprehensive provider system tests."""
-    
-    def test_llm_provider_enum(self):
-        """Test LLMProvider enum values."""
-        providers = [LLMProvider.OPENAI, LLMProvider.ANTHROPIC, 
-                    LLMProvider.GOOGLE, LLMProvider.OLLAMA, LLMProvider.CUSTOM]
-        for provider in providers:
-            assert isinstance(provider.value, str)
-
-    def test_model_config_creation(self):
-        """Test ModelConfig with various parameters."""
-        config = ModelConfig(
-            provider=LLMProvider.OPENAI,
-            model_name="gpt-4",
-            temperature=0.5,
-            max_tokens=2000,
-            api_key="test-key",
-            additional_params={"top_p": 0.9}
-        )
-        assert config.temperature == 0.5
-        assert config.max_tokens == 2000
-        assert config.additional_params and config.additional_params["top_p"] == 0.9
-
-    def test_llm_provider_manager_operations(self):
-        """Test LLMProviderManager comprehensive operations."""
-        manager = LLMProviderManager()
-        
-        # Test adding providers
-        provider1 = manager.add_provider("test1", LLMProvider.OPENAI, "gpt-3.5-turbo", api_key="key1")
-        provider2 = manager.add_provider("test2", LLMProvider.ANTHROPIC, "claude-3", api_key="key2")
-        
-        assert len(manager._providers) == 2
-        
-        # Test setting default
-        manager.set_default_provider("test1")
-        assert manager._default_provider == "test1"
-        
-        # Test listing providers
-        provider_list = manager.list_providers()
-        assert "test1" in provider_list
-        assert "test2" in provider_list
-
-    def test_provider_manager_error_handling(self):
-        """Test error handling in provider manager."""
-        manager = LLMProviderManager()
-        
-        # Test getting non-existent provider
-        with pytest.raises(ValueError):
-            manager.get_provider("nonexistent")
-        
-        # Test setting invalid default
-        with pytest.raises(ValueError):
-            manager.set_default_provider("invalid")
-
-    @patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'})
-    def test_create_default_manager_with_env(self):
-        """Test creating default manager with environment variables."""
-        manager = create_default_manager()
-        assert isinstance(manager, LLMProviderManager)
 
 
 class TestAsyncOperations:

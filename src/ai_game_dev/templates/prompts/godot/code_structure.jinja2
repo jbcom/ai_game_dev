@@ -1,0 +1,181 @@
+Create a complete Godot project with this structure:
+
+```
+{{ game_spec.title | lower | replace(" ", "_") }}/
+├── project.godot       # Project configuration
+├── scenes/
+│   ├── main.tscn       # Main game scene
+│   ├── ui/
+│   │   ├── main_menu.tscn
+│   │   ├── game_ui.tscn
+│   │   └── pause_menu.tscn
+│   ├── player/
+│   │   ├── player.tscn
+│   │   └── player_controller.tscn
+│   ├── enemies/
+│   │   ├── enemy_base.tscn
+│   │   └── enemy_types/
+│   ├── levels/
+│   │   ├── level_base.tscn
+│   │   └── level_1.tscn
+│   └── components/
+│       ├── health_component.tscn
+│       └── hitbox_component.tscn
+├── scripts/
+│   ├── main.gd         # Main game controller
+│   ├── game_manager.gd # Global game state
+│   ├── player/
+│   │   ├── player.gd
+│   │   └── player_controller.gd
+│   ├── enemies/
+│   │   └── enemy_base.gd
+│   ├── ui/
+│   │   └── ui_manager.gd
+│   └── components/
+│       ├── health_component.gd
+│       └── hitbox_component.gd
+├── assets/
+│   ├── sprites/
+│   ├── audio/
+│   │   ├── sfx/
+│   │   └── music/
+│   ├── fonts/
+│   └── themes/
+├── autoload/           # Global singletons
+│   ├── game_events.gd
+│   ├── audio_manager.gd
+│   └── save_manager.gd
+└── export_presets.cfg  # Export settings
+```
+
+## Key Implementation Details
+
+### project.godot Configuration
+```ini
+[application]
+config/name="{{ game_spec.title }}"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.2")
+config/icon="res://icon.svg"
+
+[autoload]
+GameEvents="*res://autoload/game_events.gd"
+AudioManager="*res://autoload/audio_manager.gd"
+SaveManager="*res://autoload/save_manager.gd"
+
+[input]
+move_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":65,"physical_keycode":0,"key_label":0,"unicode":97,"echo":false,"script":null)]
+}
+# ... more input mappings
+```
+
+### Scene Structure Example (player.tscn)
+```
+Player (CharacterBody2D)
+├── Sprite2D
+├── CollisionShape2D
+├── AnimationPlayer
+├── HealthComponent (Component Scene)
+├── HitboxComponent (Component Scene)
+└── StateChart (Node)
+    ├── IdleState
+    ├── MoveState
+    └── JumpState
+```
+
+### GDScript Patterns
+
+#### Base Script Template
+```gdscript
+class_name Player
+extends CharacterBody2D
+
+## Player character controller
+## Handles movement, input, and state management
+
+{% if educational_mode %}
+# LEARN: @export makes variables visible in the editor
+# This is great for tweaking gameplay values
+{% endif %}
+@export var move_speed: float = 300.0
+@export var jump_velocity: float = -400.0
+
+@onready var sprite: Sprite2D = $Sprite2D
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
+
+func _ready() -> void:
+    {% if educational_mode %}
+    # TODO: Connect to the health component's signals
+    # Hint: Use component.died.connect(_on_died)
+    {% endif %}
+    pass
+
+func _physics_process(delta: float) -> void:
+    # Handle movement and physics
+    _handle_input()
+    _apply_gravity(delta)
+    move_and_slide()
+```
+
+#### Signal Usage
+```gdscript
+# Declare signals at the top
+signal health_changed(new_health: int)
+signal died()
+
+# Emit signals when events occur
+func take_damage(amount: int) -> void:
+    health -= amount
+    health_changed.emit(health)
+    if health <= 0:
+        died.emit()
+```
+
+{% if educational_mode %}
+## Educational Features
+
+Each script should include:
+- Clear comments explaining Godot concepts
+- TODO challenges for students
+- Examples of different approaches
+- Common mistakes to avoid
+- Performance tips
+
+Example educational pattern:
+```gdscript
+# LEARN: Godot's node system
+# Nodes are like LEGO blocks - combine them to build complex behaviors
+# The $ operator gets a child node by name
+# @onready ensures the node tree is ready before accessing
+
+# CHALLENGE: Add a double jump feature
+# Hint 1: Track how many jumps the player has made
+# Hint 2: Reset jump count when touching the ground
+# Hint 3: Check jump count before allowing another jump
+```
+{% endif %}
+
+### Autoload Patterns
+
+GameEvents.gd - Global Event Bus:
+```gdscript
+extends Node
+
+# Central place for game-wide signals
+signal player_died()
+signal level_completed()
+signal score_changed(new_score: int)
+```
+
+{% if include_comments %}
+## Best Practices
+
+- Cache node references with @onready
+- Use static typing for better performance
+- Organize nodes logically in the scene tree
+- Prefer signals over hard dependencies
+- Use groups for managing multiple similar objects
+- Implement proper cleanup in _exit_tree()
+{% endif %}

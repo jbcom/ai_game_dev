@@ -1,75 +1,41 @@
 repos:
   # Python formatting and linting
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 24.1.0
     hooks:
       - id: black
         language_version: python3.11
         args: [--line-length=100]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
         args: [--profile=black, --line-length=100]
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.287
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.13
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.0
+    rev: v1.8.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests, types-PyYAML]
+        additional_dependencies: [
+          types-requests,
+          types-PyYAML,
+          types-aiofiles,
+          openai-stubs,
+          pydantic
+        ]
         args: [--config-file=pyproject.toml]
-
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        args: [-r, packages/, -f, json, -o, bandit-report.json]
-        pass_filenames: false
-
-  # Rust formatting and linting
-  - repo: local
-    hooks:
-      - id: cargo-fmt
-        name: cargo fmt
-        entry: cargo fmt --all --
-        language: system
-        files: \.rs$
-        pass_filenames: false
-
-      - id: cargo-clippy
-        name: cargo clippy
-        entry: cargo clippy --all-targets --all-features -- -D warnings
-        language: system
-        files: \.rs$
-        pass_filenames: false
-
-  # GDScript formatting
-  - repo: local
-    hooks:
-      - id: gdformat
-        name: gdformat
-        entry: gdformat
-        language: python
-        additional_dependencies: [gdtoolkit==4.2.2]
-        files: \.gd$
-
-      - id: gdlint
-        name: gdlint
-        entry: gdlint
-        language: python
-        additional_dependencies: [gdtoolkit==4.2.2]
-        files: \.gd$
+        files: ^src/
 
   # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -80,6 +46,8 @@ repos:
       - id: check-case-conflict
       - id: check-docstring-first
       - id: debug-statements
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
 
   # Security and secrets scanning
   - repo: https://github.com/Yelp/detect-secrets
@@ -93,8 +61,22 @@ repos:
     rev: 6.3.0
     hooks:
       - id: pydocstyle
-        match: ^packages/.*\.py$
+        files: ^src/ai_game_dev/.*\.py$
         args: [--convention=google]
+
+  # JavaScript/TypeScript linting (for Chainlit custom UI)
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        files: \.(js|jsx)$
+        args: [--fix]
+        additional_dependencies:
+          - eslint@8.56.0
+          - eslint-config-standard@17.1.0
+          - eslint-plugin-import@2.29.1
+          - eslint-plugin-n@16.6.1
+          - eslint-plugin-promise@6.1.1
 
 ci:
   autofix_commit_msg: |
@@ -105,5 +87,5 @@ ci:
   autoupdate_branch: ''
   autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
   autoupdate_schedule: weekly
-  skip: []
+  skip: [mypy]  # Skip mypy in CI as it needs full dependencies
   submodules: false

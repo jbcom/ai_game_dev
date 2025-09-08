@@ -1,8 +1,0 @@
-/// {{ system.description }}
-pub fn {{ system.name }}(
-{% for param in system.parameters %}
-    {{ param }},
-{% endfor %}
-) {
-    {{ system.body | indent(4) }}
-}

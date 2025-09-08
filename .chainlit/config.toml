@@ -1,0 +1,78 @@
+[project]
+# Whether to enable telemetry (default: true)
+enable_telemetry = false
+
+# List of environment variables to be provided by each user to use the app
+user_env = []
+
+# Duration (in seconds) during which the session is saved when the connection is lost
+session_timeout = 3600
+
+# Enable third parties caching (default: false)
+cache = false
+
+# Follow symlink for asset mount (default: false)
+follow_symlink = false
+
+[features]
+# Show the prompt playground
+prompt_playground = true
+
+# Process and display HTML in messages. This can be a security risk (see https://stackoverflow.com/questions/19603097/why-is-it-dangerous-to-render-user-generated-html-or-javascript)
+unsafe_allow_html = false
+
+# Process and display mathematical expressions. This can clash with "$" characters in messages.
+latex = false
+
+# Authorize users to upload files with messages
+multi_modal = true
+
+# Allows user to use speech to text
+[features.speech_to_text]
+enabled = false
+
+[UI]
+# Name of the app
+name = "AI Game Development Platform"
+
+# Description of the app
+description = "🎮 Game Workshop | 🎓 Arcade Academy - Powered by OpenAI Agents"
+
+# The default value for the expand messages settings
+default_expand_messages = false
+
+# Hide the chain of thought details from the user in the UI
+hide_cot = false
+
+# Link to your github repo. This will add a github button in the UI's header.
+github = "https://github.com/jbcom/ai_game_dev"
+
+# Override default MUI light theme
+[UI.theme.light]
+background = "#FAFAFA"
+paper = "#FFFFFF"
+
+[UI.theme.light.primary]
+main = "#7B61FF"
+dark = "#5A48CC"
+light = "#9480FF"
+
+# Override default MUI dark theme
+[UI.theme.dark]
+background = "#0F0F1A"
+paper = "#1A1A2E"
+
+[UI.theme.dark.primary]
+main = "#7B61FF"
+dark = "#5A48CC"
+light = "#9480FF"
+
+[custom]
+# Path to the custom build directory
+custom_build = "./public"
+
+# Enable custom CSS
+custom_css = "/public/style.css"
+
+[meta]
+generated_by = "1.2.3"

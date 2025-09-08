@@ -1,0 +1,116 @@
+Create a complete Bevy project with this structure:
+
+```
+{{ game_spec.title | lower | replace(" ", "_") }}/
+├── Cargo.toml          # Project configuration and dependencies
+├── src/
+│   ├── main.rs         # App setup and plugin registration
+│   ├── lib.rs          # Module declarations
+│   ├── components.rs   # Component definitions
+│   ├── systems/
+│   │   ├── mod.rs      # System module exports
+│   │   ├── movement.rs # Movement systems
+│   │   ├── combat.rs   # Combat systems
+│   │   ├── ui.rs       # UI systems
+│   │   └── input.rs    # Input handling
+│   ├── resources.rs    # Resource definitions
+│   ├── events.rs       # Event definitions
+│   ├── plugins/
+│   │   ├── mod.rs      # Plugin exports
+│   │   ├── game.rs     # Main game plugin
+│   │   ├── menu.rs     # Menu plugin
+│   │   └── debug.rs    # Debug utilities
+│   └── states.rs       # Game state definitions
+├── assets/
+│   ├── sprites/        # Image assets
+│   ├── audio/          # Sound and music
+│   ├── fonts/          # Font files
+│   └── scenes/         # Scene definitions
+└── README.md           # Project documentation
+```
+
+## Key Implementation Details
+
+### Cargo.toml
+```toml
+[package]
+name = "{{ game_spec.title | lower | replace(" ", "_") }}"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { version = "0.12", features = ["dynamic"] }
+{% if educational_mode %}
+# Educational features
+bevy-inspector-egui = "0.21"  # Runtime component inspection
+{% endif %}
+
+[profile.dev]
+opt-level = 1  # Faster compile times
+
+[profile.release]
+lto = true     # Link time optimization
+```
+
+### main.rs - App Setup
+```rust
+use bevy::prelude::*;
+use {{ game_spec.title | lower | replace(" ", "_") }}::GamePlugin;
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugin(GamePlugin)
+        {% if educational_mode %}
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
+        {% endif %}
+        .run();
+}
+```
+
+### Component Structure
+- Components should be small, focused data containers
+- Use `#[derive(Component, Debug, Clone)]` for all components
+- Bundle related components for common patterns
+- Document component purposes and relationships
+
+### System Organization
+- One system per file for clarity
+- Group related systems in plugins
+- Use system sets for ordering
+- Implement clear system boundaries
+
+{% if educational_mode %}
+## Educational Features
+
+Each major system should include:
+- Detailed comments explaining ECS patterns
+- TODO exercises for students to complete
+- Alternative implementations to compare
+- Performance considerations explained
+- Common pitfalls highlighted
+
+Example educational comment:
+```rust
+// LEARN: This query finds all entities with both Transform and Velocity
+// The '&mut' means we can modify the Transform
+// The '&' means we only read the Velocity
+fn movement_system(
+    mut query: Query<(&mut Transform, &Velocity)>
+) {
+    // TODO: Implement movement by updating transform.translation
+    // Hint: transform.translation += velocity.0 * time.delta_seconds()
+}
+```
+{% endif %}
+
+{% if include_comments %}
+## Code Standards
+
+- Use descriptive variable names
+- Document public APIs with `///` comments
+- Handle all Results explicitly
+- Use const for magic numbers
+- Implement Display/Debug for custom types
+- Test edge cases and error conditions
+{% endif %}
