@@ -2,6 +2,7 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 import sys
+import subprocess
 from pathlib import Path
 
 from ai_game_dev.__main__ import (
@@ -38,8 +39,8 @@ class TestMainModule:
             
             assert result is False
     
-    def test_run_server(self):
-        """Test server startup."""
+    def test_run_server_success(self):
+        """Test successful server startup."""
         with patch('subprocess.run') as mock_run:
             with patch('os.path.exists', return_value=True):
                 with patch('sys.executable', 'python'):
@@ -51,6 +52,51 @@ class TestMainModule:
                     assert 'run' in args
                     assert '--port' in args
                     assert '8080' in args
+    
+    def test_run_server_chainlit_not_installed(self):
+        """Test server startup when Chainlit is not installed."""
+        with patch('subprocess.run') as mock_run:
+            mock_run.side_effect = subprocess.CalledProcessError(
+                1, ['chainlit'], stderr="No module named 'chainlit'"
+            )
+            
+            with pytest.raises(SystemExit) as exc_info:
+                run_server(8080)
+            
+            assert exc_info.value.code == 1
+    
+    def test_run_server_port_in_use_subprocess(self):
+        """Test server startup when port is in use (detected by subprocess)."""
+        with patch('ai_game_dev.__main__.check_port_available', return_value=True):
+            with patch('subprocess.run') as mock_run:
+                mock_run.side_effect = subprocess.CalledProcessError(
+                    1, ['chainlit'], stderr="Address already in use"
+                )
+                
+                with pytest.raises(SystemExit) as exc_info:
+                    run_server(8080)
+                
+                assert exc_info.value.code == 1
+    
+    def test_run_server_python_not_found(self):
+        """Test server startup when Python is not found."""
+        with patch('subprocess.run') as mock_run:
+            mock_run.side_effect = FileNotFoundError()
+            
+            with pytest.raises(SystemExit) as exc_info:
+                run_server(8080)
+            
+            assert exc_info.value.code == 1
+    
+    def test_run_server_unexpected_error(self):
+        """Test server startup with unexpected error."""
+        with patch('subprocess.run') as mock_run:
+            mock_run.side_effect = RuntimeError("Unexpected error")
+            
+            with pytest.raises(SystemExit) as exc_info:
+                run_server(8080)
+            
+            assert exc_info.value.code == 1
     
     @pytest.mark.asyncio
     async def test_generate_game_success(self):

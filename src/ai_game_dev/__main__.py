@@ -47,14 +47,36 @@ def run_server(port: int):
         "--custom-frontend"
     ]
     
+    import traceback
     try:
-        result = subprocess.run(cmd, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to start Chainlit: {e}")
+        result = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            text=True
+        )
+    except FileNotFoundError:
+        print("❌ Failed to start Chainlit: Python executable not found.")
+        print("   Please ensure Python is installed and available in your PATH.")
         sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print("❌ Chainlit server failed to start.")
+        if "No module named" in e.stderr:
+            print("   It looks like Chainlit is not installed.")
+            print("   Please install it with: pip install chainlit")
+        elif "Address already in use" in e.stderr or "port" in e.stderr:
+            print(f"   The port {port} is already in use. Please close the other process or use a different port.")
+        else:
+            print("   Error output from Chainlit:")
+            print(e.stderr)
+        sys.exit(e.returncode)
     except KeyboardInterrupt:
         print("\n👋 Shutting down gracefully...")
         sys.exit(0)
+    except Exception as ex:
+        print("❌ An unexpected error occurred while starting Chainlit:")
+        traceback.print_exc()
+        sys.exit(1)
 
 
 async def generate_game(game_spec_path: Path, output_dir: Optional[Path] = None):
