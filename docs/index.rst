@@ -1,4 +1,4 @@
-AI Game Development Library
+AI Game Development Platform
 ============================
 
 .. image:: https://img.shields.io/pypi/v/ai-game-dev.svg
@@ -17,35 +17,33 @@ AI Game Development Library
    :target: https://codecov.io/gh/ai-game-dev/ai-game-dev
    :alt: Coverage
 
-A revolutionary unified Python package for AI-powered game development featuring multi-LLM support, 
-comprehensive asset generation, and engine-specific TOML specifications.
+A revolutionary AI-powered game development platform using OpenAI's latest models (GPT-5 and GPT-Image-1) with a modern Chainlit UI for creating complete games through natural language.
 
 Key Features
 ------------
 
-🧠 **Multi-LLM Provider Support**
-   - OpenAI (GPT-4, GPT-4o, GPT-3.5-turbo)
-   - Anthropic Claude (Claude-3.5-Sonnet, Claude-3-Haiku)
-   - Google Gemini (Gemini-1.5-Pro, Gemini-1.5-Flash)
-   - Local LLMs via Ollama (Llama, Mistral, CodeLlama)
+🤖 **OpenAI Agents Architecture**
+   - Direct function calling with OpenAI's native tools
+   - GPT-5 for superior text and code generation
+   - GPT-Image-1 for high-quality game assets
+   - Simplified architecture without framework overhead
 
-🎮 **Engine-Specific Templates**
-   - Pygame (2D sprite-based games)
-   - Bevy (High-performance Rust ECS)
-   - Godot (Scene-node tree architecture)
-   - Arcade (Modern Python game library)
+🎮 **Multi-Engine Support**
+   - **Pygame**: 2D Python games with sprites and physics
+   - **Godot**: Professional 2D/3D games with GDScript
+   - **Bevy**: High-performance Rust games with ECS
 
 🎨 **Comprehensive Asset Generation**
-   - CC0 graphics libraries integration
-   - Google Fonts typography system
-   - Audio generation (TTS, music, sound effects)
-   - Internet Archive semantic seeding
+   - DALL-E 3 (GPT-Image-1) for sprites and backgrounds
+   - OpenAI TTS for voice acting and narration
+   - Music21 integration for dynamic soundtracks
+   - Freesound API for sound effects
 
-🔧 **Professional Development Tools**
-   - LangChain/LangGraph orchestration
-   - JSON schemas for AI integration
-   - FastMCP server for tool integration
-   - Async/await performance optimization
+🎓 **Educational Platform**
+   - Arcade Academy mode with guided tutorials
+   - Progressive learning curriculum
+   - Interactive RPG for learning programming
+   - Real-time AI mentorship
 
 Quick Start
 -----------
@@ -55,79 +53,75 @@ Installation
 
 .. code-block:: bash
 
-   pip install ai-game-dev
+   # Clone and setup
+   git clone <repository-url>
+   cd ai-game-dev
+   
+   # Install dependencies
+   pip install hatch
+   hatch env create
+   
+   # Configure API key
+   export OPENAI_API_KEY="sk-..."
+   
+   # Start the platform
+   hatch run server
+
+Visit ``http://localhost:8000`` to access the Chainlit interface.
 
 Basic Usage
 ~~~~~~~~~~~
 
+**Web Interface (Recommended)**
+
+1. Open ``http://localhost:8000``
+2. Choose "Game Workshop" or "Arcade Academy"
+3. Follow the wizard-style workflow
+4. Download your generated game
+
+**Python API**
+
 .. code-block:: python
 
-   from ai_game_dev import AIGameDev, create_default_manager
-
-   # Set up multi-LLM provider
-   llm_manager = create_default_manager()
+   from ai_game_dev.agent import GameDevAgent
    
-   # Initialize the game development system
-   game_dev = AIGameDev(llm_provider=llm_manager)
+   # Initialize agent
+   agent = GameDevAgent()
    
    # Generate a complete game
-   game_spec = {
-       "title": "Space Adventure",
-       "genre": "platformer", 
-       "target_engine": "pygame",
-       "complexity": "intermediate"
-   }
+   result = await agent.create_game(
+       description="A cyberpunk platformer with hacking mechanics",
+       engine="pygame",
+       art_style="pixel art"
+   )
    
-   result = await game_dev.generate_complete_game(game_spec)
-   print(f"Game generated: {result.project_path}")
+   print(f"Game created at: {result.output_path}")
 
 Asset Generation
 ~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   from ai_game_dev import AssetTools
-   
-   # Generate comprehensive asset package
-   asset_tools = AssetTools()
-   
-   asset_package = await asset_tools.generate_complete_asset_pack(
-       game_description="A retro-style space shooter",
-       asset_types=["sprites", "ui", "backgrounds", "sfx"],
-       art_style="pixel_art",
-       max_assets_per_type=10
+   from ai_game_dev.tools.openai_tools import (
+       generate_game_asset,
+       generate_character_sprite,
+       generate_environment
    )
    
-   print(f"Generated {asset_package.total_assets} assets")
-
-Multi-LLM Configuration
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from ai_game_dev import LLMProviderManager, LLMProvider
-   
-   # Configure multiple providers with fallback
-   manager = LLMProviderManager()
-   
-   # Add OpenAI provider
-   manager.add_provider(
-       name="openai_primary",
-       provider_type=LLMProvider.OPENAI,
-       model_name="gpt-4o"
+   # Generate a character
+   character = await generate_character_sprite(
+       character_name="Cyber Ninja",
+       character_description="Futuristic ninja with neon accents",
+       art_style="cyberpunk pixel art",
+       save_path="assets/cyber_ninja.png"
    )
    
-   # Add Anthropic fallback
-   manager.add_provider(
-       name="anthropic_fallback", 
-       provider_type=LLMProvider.ANTHROPIC,
-       model_name="claude-3-5-sonnet-20241022"
-   )
-   
-   # Generate with automatic fallback
-   result = await manager.generate_with_fallback(
-       "Create a puzzle game concept",
-       provider_names=["openai_primary", "anthropic_fallback"]
+   # Generate an environment
+   background = await generate_environment(
+       environment_name="Neo Tokyo Streets",
+       description="Rainy cyberpunk city with neon signs",
+       time_of_day="night",
+       save_path="assets/neo_tokyo.png"
    )
 
 Documentation
@@ -137,79 +131,93 @@ Documentation
    :maxdepth: 2
    :caption: User Guide
 
+   getting-started
    installation
-   quickstart
-   tutorials/index
-   examples/index
+   configuration
+   examples
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Features
+
+   workshop-mode
+   academy-mode
+   asset-generation
+   engine-templates
 
 .. toctree::
    :maxdepth: 2
    :caption: API Reference
 
-   api/ai_game_dev/ai_game_dev
+   api/agent
+   api/tools
+   api/constants
+   api/startup
 
 .. toctree::
    :maxdepth: 2
-   :caption: Engine Integration
-
-   engines/pygame
-   engines/bevy
-   engines/godot
-   engines/arcade
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Advanced Topics
-
-   advanced/llm_providers
-   advanced/asset_generation
-   advanced/mcp_server
-   advanced/json_schemas
-
-.. toctree::
-   :maxdepth: 1
    :caption: Development
 
    contributing
+   testing
+   architecture
    changelog
-   license
 
 Architecture Overview
 ---------------------
 
-The AI Game Development library is built on a unified architecture that combines:
+The platform is built on a clean, modern architecture:
 
-**Core Orchestration**
-   Pure LangChain/LangGraph agents for intelligent game generation workflows
+**Core Components**
+   - **OpenAI Agent**: Orchestrates all AI operations using function tools
+   - **Chainlit UI**: Provides interactive web interface with custom React components
+   - **Function Tools**: Specialized tools for image, audio, text, and code generation
+   - **Template System**: Jinja2 templates for engine-specific code generation
 
-**Asset Management**  
-   Standalone multimedia generation with TTS, music composition, and visual assets
+**Key Technologies**
+   - **GPT-5**: Latest language model for text and code
+   - **GPT-Image-1**: Advanced image generation (DALL-E 3)
+   - **OpenAI TTS**: High-quality text-to-speech
+   - **Music21**: Algorithmic music composition
+   - **Chainlit**: Modern Python UI framework
 
-**Engine Adapters**
-   Language-native code generation for Rust (Bevy), Python (Pygame/Arcade), and GDScript (Godot)
-
-**Multi-LLM Support**
-   Flexible provider system with automatic fallback and cost optimization
-
-**Structured Specifications**
-   TOML templates and JSON schemas for consistent AI-generated content
+**Design Principles**
+   - Direct API calls over framework abstractions
+   - Async-first for performance
+   - Type-safe with modern Python
+   - Centralized configuration
 
 Performance & Scalability
---------------------------
+-------------------------
 
-- **Async/await patterns** for non-blocking operations
-- **Intelligent caching** with TTL and content-based invalidation  
-- **Batch processing** for multiple asset generation
-- **Connection pooling** for LLM provider efficiency
-- **Modular architecture** for selective feature loading
+- **Parallel API Calls**: 3-5x faster generation
+- **Streaming Responses**: Real-time progress updates
+- **Efficient Caching**: Smart asset reuse
+- **WebSocket Communication**: Low-latency UI updates
+- **Modular Architecture**: Load only what you need
 
-Community & Support
+Educational Features
 --------------------
 
+**Arcade Academy**
+   - Skill assessment and adaptive learning
+   - Step-by-step tutorials with Professor Pixel
+   - Interactive challenges and projects
+   - Progress tracking and achievements
+
+**Teachable Moments**
+   - AI identifies learning opportunities
+   - Contextual explanations
+   - Best practices guidance
+   - Code review and improvement suggestions
+
+Community & Support
+-------------------
+
 - **GitHub Repository**: https://github.com/ai-game-dev/ai-game-dev
-- **Documentation**: https://ai-game-dev.readthedocs.io
-- **PyPI Package**: https://pypi.org/project/ai-game-dev
-- **Issues**: https://github.com/ai-game-dev/ai-game-dev/issues
+- **Issue Tracker**: Report bugs and request features
+- **Documentation**: Comprehensive guides and API reference
+- **Examples**: Complete game projects to learn from
 
 Indices and Tables
 ==================
