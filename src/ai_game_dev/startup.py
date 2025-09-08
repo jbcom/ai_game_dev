@@ -11,7 +11,7 @@ from typing import Dict, Any, List
 from ai_game_dev.agent import create_game, create_educational_game
 from ai_game_dev.graphics import generate_game_sprite, generate_ui_pack
 from ai_game_dev.audio import generate_sound_effect, generate_background_music
-from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR, PLATFORM_SPEC_PATH
+from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR, PLATFORM_SPEC_PATH, ASSETS_DIR
 from ai_game_dev.text import get_rpg_specification
 
 
@@ -68,18 +68,36 @@ EXAMPLE_GAMES = {
     }
 }
 
-# Common UI assets needed for all games
-UI_ASSETS = {
-    "buttons": ["play", "pause", "menu", "quit", "restart"],
-    "panels": ["dialog", "inventory", "settings", "score"],
-    "icons": ["health", "mana", "coin", "star", "key"]
+# Static assets that already exist - don't regenerate these
+EXISTING_ASSETS = {
+    "audio": {
+        "ui": ["button_click_futuristic", "hover_beep_cyberpunk", "error_buzz_warning", 
+                "success_ding_pleasant", "notification_chime_tech"],
+        "menu": ["menu_open_whoosh", "menu_close_whoosh_reverse"],
+        "ambient": ["typing_mechanical_keyboard"]
+    },
+    "sprites": {
+        "characters": ["professor_pixel"],
+        "mascots": ["ai-orb-mascot", "professor-pixel-mascot"],
+        "ui": ["play-button", "pause-button", "stop-button", "skip-button", "volume-slider"]
+    },
+    "panels": ["arcade-academy-panel", "game-workshop-panel", "bevy-panel", "godot-panel", "pygame-panel"]
 }
 
-# Common sound effects
-SOUND_EFFECTS = {
-    "ui": ["click", "hover", "confirm", "cancel"],
-    "gameplay": ["jump", "collect", "hit", "powerup", "gameover"],
-    "combat": ["shoot", "explosion", "shield", "damage"]
+# Assets to generate that don't exist yet
+ASSETS_TO_GENERATE = {
+    "sprites": {
+        "game_elements": ["collectible_gem", "enemy_slime", "platform_tile", "powerup_star"],
+        "weapons": ["laser_beam", "plasma_sword", "shield_bubble"],
+        "effects": ["explosion", "sparkle", "damage_flash"]
+    },
+    "audio": {
+        "gameplay": ["jump", "collect", "damage", "levelup"],
+        "combat": ["shoot", "explosion", "shield_activate"]
+    },
+    "backgrounds": {
+        "environments": ["cyberpunk_city", "digital_realm", "academy_classroom", "boss_arena"]
+    }
 }
 
 
@@ -137,56 +155,84 @@ class StartupGenerator:
             json.dump(manifest, f, indent=2)
             
     async def _generate_common_assets(self, manifest: Dict[str, Any]):
-        """Generate common UI assets and sounds."""
-        print("🎨 Generating common assets...")
+        """Generate common assets that don't already exist as static files."""
+        print("🎨 Generating missing assets...")
         
-        # UI Elements
-        ui_dir = self.assets_dir / "ui"
-        ui_dir.mkdir(exist_ok=True)
-        
-        for category, items in UI_ASSETS.items():
+        # Sprites
+        for category, items in ASSETS_TO_GENERATE.get("sprites", {}).items():
+            sprite_dir = self.assets_dir / "sprites" / category
+            sprite_dir.mkdir(parents=True, exist_ok=True)
+            
             for item in items:
-                asset_key = f"ui_{category}_{item}"
+                asset_key = f"sprite_{category}_{item}"
                 
                 if asset_key not in manifest.get("assets", {}):
-                    print(f"  Creating {category}: {item}")
+                    print(f"  Creating sprite: {category}/{item}")
                     
-                    if category in ["buttons", "panels"]:
-                        # Generate UI element
-                        result = await generate_ui_pack(
-                            theme="cyberpunk",
-                            style="modern",
-                            save_dir=str(ui_dir / category)
-                        )
-                        manifest["assets"][asset_key] = {
-                            "type": category,
-                            "name": item,
-                            "path": str(ui_dir / category),
-                            "generated": True
-                        }
-                        
-        # Sound Effects
-        audio_dir = self.assets_dir / "audio"
-        audio_dir.mkdir(exist_ok=True)
+                    # Generate sprite with appropriate style
+                    style = "pixel" if category == "game_elements" else "digital"
+                    result = await generate_game_sprite(
+                        name=item,
+                        description=f"{item.replace('_', ' ')} sprite for games",
+                        style=style,
+                        save_path=str(sprite_dir / f"{item}.png")
+                    )
+                    
+                    manifest["assets"][asset_key] = {
+                        "type": "sprite",
+                        "category": category,
+                        "name": item,
+                        "path": str(sprite_dir / f"{item}.png"),
+                        "generated": True
+                    }
         
-        for category, sounds in SOUND_EFFECTS.items():
+        # Audio
+        for category, sounds in ASSETS_TO_GENERATE.get("audio", {}).items():
+            audio_dir = self.assets_dir / "audio" / category
+            audio_dir.mkdir(parents=True, exist_ok=True)
+            
             for sound in sounds:
                 asset_key = f"audio_{category}_{sound}"
                 
                 if asset_key not in manifest.get("assets", {}):
-                    print(f"  Creating sound: {sound}")
+                    print(f"  Creating sound: {category}/{sound}")
                     
                     result = await generate_sound_effect(
                         effect_name=sound,
-                        style="retro",
+                        style="retro" if category == "gameplay" else "modern",
                         save_path=str(audio_dir / f"{sound}.wav")
                     )
                     
                     manifest["assets"][asset_key] = {
-                        "type": "sound",
+                        "type": "audio",
                         "category": category,
                         "name": sound,
                         "path": result.path if hasattr(result, 'path') else str(audio_dir / f"{sound}.wav"),
+                        "generated": True
+                    }
+        
+        # Backgrounds
+        for category, items in ASSETS_TO_GENERATE.get("backgrounds", {}).items():
+            bg_dir = self.assets_dir / "backgrounds" / category
+            bg_dir.mkdir(parents=True, exist_ok=True)
+            
+            for item in items:
+                asset_key = f"background_{category}_{item}"
+                
+                if asset_key not in manifest.get("assets", {}):
+                    print(f"  Creating background: {category}/{item}")
+                    
+                    result = await generate_game_background(
+                        scene=item.replace('_', ' '),
+                        style="cyberpunk" if "cyberpunk" in item else "digital",
+                        save_path=str(bg_dir / f"{item}.png")
+                    )
+                    
+                    manifest["assets"][asset_key] = {
+                        "type": "background",
+                        "category": category,
+                        "name": item,
+                        "path": str(bg_dir / f"{item}.png"),
                         "generated": True
                     }
                     

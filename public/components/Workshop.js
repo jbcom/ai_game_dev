@@ -29,21 +29,21 @@ class Workshop {
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="engine-card" data-engine="pygame">
                             <div class="glass-panel p-4 cursor-pointer hover:border-cyan-500 transition-all">
-                                <img src="/public/static/assets/icons/pygame-icon.png" class="engine-icon mb-2">
+                                <div class="engine-icon-placeholder mb-2 text-4xl">🐍</div>
                                 <h3 class="font-bold">Pygame</h3>
                                 <p class="text-sm text-gray-400">Perfect for 2D games</p>
                             </div>
                         </div>
                         <div class="engine-card" data-engine="godot">
                             <div class="glass-panel p-4 cursor-pointer hover:border-cyan-500 transition-all">
-                                <img src="/public/static/assets/icons/godot-icon.png" class="engine-icon mb-2">
+                                <div class="engine-icon-placeholder mb-2 text-4xl">🎮</div>
                                 <h3 class="font-bold">Godot</h3>
                                 <p class="text-sm text-gray-400">Professional 2D/3D</p>
                             </div>
                         </div>
                         <div class="engine-card" data-engine="bevy">
                             <div class="glass-panel p-4 cursor-pointer hover:border-cyan-500 transition-all">
-                                <img src="/public/static/assets/icons/bevy-icon.png" class="engine-icon mb-2">
+                                <div class="engine-icon-placeholder mb-2 text-4xl">🦀</div>
                                 <h3 class="font-bold">Bevy</h3>
                                 <p class="text-sm text-gray-400">Rust-based ECS</p>
                             </div>
