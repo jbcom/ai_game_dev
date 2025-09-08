@@ -1,96 +1,172 @@
-# replit.md
+# AI Game Development Platform on Replit
 
-## Overview
+## 🚀 Quick Start
 
-This is a revolutionary unified AI-powered game development library that provides comprehensive tools for creating games using artificial intelligence. The system is now consolidated into a single Python package (`ai-game-dev`) with multi-LLM provider support, comprehensive asset generation, and engine-specific TOML specifications.
+Click the **Run** button to start the AI Game Development Platform with Chainlit UI!
 
-**Production Status**: Fully operational with complete Typer CLI interface, real-time web generation system, project management, code preview/editing, testing integration, and deployment capabilities.
+The platform will launch on port 8000 with:
+- 🎮 **Game Workshop** - Create games with AI assistance
+- 🎓 **Arcade Academy** - Learn programming through game development
+- 🤖 **Direct LangGraph Integration** - No orchestrator overhead
+- ✨ **Custom Cyberpunk UI** - Immersive development experience
 
-## User Preferences
+## 🔧 Setup
 
-Preferred communication style: Simple, everyday language.
+### Environment Variables
 
-## Recent Changes
+Set these in your Replit Secrets:
 
-**September 7, 2025**: Completed revolutionary Interactive Variant System as general Game Workshop feature with Arcade Academy educational superpowers:
+```bash
+OPENAI_API_KEY=your-openai-api-key      # Required for AI features
+ANTHROPIC_API_KEY=your-anthropic-key    # Optional, for Claude
+```
 
-- **Interactive Variant System**: Core Game Workshop feature enabling A/B testing of game mechanics across all engines (pygame, godot, bevy)
-- **Automatic Variant Detection**: AI analyzes code to suggest interactive choices (hex vs square grids, turn-based vs real-time combat, discrete vs smooth movement)
-- **Live Split-Screen Preview**: Compare different implementations side-by-side with real-time switching
-- **Feature Flag System**: Generated `features.toml` configuration with toggle switches for all variant choices
-- **Cross-Engine Compatibility**: Unified variant patterns work across pygame, Godot, and Bevy with engine-specific code injection
-- **Professor Pixel Educational Enhancement**: Arcade Academy leverages variant system for interactive learning with choice explanations and educational insights
-- **Educational Value Scoring**: Variants mapped to learning objectives with difficulty progression and educational context
-- **Revolutionary Learning Pipeline**: Students can experiment with A/B choices and see immediate educational impact through live preview and Professor Pixel guidance
+### First Run
 
-**Previous September 7, 2025**: Added pygbag WebAssembly deployment as first-class feature with Professor Pixel integration:
+When you first run the platform, it will:
+1. Initialize the SQLite database
+2. Generate platform assets (UI, audio, characters)
+3. Create the NeoTokyo Academy RPG game
+4. Start the Chainlit server
 
-- **WebAssembly Deployment**: Integrated pygbag 0.9.2 as optional dependency `pygame-web` for browser deployment
-- **Professor Pixel Teaching System**: Complete modal-based learning system with interactive code examples and challenges
-- **Breakpoint Learning**: Revolutionary play-through education where teaching moments trigger during natural gameplay
-- **Educational RPG Template**: "NeoTokyo Code Academy: The Binary Rebellion" with WebAssembly-ready async architecture
-- **CLI Deployment Tool**: `pygbag-deploy` command for seamless pygame→WebAssembly compilation
-- **Competitive Advantage**: Offering WebAssembly for pygame when Godot/Bevy have native support but pygame doesn't
+This may take a few minutes on first run as assets are generated.
 
-**September 6, 2025**: Completed revolutionary agent-based asset generation system with real OpenAI integration and comprehensive master orchestrator:
+## 🎯 Features
 
-- **Master Orchestrator Architecture**: Created comprehensive MasterGameDevOrchestrator with routing logic, spec generation subgraphs, and human-in-the-loop review workflows
-- **Multi-Engine Support**: Built specialized agents for Pygame, Godot (GDScript), and Bevy (Rust ECS) with engine-specific instructions and capabilities
-- **Intelligent Routing**: Implemented automatic engine detection and routing based on game specifications or natural language prompts
-- **Real Seeding System**: Production-ready seeding with PyTorch embeddings, Internet Archive integration, and literary narrative enhancement
-- **Spec Generation Pipeline**: Converts natural language descriptions into structured game specifications with thematic analysis
-- **InternalAssetAgent**: Production-ready agent that coordinates all static asset generation using real OpenAI GPT Image generation
-- **Real Asset Generation**: Eliminated all placeholder functions - now uses actual OpenAI GPT Image generation with variants, masked edits, and batch processing
-- **Internal CLI Integration**: Updated all internal CLI commands to use the agent architecture with master orchestrator coordination
-- **Production Quality**: Full async/await architecture with proper error handling, resource management, and concurrency control
+### Game Workshop
+- **Natural Language → Game**: Describe your game idea in plain English
+- **Multi-Engine Support**: Generate games for Pygame, Godot, or Bevy
+- **Parallel Asset Generation**: Graphics, audio, dialogue, and quests
+- **Smart Path Management**: Organized output in `generated_games/`
 
-**Asset Generation Capabilities**:
-- OpenAI GPT Image integration for high-quality image generation
-- Image variants and masked editing for asset refinement
-- Batch processing with rate limiting and concurrent execution
-- Cyberpunk-themed asset generation for educational game
-- Platform UI element generation for web interface
+### Arcade Academy
+- **Learn by Building**: Master programming through RPG development
+- **Professor Pixel**: Your AI guide through coding concepts
+- **Interactive Lessons**: Variables, loops, conditionals, functions, classes
+- **Teachable Moments**: Code is annotated with educational insights
 
-**Educational Game Pipeline**: Complete agent-driven pipeline for generating "NeoTokyo Code Academy: The Binary Rebellion" with Professor Pixel as cyberpunk guide, including character sprites, environment tilesets, and educational UI elements.
+### Unified Specification
+All platform configuration is in `src/ai_game_dev/specs/unified_platform_spec.toml`:
+- Platform UI and branding assets
+- Complete RPG game specification
+- Audio requirements
+- Path configurations
 
-**Master Orchestrator Features**: Complete routing system with spec generation, seeding coordination, engine-specific subgraphs, and human review workflows for production-quality game development across multiple engines.
+## 📁 Project Structure
 
-## Unified Architecture
+```
+/workspace/
+├── src/ai_game_dev/         # Main application code
+│   ├── agents/              # AI agents and subgraphs
+│   │   └── subgraphs/       # Specialized workflows
+│   ├── specs/               # Game and platform specifications
+│   └── chainlit_custom_app.py # Main Chainlit application
+├── public/                  # Web assets
+│   ├── static/              # Static files
+│   │   └── assets/          # Images, audio, video
+│   └── components/          # React components
+├── generated_games/         # Generated game projects
+│   ├── workshop/            # User-created games
+│   └── academy/             # Educational RPG
+└── __main__.py              # Entry point
+```
 
-### Single Package Structure
+## 🛠️ Development
 
-**Consolidated Package**: All functionality unified under `src/ai_game_dev/` with modular subdirectories for assets, MCP server, and engine specifications.
+### Running Locally
+```bash
+python -m __main__
+```
 
-**Multi-LLM Provider Support**: Unified provider system supporting OpenAI, Anthropic Claude, Google Gemini, and local LLMs via Ollama with automatic fallback capabilities.
+### Using Hatch Scripts
+```bash
+hatch run server      # Start the server
+hatch run test        # Run tests
+hatch run lint        # Run linters
+```
 
-**Engine-Specific TOML Templates**: Comprehensive engine specifications with metaprompts for Pygame, Bevy, Godot, and Arcade. Each template includes code generation patterns, asset integration guides, and optimization strategies.
+### Modifying the Platform
 
-**JSON Schema Integration**: Structured game world specifications enabling AI tools to understand exactly what to generate, including metadata, gameplay mechanics, asset requirements, and narrative elements.
+1. **Add New Assets**: Edit `unified_platform_spec.toml`
+2. **Change UI Theme**: Modify `public/style.css`
+3. **Add Game Features**: Update subgraphs in `agents/subgraphs/`
+4. **Extend Education**: Edit `academy_subgraph.py`
 
-### Core Components
+## 🐛 Troubleshooting
 
-**LangChain/LangGraph Orchestration**: Pure multi-agent workflows for intelligent game generation with support for multiple LLM providers and sophisticated dialogue/quest generation.
+### Port Already in Use
+Set a different port in Replit Secrets:
+```
+AI_GAME_DEV_PORT=8001
+```
 
-**Comprehensive Asset Generation**: Integrated multimedia creation including CC0 graphics libraries, Google Fonts typography, TTS/music generation, and Internet Archive semantic seeding with PyTorch embeddings.
+### Missing Dependencies
+The platform uses `uv` for fast dependency installation. If packages are missing:
+```bash
+hatch env create
+```
 
-**FastMCP Server**: Model Context Protocol server for external tool integration, providing structured interfaces for Claude, ChatGPT, and other AI assistants.
+### Asset Generation Issues
+Delete `.asset_manifest.json` to force regeneration:
+```bash
+rm data/asset_manifest.json
+```
 
-**Professional Development Tools**: Hatch-based development environment with UV backend, comprehensive static analysis (mypy, ruff, bandit), automated testing with matrix support across Python 3.11/3.12, coverage reporting (currently 10% overall, models module at 98%), comprehensive E2E test suite with real OpenAI integration using pytest-vcr, and modern Python packaging standards.
+## 🚢 Deployment
 
-### Documentation and Quality
+This Replit is configured for Cloud Run deployment:
+- Automatic scaling
+- WebSocket support for real-time updates
+- Persistent storage for generated content
 
-**Sphinx with RST**: Professional documentation system using ReStructuredText with sphinx-autodoc2 for automatic API generation from static analysis. No need to install packages for documentation generation.
+## 📚 Architecture
 
-**Automated Quality Pipeline**: Comprehensive static analysis with MyPy, Pylint, Bandit, Ruff, and support for additional languages. Integrated with pre-commit hooks and CI/CD workflows.
+### Chainlit Integration
+- Custom React frontend with cyberpunk theme
+- WebSocket communication for real-time updates
+- Direct subgraph execution without orchestrator overhead
 
-**Justfile Build System**: Streamlined build system with 80+ commands for development, testing, documentation, packaging, and deployment workflows.
+### LangGraph Subgraphs
+- **GameSpecSubgraph**: Converts descriptions to specs
+- **WorkshopSubgraph**: Orchestrates game generation
+- **AcademySubgraph**: Adds educational features
+- **GraphicsSubgraph**: Generates visual assets
+- **AudioSubgraph**: Creates sounds and music
+- **DialogueSubgraph**: Builds conversation trees
+- **QuestSubgraph**: Designs game objectives
 
-## Production Ready Features
+### Asset Management
+- Idempotent generation with content hashing
+- Organized directory structure
+- Relative paths for portability
+- Git-ignored generated content
 
-**Single pyproject.toml**: Unified dependency management with hatch build backend and UV package manager. Optional dependency groups for different use cases (pygame, audio, web, dev).
+## 🎨 Customization
 
-**Modern Python Standards**: Python 3.11+ with modern type annotations, async/await patterns, and contemporary import styles. No legacy compatibility layers.
+### Themes
+Edit `public/style.css` for visual changes
 
-**Performance Optimization**: Intelligent caching, connection pooling, batch processing, and modular loading for optimal performance across different deployment scenarios.
+### Game Engines
+Add new engines by:
+1. Creating an agent in `agents/`
+2. Adding to `engine_agents` in `workshop_subgraph.py`
+3. Updating the unified spec with engine-specific templates
 
-**Enterprise Deployment**: Docker support, PyPI distribution, comprehensive testing suite, and professional documentation ready for production use.
+### Educational Content
+Modify lesson plans in `academy_subgraph.py`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `hatch run test`
+5. Submit a pull request
+
+## 📝 License
+
+This project is open source. See LICENSE file for details.
+
+---
+
+**Need Help?** Check the logs in the Replit console or open an issue on GitHub!

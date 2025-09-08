@@ -496,6 +496,14 @@ $RECYCLE.BIN/
 chainlit.md
 .chainlit.config
 
+# Replit specific
+.upm/
+.config/
+.cache/
+.local/
+.replit_history
+.replit_agent_history
+
 # Generated game assets and content
 generated_assets/
 generated_examples/
