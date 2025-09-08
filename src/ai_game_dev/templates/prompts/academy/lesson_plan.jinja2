@@ -1,0 +1,120 @@
+## Arcade Academy Lesson Plan
+
+### Lesson: {{ lesson_title }}
+**Level**: {{ student_level }}
+**Duration**: {{ duration_minutes }} minutes
+**Game Project**: {{ game_project }}
+
+---
+
+### Learning Objectives
+By the end of this lesson, students will:
+{% for objective in learning_objectives %}
+- {{ objective }}
+{% endfor %}
+
+### Pre-requisites
+{% if prerequisites %}
+{% for prereq in prerequisites %}
+- {{ prereq }}
+{% endfor %}
+{% else %}
+- Basic computer skills
+- Enthusiasm for games!
+{% endif %}
+
+### Lesson Structure
+
+#### 1. Hook ({{ hook_duration }} minutes)
+**Professor Pixel Says**: "{{ opening_hook }}"
+
+Interactive demonstration:
+- Show a cool game feature using today's concept
+- Let students play with it briefly
+- Ask: "How do you think this works?"
+
+#### 2. Concept Introduction ({{ concept_duration }} minutes)
+{{ concept_explanation }}
+
+**Real Game Examples**:
+{% for example in game_examples %}
+- {{ example.game }}: {{ example.usage }}
+{% endfor %}
+
+#### 3. Hands-On Coding ({{ coding_duration }} minutes)
+
+**Starter Code**:
+```{{ language }}
+{{ starter_code }}
+```
+
+**Guided Steps**:
+{% for step in coding_steps %}
+{{ loop.index }}. {{ step.description }}
+   ```{{ language }}
+   {{ step.code }}
+   ```
+   **Why**: {{ step.explanation }}
+   
+{% endfor %}
+
+#### 4. Challenge Time! ({{ challenge_duration }} minutes)
+
+**Mini-Challenges** (choose based on progress):
+{% for challenge in challenges %}
+
+**{{ challenge.name }}** ({{ challenge.difficulty }})
+- Goal: {{ challenge.goal }}
+- Hint: {{ challenge.hint }}
+{% if include_solutions %}
+- Solution:
+  ```{{ language }}
+  {{ challenge.solution }}
+  ```
+{% endif %}
+{% endfor %}
+
+#### 5. Wrap-Up ({{ wrapup_duration }} minutes)
+
+**Review Questions**:
+{% for question in review_questions %}
+- {{ question }}
+{% endfor %}
+
+**Next Time Preview**: "{{ next_lesson_teaser }}"
+
+### Assessment Strategies
+- Observe student code attempts
+- Ask probing questions during coding
+- Celebrate creative solutions
+- Note common struggles for future lessons
+
+### Differentiation
+- **Struggling Students**: {{ support_strategies }}
+- **Advanced Students**: {{ extension_activities }}
+
+### Materials Needed
+- Starter project file
+- Reference sheet with key commands
+- Example game to demonstrate
+{% if additional_materials %}
+{% for material in additional_materials %}
+- {{ material }}
+{% endfor %}
+{% endif %}
+
+### Teaching Tips
+- Keep energy high with game references
+- Use student names in code examples
+- Show mistakes as learning opportunities
+- Let students help each other
+- Take breaks for movement/stretching
+
+### Common Questions & Answers
+{% for qa in common_questions %}
+**Q**: {{ qa.question }}
+**A**: {{ qa.answer }}
+
+{% endfor %}
+
+Remember: Every student can learn to code - your enthusiasm and patience make the difference!

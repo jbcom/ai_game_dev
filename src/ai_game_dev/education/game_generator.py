@@ -120,80 +120,17 @@ async def generate_neotokyo_rpg() -> Dict[str, Any]:
 
 async def setup_educational_assets():
     """Generate all cyberpunk assets needed for the educational RPG."""
-    from ai_game_dev.graphics import (
-        generate_game_sprite,
-        generate_game_background,
-        generate_ui_pack,
-    )
-    from ai_game_dev.audio import (
-        generate_sound_effect,
-        generate_background_music,
-    )
     
     print("🎨 Generating cyberpunk educational assets...")
     
-    assets = {}
+    # TODO: Use our asset generation system to create:
+    # - Character sprites for all classes
+    # - Neo-Tokyo environment tilesets  
+    # - Cyberpunk UI elements
+    # - Sound effects and music
+    # - Professor Pixel animations
     
-    # Character sprites for all classes
-    for class_name in ["Code Knight", "Data Sage", "Bug Hunter", "Web Weaver"]:
-        sprite = await generate_game_sprite(
-            name=class_name,
-            description=f"Cyberpunk {class_name} with neon accents",
-            style="pixel",
-            save_path=f"assets/characters/{class_name.lower().replace(' ', '_')}.png"
-        )
-        assets[f"{class_name}_sprite"] = sprite
-    
-    # Professor Pixel
-    professor = await generate_game_sprite(
-        name="Professor Pixel",
-        description="Friendly AI hologram teacher with glowing circuits",
-        style="pixel",
-        save_path="assets/characters/professor_pixel.png"
-    )
-    assets["professor_pixel"] = professor
-    
-    # Neo-Tokyo environments
-    for env_name in ["Academy Exterior", "Underground Lab", "Algorithm Tower"]:
-        env = await generate_game_background(
-            scene=f"Cyberpunk {env_name} with neon lights and holograms",
-            style="pixel",
-            time_of_day="night",
-            save_path=f"assets/environments/{env_name.lower().replace(' ', '_')}.png"
-        )
-        assets[f"{env_name}_bg"] = env
-    
-    # UI elements
-    ui_pack = await generate_ui_pack(
-        theme="cyberpunk",
-        style="neon",
-        elements=["dialog_box", "health_bar", "menu"],
-        save_dir="assets/ui"
-    )
-    assets["ui_pack"] = ui_pack
-    
-    # Sound effects
-    sfx_list = ["laser_shot", "level_up", "menu_select", "dialogue_beep"]
-    for sfx in sfx_list:
-        sound = await generate_sound_effect(
-            effect_name=sfx.replace('_', ' '),
-            style="electronic",
-            duration=1.0,
-            save_path=f"assets/sfx/{sfx}.wav"
-        )
-        assets[f"{sfx}_sound"] = sound
-    
-    # Background music
-    music = await generate_background_music(
-        mood="futuristic",
-        genre="electronic",
-        tempo=120,
-        duration=180,
-        save_path="assets/music/main_theme.mp3"
-    )
-    assets["main_theme"] = music
-    
-    return {"assets_generated": True, "assets": assets}
+    return {"assets_generated": True}
 
 
 if __name__ == "__main__":

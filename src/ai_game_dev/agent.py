@@ -20,14 +20,15 @@ from ai_game_dev.audio import (
 )
 from ai_game_dev.fonts import render_game_text
 from ai_game_dev.variants import generate_mechanic_variants
-from ai_game_dev.seeding import (
-    find_literary_inspirations,
-    enhance_game_narrative,
-)
 from ai_game_dev.text import (
     generate_dialogue_tree,
     generate_quest_chain,
     generate_code_repository,
+    find_literary_inspirations,
+    enhance_game_narrative,
+    create_lesson_plan,
+    identify_teachable_moment,
+    create_educational_dialogue,
 )
 
 
@@ -67,13 +68,17 @@ Your process:
 
 Be creative but practical. Focus on making fun, complete games.""",
     tools=[
-        # Note: generate_game_code needs to be created separately
+        generate_code_repository,
         generate_game_sprite,
         generate_game_background,
         generate_ui_pack,
         generate_sound_effect,
         generate_background_music,
         generate_voice_acting,
+        generate_dialogue_tree,
+        generate_quest_chain,
+        find_literary_inspirations,
+        enhance_game_narrative,
     ]
 )
 
@@ -92,7 +97,10 @@ Your mission:
 
 Always be encouraging and explain concepts clearly.""",
     tools=[
-        # Note: generate_game_code and identify_teachable_moments need to be created
+        generate_code_repository,  # With educational mode
+        create_lesson_plan,
+        identify_teachable_moment,
+        create_educational_dialogue,
         generate_game_sprite,
         generate_voice_acting,
         generate_mechanic_variants,  # For educational variants
