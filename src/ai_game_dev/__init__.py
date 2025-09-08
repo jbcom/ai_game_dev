@@ -10,15 +10,7 @@ from ai_game_dev.models import (
     GameSpec,
     GameType,
 )
-from ai_game_dev.providers import (
-    LLMProvider,
-    ModelConfig,
-    create_default_manager,
-    setup_anthropic,
-    setup_google,
-    setup_ollama,
-    setup_openai,
-)
+# Provider functionality now handled by OpenAI agents directly
 from ai_game_dev.agent import (
     create_game,
     create_educational_game,

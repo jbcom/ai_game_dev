@@ -12,10 +12,6 @@ from ai_game_dev.models import (
     DialogueNode, QuestObjective, GameWorld, EngineConfig
 )
 from ai_game_dev.config import AppConfig, ServerSettings, ProviderSettings, create_config
-from ai_game_dev.providers import (
-    LLMProvider, ModelConfig, LLMProviderManager,
-    create_default_manager
-)
 
 
 class TestGameModels:
