@@ -74,5 +74,23 @@
 </head>
 <body>
     <div id="root"></div>
+    
+    <!-- Load component scripts first -->
+    <script src="/public/components/Workshop.js"></script>
+    <script src="/public/components/Academy.js"></script>
+    
+    <!-- Load the main app JavaScript -->
+    <script src="/public/chainlit-app.js"></script>
+    
+    <!-- Initialize the app -->
+    <script>
+        // Initialize the app
+        const app = new ChainlitApp();
+        
+        // Global helper functions
+        function toggleAudio() {
+            app.audioManager.toggleMute();
+        }
+    </script>
 </body>
 </html>

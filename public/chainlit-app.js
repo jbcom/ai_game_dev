@@ -14,7 +14,27 @@ class ChainlitApp {
         if (window.chainlit) {
             this.setupApp();
         } else {
+            // Try multiple ways to ensure we initialize
             window.addEventListener('chainlit-ready', () => this.setupApp());
+            // Also try DOMContentLoaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(() => {
+                        if (!window.chainlit) {
+                            console.log('Chainlit not ready, initializing UI anyway');
+                            this.setupApp();
+                        }
+                    }, 100);
+                });
+            } else {
+                // DOM already loaded
+                setTimeout(() => {
+                    if (!window.chainlit) {
+                        console.log('Chainlit not ready, initializing UI anyway');
+                        this.setupApp();
+                    }
+                }, 100);
+            }
         }
     }
 
