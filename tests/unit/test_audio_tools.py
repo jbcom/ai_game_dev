@@ -89,8 +89,8 @@ class TestAudioTools:
 
     def test_audio_tools_init_no_freesound_key(self):
         """Test AudioTools initialization without Freesound key."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.TTSGenerator") as mock_tts, \
-             patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.MusicGenerator") as mock_music:
+        with patch("ai_game_dev.audio.audio_tools.TTSGenerator") as mock_tts, \
+             patch("ai_game_dev.audio.audio_tools.MusicGenerator") as mock_music:
             
             tools = AudioTools(openai_api_key="test_key")
             
@@ -99,7 +99,7 @@ class TestAudioTools:
     @pytest.mark.asyncio
     async def test_generate_dialogue_audio(self):
         """Test dialogue audio generation."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.TTSGenerator") as mock_tts_class:
+        with patch("ai_game_dev.audio.audio_tools.TTSGenerator") as mock_tts_class:
             mock_tts = MagicMock()
             mock_tts.generate_speech = AsyncMock(return_value={"audio_file": "dialogue.wav", "duration": 5.0})
             mock_tts_class.return_value = mock_tts
@@ -121,7 +121,7 @@ class TestAudioTools:
     @pytest.mark.asyncio
     async def test_generate_background_music(self):
         """Test background music generation."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.MusicGenerator") as mock_music_class:
+        with patch("ai_game_dev.audio.audio_tools.MusicGenerator") as mock_music_class:
             mock_music = MagicMock()
             mock_music.generate_adaptive_music = AsyncMock(return_value={
                 "main_theme": {"file": "theme.wav", "duration": 120}
@@ -145,7 +145,7 @@ class TestAudioTools:
     @pytest.mark.asyncio
     async def test_search_sound_effects(self):
         """Test sound effects search."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.FreesoundClient") as mock_freesound_class:
+        with patch("ai_game_dev.audio.audio_tools.FreesoundClient") as mock_freesound_class:
             mock_freesound = MagicMock()
             mock_freesound.search_sounds = AsyncMock(return_value=[
                 {"name": "explosion.wav", "url": "http://example.com/explosion.wav"},
@@ -162,20 +162,27 @@ class TestAudioTools:
             mock_freesound.search_sounds.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_search_sound_effects_no_client(self):
-        """Test sound effects search without Freesound client."""
+    async def test_generate_complete_audio_pack_no_freesound(self):
+        """Test complete audio pack generation without Freesound client."""
         tools = AudioTools()  # No Freesound key
+    
+        result = await tools.generate_complete_audio_pack(
+            game_description="Space shooter game",
+            audio_needs=["dialogue", "music", "sfx"],
+            style_preferences="retro arcade"
+        )
         
-        result = await tools.search_sound_effects(["explosion"])
-        
-        assert result == []
+        assert result is not None
+        assert hasattr(result, 'dialogue_audio')
+        assert hasattr(result, 'background_music')
+        assert hasattr(result, 'sound_effects')
 
     @pytest.mark.asyncio
     async def test_complete_audio_workflow(self):
         """Test complete audio workflow."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.TTSGenerator") as mock_tts_class, \
-             patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.MusicGenerator") as mock_music_class, \
-             patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.FreesoundClient") as mock_freesound_class:
+        with patch("ai_game_dev.audio.audio_tools.TTSGenerator") as mock_tts_class, \
+             patch("ai_game_dev.audio.audio_tools.MusicGenerator") as mock_music_class, \
+             patch("ai_game_dev.audio.audio_tools.FreesoundClient") as mock_freesound_class:
             
             # Setup mocks
             mock_tts = MagicMock()
@@ -210,22 +217,21 @@ class TestAudioTools:
             assert result.sound_effects is not None
             assert "audio package" in result.audio_pack_summary.lower()
 
-    def test_get_structured_tools(self):
-        """Test getting LangChain structured tools."""
+    def test_create_langraph_tool(self):
+        """Test creating LangGraph structured tool."""
         tools = AudioTools()
         
-        structured_tools = tools.get_structured_tools()
+        structured_tool = tools.create_langraph_tool()
         
-        assert len(structured_tools) > 0
-        for tool in structured_tools:
-            assert hasattr(tool, 'name')
-            assert hasattr(tool, 'description')
-            assert callable(tool.func)
+        assert structured_tool is not None
+        assert hasattr(structured_tool, 'name')
+        assert hasattr(structured_tool, 'description')
+        assert callable(structured_tool.func)
 
     @pytest.mark.asyncio
     async def test_generate_dialogue_audio_error_handling(self):
         """Test dialogue audio generation with error handling."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.TTSGenerator") as mock_tts_class:
+        with patch("ai_game_dev.audio.audio_tools.TTSGenerator") as mock_tts_class:
             mock_tts = MagicMock()
             mock_tts.generate_speech = AsyncMock(side_effect=Exception("TTS Error"))
             mock_tts_class.return_value = mock_tts
@@ -242,7 +248,7 @@ class TestAudioTools:
     @pytest.mark.asyncio
     async def test_generate_background_music_error_handling(self):
         """Test background music generation with error handling."""
-        with patch("ai_game_dev.assets.ai_game_assets.audio.audio_tools.MusicGenerator") as mock_music_class:
+        with patch("ai_game_dev.audio.audio_tools.MusicGenerator") as mock_music_class:
             mock_music = MagicMock()
             mock_music.generate_adaptive_music = AsyncMock(side_effect=Exception("Music Error"))
             mock_music_class.return_value = mock_music
