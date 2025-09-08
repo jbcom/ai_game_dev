@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Production-ready entry point for AI Game Development Platform.
-Uses proper FastAPI + Jinja2 template architecture.
+Entry point for AI Game Development Platform.
+Uses OpenAI agents with Chainlit UI.
 """
 import os
 import socket
@@ -10,22 +10,19 @@ import subprocess
 import sys
 from pathlib import Path
 
-import chainlit
-
 # Add src to path for imports
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
 
 def init_player_db():
-    """Initialize player database for user progression tracking."""
+    """Initialize player database for progression tracking."""
     db_path = Path("data/player.db")
     db_path.parent.mkdir(exist_ok=True)
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    # Create player table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS players (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +30,6 @@ def init_player_db():
             level INTEGER DEFAULT 1,
             xp INTEGER DEFAULT 0,
             games_created INTEGER DEFAULT 0,
-            modules_completed INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -41,71 +37,53 @@ def init_player_db():
     # Initialize default player if none exists
     cursor.execute('SELECT COUNT(*) FROM players')
     if cursor.fetchone()[0] == 0:
-        cursor.execute('''
-            INSERT INTO players (name, level, xp, games_created, modules_completed)
-            VALUES ('Developer', 1, 0, 0, 0)
-        ''')
+        cursor.execute(
+            'INSERT INTO players (name) VALUES (?)',
+            ('Developer',)
+        )
     
     conn.commit()
     conn.close()
-    print(f"📊 Player database initialized at {db_path}")
 
 
 def main():
-    """Main entry point using Chainlit for direct subgraph orchestration."""
-    # Initialize player database
+    """Main entry point."""
+    # Initialize database
     init_player_db()
     
-    print("🚀 Starting AI Game Development Platform with Chainlit...")
-    print("✅ Direct LangGraph subgraph orchestration")
+    print("🚀 AI Game Development Platform")
+    print("🤖 Powered by OpenAI Agents")
     print("🎮 Game Workshop | 🎓 Arcade Academy")
-    print("📊 SQLite persistence enabled")
     
-    # Get port from environment or use default
+    # Get port from environment
     port = int(os.environ.get('AI_GAME_DEV_PORT', '8000'))
     
-    # Check if port is available
+    # Check port availability
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.bind(('127.0.0.1', port))
         except OSError:
-            print(f"❌ Error: Port {port} is already in use!")
-            print("Please stop any other services running on this port")
-            print("Or set a different port with environment variable: AI_GAME_DEV_PORT=8001")
+            print(f"❌ Port {port} is already in use!")
+            print("Set AI_GAME_DEV_PORT environment variable to use a different port")
             sys.exit(1)
     
-    print(f"🌐 Opening http://localhost:{port}")
+    print(f"🌐 Starting server on http://localhost:{port}")
     print("")
     
+    # Run Chainlit
     try:
         result = subprocess.run([
-            sys.executable, "-m", "chainlit", "run", 
-            "src/ai_game_dev/chainlit_custom_app.py",
+            sys.executable, "-m", "chainlit", "run",
+            "src/ai_game_dev/chainlit_app.py",
             "--port", str(port),
             "--custom-frontend"
         ], check=True)
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error: Failed to start Chainlit server!")
-        print(f"Exit code: {e.returncode}")
-        if e.returncode == 1:
-            print("This might be due to:")
-            print("  - Missing chainlit_custom_app.py file")
-            print("  - Syntax errors in the application")
-            print("  - Missing dependencies")
-        print("\nTry running with debug mode:")
-        print(f"  chainlit run src/ai_game_dev/chainlit_custom_app.py --port {port} --debug")
-        sys.exit(1)
-    except FileNotFoundError:
-        print("❌ Error: Python executable not found!")
-        print("Please ensure Python is properly installed")
+        print(f"❌ Failed to start server: {e}")
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n👋 Shutting down AI Game Development Platform...")
+        print("\n👋 Shutting down...")
         sys.exit(0)
-    except Exception as e:
-        print(f"❌ Unexpected error: {e}")
-        print("Please report this issue on GitHub")
-        sys.exit(1)
 
 
 if __name__ == "__main__":
