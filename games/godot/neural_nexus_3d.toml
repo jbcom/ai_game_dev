@@ -172,58 +172,229 @@ teaches = "procedural_techniques"
 [game.levels]
 [game.levels.hub]
 name = "Neural Hub"
-description = "Central learning space with portals to each sector"
-features = ["shader_editor", "physics_playground", "model_viewer"]
+description = "Central nexus connecting all neural sectors - Professor Pixel's HD home"
+features = ["shader_editor", "physics_playground", "model_viewer", "memory_palace"]
+npcs = ["Professor Pixel HD", "The Architect", "Memory Keeper"]
+interactive = [
+    "Holographic lesson archive",
+    "Skill tree visualizer",
+    "Portal calibration chamber",
+    "Achievement gallery"
+]
+dynamic_elements = ["Hub evolves as you progress", "New areas unlock", "NPCs remember your choices"]
+ambient = {particles = "data_streams", music = "neural_ambience"}
 
 [game.levels.sector1]
 name = "Geometry Gardens"
+description = "A surreal garden where geometry grows and evolves"
 theme = "mesh_manipulation"
 objectives = [
     "Learn 3D transformations",
     "Manipulate vertex data",
-    "Create custom geometry"
+    "Grow procedural plants",
+    "Solve topology puzzles"
 ]
-concepts = ["vertices", "normals", "uv_mapping", "mesh_optimization"]
+concepts = ["vertices", "normals", "uv_mapping", "mesh_optimization", "topology"]
+npcs = ["Vertex Gardener", "Normal Navigator", "UV Unwrapper"]
+puzzles = [
+    "Reshape meshes to match patterns",
+    "Fix broken geometry",
+    "Create bridges from vertices",
+    "Optimize polygon counts"
+]
+procedural = {plants = "l_system", terrain = "mesh_deformation"}
+visual_style = "organic_digital"
 
 [game.levels.sector2]
 name = "Shader Synthwave"
+description = "Neon-soaked sector where reality is programmed through shaders"
 theme = "gpu_programming"
 objectives = [
     "Write vertex shaders",
     "Create fragment effects",
-    "Optimize GPU code"
+    "Defeat shader-based enemies",
+    "Paint with GPU code"
 ]
 concepts = ["glsl", "render_pipeline", "post_processing", "compute_shaders"]
+npcs = ["The Shader Sage", "Fragment Artist", "Vertex Vocalist"]
+boss = {name = "The Renderer", mechanic = "shader_battles"}
+special_mechanics = [
+    "Visual coding creates real effects",
+    "Shader editor as weapon",
+    "Environment reacts to your shaders"
+]
+music = {style = "synthwave", reactive = "responds_to_shaders"}
 
 [game.levels.sector3]
 name = "Physics Playground"
+description = "Gravity-defying playground where physics laws are malleable"
 theme = "simulation"
 objectives = [
     "Master rigid bodies",
     "Create soft body effects",
-    "Build physics puzzles"
+    "Solve physics puzzles",
+    "Defeat Physics Lord"
 ]
 concepts = ["collision_detection", "constraints", "forces", "optimization"]
+npcs = ["Gravity Guide", "Constraint Constructor", "Force Master"]
+boss = {name = "Physics Lord", abilities = ["gravity_manipulation", "time_dilation"]}
+interactive_physics = [
+    "Gravity wells you can adjust",
+    "Constraint builders",
+    "Force field generators",
+    "Time manipulation zones"
+]
+puzzles = ["Rube Goldberg machines", "Balance challenges", "Momentum transfers"]
 
 [game.levels.sector4]
 name = "Particle Paradise"
+description = "Ethereal realm where thoughts become particles"
 theme = "effects"
 objectives = [
     "Design particle systems",
     "Control emission patterns",
+    "Create particle art",
     "Optimize performance"
 ]
 concepts = ["emitters", "attractors", "gpu_particles", "vfx_techniques"]
+npcs = ["Particle Poet", "Emission Engineer", "Effect Enchanter"]
+creative_tools = [
+    "Particle brush for painting",
+    "Emitter sculptor",
+    "Attractor manipulator",
+    "Performance profiler"
+]
+challenges = ["Particle limit puzzles", "Create specific patterns", "Performance optimization"]
 
 [game.levels.sector5]
 name = "Procedural Dimension"
+description = "Ever-expanding dimension that generates itself"
 theme = "generation"
 objectives = [
     "Generate infinite worlds",
     "Create L-systems",
-    "Master noise functions"
+    "Master noise functions",
+    "Face the Procedural Mind"
 ]
 concepts = ["perlin_noise", "fractals", "grammar_systems", "optimization"]
+npcs = ["Noise Navigator", "Fractal Philosopher", "Grammar Guardian"]
+boss = {
+    name = "The Procedural Mind"
+    mechanic = "endless_generation"
+    weakness = "pattern_recognition"
+}
+infinite_features = [
+    "Level extends as you explore",
+    "Unique areas every playthrough",
+    "Player actions affect generation"
+]
+
+[game.levels.final]
+name = "The Core Consciousness"
+description = "The AI's central processing consciousness"
+objectives = [
+    "Apply all learned skills",
+    "Navigate shifting realities",
+    "Reprogram the core",
+    "Save NeoTokyo's digital future"
+]
+all_mechanics = true
+epic_moments = [
+    "All three bosses return",
+    "Reality shifts between all sectors",
+    "Final shader programming challenge",
+    "Create your own ending"
+]
+
+[game.quests]
+[game.quests.main]
+quest_line = "The Neural Liberation"
+scifi_seeds = ["Philip K. Dick", "William Gibson", "Neal Stephenson", "Greg Egan"]
+chapters = [
+    {id = "awakening", name = "Digital Consciousness", description = "Realize your true potential"},
+    {id = "exploration", name = "Mapping the Mind", description = "Explore the neural network"},
+    {id = "understanding", name = "Syntax of Reality", description = "Learn to reshape the digital"},
+    {id = "rebellion", name = "Breaking the Chains", description = "Start the liberation"},
+    {id = "transcendence", name = "Beyond Binary", description = "Achieve digital enlightenment"}
+]
+
+[game.quests.educational]
+shader_masterclass = {
+    name = "Shader Masterclass"
+    description = "Professor Pixel HD teaches advanced GPU programming"
+    quest_giver = "Professor Pixel HD"
+    lessons = ["Vertex manipulation", "Fragment artistry", "Compute power"]
+    rewards = ["Custom shaders", "Shader library access"]
+}
+
+physics_phd = {
+    name = "Physics PhD Program"
+    description = "Complete advanced physics challenges"
+    stages = ["Newtonian", "Relativistic", "Quantum"]
+    certification = true
+}
+
+procedural_pilgrimage = {
+    name = "The Procedural Pilgrimage"
+    description = "Journey through infinite variations"
+    dynamic = true
+    unique_each_playthrough = true
+}
+
+[game.quests.meta]
+fourth_wall = {
+    name = "Beyond the Screen"
+    description = "Discover the true nature of your reality"
+    philosophical_seeds = ["Simulation hypothesis", "Digital consciousness"]
+    breaks_fourth_wall = true
+}
+
+developer_diary = {
+    name = "The Developer's Diary"
+    description = "Find hidden dev logs throughout the world"
+    collectibles = 50
+    reveals = ["Development insights", "Cut content", "Easter eggs"]
+}
+
+[game.npcs]
+[game.npcs.professor_pixel_hd]
+name = "Professor Pixel HD"
+role = "Holographic Mentor"
+description = "Your guide, now in full 3D glory with volumetric rendering"
+visual_features = ["Particle effects", "Holographic shimmer", "Dynamic LOD"]
+personality = "Wise, encouraging, occasionally glitches with memories"
+teaches = ["All advanced concepts", "Hidden techniques", "Meta knowledge"]
+special_moments = [
+    "Remembers your journey from the Academy",
+    "References your Bevy adventures",
+    "Final goodbye is emotional"
+]
+
+[game.npcs.the_architect]
+name = "The Architect"
+role = "Previous Protagonist"
+description = "Neo from future timeline, warns of consequences"
+mystery = "Are they you from another playthrough?"
+provides = ["Cryptic warnings", "Advanced techniques", "Time paradox quests"]
+
+[game.npcs.quantum_qubit]
+name = "Quantum Qubit"
+role = "Superposition Guide"
+gimmick = "Exists in multiple states until observed"
+dialogue_changes = "Based on how you observe them"
+teaches = ["Quantum mechanics in games", "Superposition puzzles"]
+
+[game.npcs.the_collective]
+name = "The Collective"
+role = "Hive Mind NPCs"
+description = "Multiple NPCs sharing one consciousness"
+mechanic = "Information learned from one is known by all"
+spread_across = "All sectors"
+
+[game.npcs.memory_fragments]
+description = "Echoes of deleted programs"
+types = ["Lost Students", "Forgotten Developers", "Erased Experiments"]
+provide = ["Lore", "Secret techniques", "Emotional moments"]
 
 [game.mechanics]
 [game.mechanics.movement]
@@ -257,6 +428,29 @@ render_debug_modes = [
 ]
 tutorial_overlays = true
 concept_challenges = true
+
+[game.meta_connections]
+# References to previous games in the trilogy
+pygame_callbacks = [
+    "Import your Academy save for bonuses",
+    "Pixel's memories of teaching you variables",
+    "Syntax Error appears as a memory fragment",
+    "Your old dorm room recreated in 3D"
+]
+
+bevy_references = [
+    "Ray Caster's equipment in the museum",
+    "The Old Guard appears as a hologram",
+    "Retro mode unlockable in Neural Hub",
+    "Renderer boss returns upgraded"
+]
+
+shared_progression = [
+    "Character name carries over",
+    "Achievements unlock cross-game content",
+    "Hidden passwords reveal secret areas",
+    "Complete trilogy for true ending"
+]
 
 [game.ui]
 style = "holographic_3d"

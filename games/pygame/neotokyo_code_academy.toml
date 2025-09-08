@@ -151,46 +151,68 @@ level = 5
 drops = ["garbage_collector"]
 
 [game.levels]
+[game.levels.hub]
+name = "Academy Hub"
+description = "Underground school hidden beneath NeoTokyo's data streams"
+objectives = ["Meet fellow students", "Access training rooms", "Unlock new areas"]
+npcs = ["Master Compiler", "Syntax Error", "The Garbage Collector", "OOP Olivia", "Functional Fred"]
+features = ["Day/night cycle", "Dynamic student population", "Holographic boards"]
+ambient_audio = ["typing_mechanical_keyboard", "electronic_hum"]
+
 [game.levels.tutorial]
 name = "Academy Training Grounds"
-objectives = ["Learn movement", "Practice basic attacks", "Understand UI"]
+description = "Holographic simulation room for basic training"
+objectives = ["Learn movement", "Practice basic attacks", "Understand UI", "Meet Professor Pixel"]
 enemies = []
-npcs = ["Master Compiler"]
+npcs = ["Master Compiler", "Tutorial Bot"]
+interactive_elements = ["Code terminals", "Practice dummies", "Hint holograms"]
 
 [game.levels.level1]
 name = "Variable Valley"
-objectives = ["Understand variables", "Defeat 5 Syntax Errors", "Collect Variable Gems"]
-enemies = ["Syntax Error"]
+description = "A digital valley that reshapes based on data types"
+objectives = ["Understand variables", "Defeat 5 Syntax Errors", "Collect Variable Gems", "Solve type puzzles"]
+enemies = ["Syntax Error", "Type Mismatch", "Null Reference"]
 boss = "Uninitialized Variable"
-concepts_taught = ["variables", "data_types"]
+concepts_taught = ["variables", "data_types", "assignment", "scope"]
+procedural_elements = ["Valley shape changes with variable types", "Color-coded regions for data types"]
+music = "dynamic_variable_theme"  # Adds instruments as variables are assigned
 
 [game.levels.level2]
 name = "Loop Lake"
-objectives = ["Master loops", "Solve iteration puzzles", "Break infinite loops"]
-enemies = ["Infinite Loop", "Off-by-One Error"]
+description = "Circular lake with islands representing different loop types"
+objectives = ["Master loops", "Solve iteration puzzles", "Break infinite loops", "Navigate loop islands"]
+enemies = ["Infinite Loop", "Off-by-One Error", "Iterator Imp"]
 boss = "While True Monster"
-concepts_taught = ["for_loops", "while_loops", "break_continue"]
+concepts_taught = ["for_loops", "while_loops", "break_continue", "nested_loops"]
+puzzle_variants = ["while_island", "for_island", "do_while_island"]
+special_mechanics = ["Water level rises/falls with loop iterations", "Music literally loops"]
 
 [game.levels.level3]
 name = "Function Forest"
-objectives = ["Create functions", "Use parameters", "Return values"]
-enemies = ["Undefined Function", "Wrong Arguments"]
+description = "Mystical forest where trees are function call stacks"
+objectives = ["Create functions", "Use parameters", "Return values", "Solve the Recursive Riddle"]
+enemies = ["Undefined Function", "Wrong Arguments", "Scope Creeper"]
 boss = "Recursive Nightmare"
-concepts_taught = ["functions", "parameters", "return_values", "recursion"]
+concepts_taught = ["functions", "parameters", "return_values", "recursion", "scope"]
+interactive = ["Function trees you can climb", "Parameter passing puzzles", "Return value bridges"]
 
 [game.levels.level4]
 name = "Class Castle"
-objectives = ["Design classes", "Use inheritance", "Implement polymorphism"]
-enemies = ["Abstract Error", "Private Variable"]
+description = "Object-oriented fortress with inheritance hierarchies"
+objectives = ["Design classes", "Use inheritance", "Implement polymorphism", "Navigate the Object Maze"]
+enemies = ["Abstract Error", "Private Variable", "Null Pointer Exception"]
 boss = "Singleton Overlord"
-concepts_taught = ["classes", "objects", "inheritance", "encapsulation"]
+concepts_taught = ["classes", "objects", "inheritance", "encapsulation", "polymorphism"]
+architecture = ["Inheritance towers", "Encapsulation walls", "Polymorphic shape-shifters"]
 
 [game.levels.final]
 name = "Binary Tower"
-objectives = ["Apply all knowledge", "Defeat CEO Null Pointer", "Save NeoTokyo"]
-enemies = ["Memory Leak", "Stack Overflow", "Race Condition"]
+description = "The AI Corporation's central processing spire"
+objectives = ["Apply all knowledge", "Defeat CEO Null Pointer", "Save NeoTokyo", "Debug the core"]
+enemies = ["Memory Leak", "Stack Overflow", "Race Condition", "Deadlock Demon"]
 boss = "CEO Null Pointer"
 concepts_tested = ["all"]
+epic_moments = ["Code rain sequence", "Binary choice chambers", "Final debug challenge"]
 
 [game.mechanics]
 [game.mechanics.combat]
@@ -215,11 +237,106 @@ types = ["code_completion", "bug_fixing", "logic_gates", "algorithm_tracing"]
 difficulty_scaling = true
 hint_system = true
 
+[game.quests]
+[game.quests.main]
+# Main quest line seeded from cyberpunk classics
+quest_line = "The Binary Rebellion"
+literary_seeds = ["Neuromancer", "Snow Crash", "Do Androids Dream of Electric Sheep"]
+chapters = [
+    {id = "awakening", name = "Digital Awakening", level_required = 1},
+    {id = "first_hack", name = "Your First Hack", level_required = 2},
+    {id = "network_dive", name = "Into the Network", level_required = 5},
+    {id = "corporate_secrets", name = "Corporate Secrets", level_required = 8},
+    {id = "final_liberation", name = "Liberation.exe", level_required = 10}
+]
+
+[game.quests.side]
+debugging_detective = {
+    name = "The Debugging Detective"
+    description = "Solve mysterious bugs haunting the academy"
+    literary_seeds = ["Sherlock Holmes", "The Maltese Falcon"]
+    quest_type = "mystery"
+    rewards = ["Detective's Debugger", "Magnifying Monocle"]
+}
+
+variable_ventures = {
+    name = "Variable Valley Ventures"
+    description = "Tutorial quests teaching programming concepts"
+    quest_type = "educational"
+    dynamic = true  # Generates new quests based on player progress
+}
+
+recursive_riddle = {
+    name = "The Recursive Riddle"
+    description = "A quest that references itself"
+    quest_type = "meta"
+    special_mechanics = ["Quest objectives change based on how many times you've attempted it"]
+}
+
+garbage_collection = {
+    name = "The Garbage Collector's Secret"
+    description = "Help the mysterious janitor clean up memory leaks"
+    quest_giver = "The Garbage Collector"
+    rewards = ["Memory Optimization skill", "Leak Detector tool"]
+}
+
+[game.npcs]
+# Rich NPCs with full dialogue trees
+[game.npcs.master_compiler]
+name = "Master Compiler"
+role = "Wise Mentor"
+location = "Academy Hub"
+dialogue_style = "philosophical"
+topics = ["programming_philosophy", "optimization_wisdom", "debugging_zen"]
+special_dialogue = {
+    first_meeting = "Ah, another variable in the grand algorithm of life...",
+    level_5 = "You're beginning to compile correctly, young coder.",
+    final_battle = "Remember: even null pointers can point to truth."
+}
+
+[game.npcs.syntax_error]
+name = "Syntax Error"
+role = "Comic Relief"
+location = "Wandering"
+dialogue_style = "broken"
+special_trait = "Speaks in actual syntax errors"
+example_dialogue = [
+    "Hello world); // Missing opening parenthesis!",
+    "if (you.need_help) { // Unclosed bracket",
+    "return friendship++ // Semicolon missing but heart present"
+]
+
+[game.npcs.garbage_collector]
+name = "The Garbage Collector"
+role = "Mysterious Guide"
+location = "Hidden areas"
+dialogue_style = "cryptic"
+reveals = ["memory_management_secrets", "hidden_optimization_paths"]
+
+[game.npcs.student_paradigms]
+oop_olivia = {
+    paradigm = "object_oriented",
+    personality = "Everything has a class and purpose",
+    teaches = ["inheritance", "encapsulation"]
+}
+functional_fred = {
+    paradigm = "functional",
+    personality = "Pure functions, no side effects in life",
+    teaches = ["immutability", "higher_order_functions"]
+}
+procedural_pete = {
+    paradigm = "procedural",
+    personality = "Step by step, top to bottom",
+    teaches = ["structured_programming", "flow_control"]
+}
+
 [game.dialogue]
 format = "yarnspinner"
 branching = true
 educational_hints = true
 character_portraits = true
+dynamic_generation = true  # NPCs can generate new dialogue based on player actions
+emotion_system = true  # NPCs remember how you treat them
 
 [game.ui]
 style = "cyberpunk"

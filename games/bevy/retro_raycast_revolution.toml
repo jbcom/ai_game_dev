@@ -118,41 +118,150 @@ behavior = "appears_disappears"
 teaches = "transparency_rendering"
 
 [game.levels]
-[game.levels.tutorial]
-name = "Retro Boot Camp"
-layout = "simple_corridor"
-objectives = ["Learn movement", "Understand raycasting basics", "Toggle retro mode"]
-concepts_taught = ["raycasting_fundamentals", "movement_in_2d_space"]
+[game.levels.boot_sector]
+name = "Boot Sector"
+description = "Training facility where you learn the ancient ways of raycasting"
+layout = "simple_geometric"
+objectives = ["Learn movement", "Toggle retro mode", "Find the Old Guard", "Access mainframe"]
+concepts_taught = ["raycasting_fundamentals", "movement_in_2d_space", "fov_basics"]
+npcs = ["The Old Guard", "Tutorial AI"]
+interactive = ["Retro terminals", "History holograms showing Wolfenstein 3D"]
+easter_eggs = ["Hidden DOOM reference room"]
+audio = {style = "8bit_chiptune", dynamic = true}
 
 [game.levels.level1]
 name = "Server Room Alpha"
-layout = "maze_like"
-objectives = ["Find keycard", "Avoid guards", "Reach data terminal"]
-concepts_taught = ["wall_rendering", "collision_detection"]
+description = "First infiltration into corrupted data centers"
+layout = "wolfenstein_maze"
+objectives = ["Find keycard", "Avoid guards", "Reach data terminal", "Learn wall collision"]
+concepts_taught = ["wall_rendering", "collision_detection", "grid_based_movement"]
+enemies = ["Stationary Guards", "Security Cameras"]
+secrets = ["Hidden ammo cache behind pushwall"]
+visual_modes = ["wireframe_debug", "textured", "retro_pixelated"]
 
 [game.levels.level2]
 name = "The Texture Cache"
-layout = "textured_maze"
-objectives = ["Navigate using different wall textures", "Solve pattern puzzles"]
-concepts_taught = ["texture_mapping", "wall_slicing"]
+description = "A maze where walls tell stories through textures"
+layout = "texture_puzzle_maze"
+objectives = ["Navigate using wall patterns", "Solve texture sequence puzzles", "Find texture corruption"]
+concepts_taught = ["texture_mapping", "wall_slicing", "texture_coordinates"]
+puzzle_elements = ["Texture memory game", "Pattern matching doors", "UV coordinate challenge"]
+procedural = {textures = "perlin_noise_generated", layout = "semi_random"}
+dynamic_music = {tempo = "increases_near_objectives"}
 
 [game.levels.level3]
 name = "Sprite City"
-layout = "open_area_with_pillars"
-objectives = ["Defeat enemies", "Collect data chips", "Master sprite rendering"]
-concepts_taught = ["sprite_billboarding", "z_ordering"]
+description = "Open area populated with 2D sprites in 3D space"
+layout = "doom_style_arena"
+objectives = ["Defeat sprite enemies", "Collect data chips", "Learn sprite sorting", "Find Ghost in Wireframe"]
+concepts_taught = ["sprite_billboarding", "z_ordering", "transparency", "sprite_animation"]
+enemies = ["Bit-Shifted Betty", "Sprite Soldiers", "Transparency Phantoms"]
+npcs = ["Ghost in the Wireframe"]
+special_mechanics = ["Enemies always face player", "Sprite distance scaling"]
+audio = {spatial = "3d_positioned", style = "synth_action"}
 
 [game.levels.level4]
 name = "The Rendering Pipeline"
-layout = "multi_floor"
-objectives = ["Use floor/ceiling casting", "Navigate vertical spaces"]
-concepts_taught = ["floor_ceiling_casting", "height_mapping"]
+description = "Multi-level structure teaching advanced rendering"
+layout = "build_engine_style"  # Like Duke Nukem 3D
+objectives = ["Navigate vertical spaces", "Manipulate rendering modes", "Solve pipeline puzzles"]
+concepts_taught = ["floor_ceiling_casting", "height_mapping", "sector_rendering", "portals"]
+verticality = ["Multiple floors", "Look up/down mechanics", "Elevator shafts"]
+shader_zones = ["Wireframe room", "Flat shaded area", "Textured section"]
 
-[game.levels.final]
-name = "Core Processor"
-layout = "complex_fortress"
-objectives = ["Apply all techniques", "Defeat the Render Boss", "Escape in time"]
-concepts_tested = ["all_raycasting_concepts"]
+[game.levels.shader_showdown]
+name = "The Shader Showdown"
+description = "Boss arena where rendering itself is weaponized"
+layout = "circular_arena"
+objectives = ["Defeat The Renderer", "Survive shader attacks", "Master all modes"]
+boss = {
+    name = "The Renderer"
+    phases = ["Wireframe Phase", "Flat Shading Phase", "Full Textured Phase"]
+    attacks = ["Resolution Reduction", "Texture Corruption", "Frame Drop"]
+}
+dynamic_rendering = ["Real-time shader editing", "Visual style changes mid-battle"]
+concepts_tested = ["all_raycasting_concepts", "performance_optimization"]
+
+[game.levels.secret]
+name = "The Polygon Dungeon"
+description = "Hidden level accessible only in retro mode"
+layout = "classic_wolf3d"
+objectives = ["Find all secrets", "Speedrun challenge", "No damage run"]
+easter_eggs = ["John Carmack portrait", "Original Wolfenstein 3D room", "IDDQD reference"]
+
+[game.quests]
+[game.quests.main]
+quest_line = "Operation Raycast"
+military_seeds = ["Tom Clancy novels", "Cyberpunk espionage", "Classic FPS manuals"]
+missions = [
+    {id = "first_contact", name = "First Contact", description = "Meet the resistance"},
+    {id = "infiltration", name = "Data Center Infiltration", description = "Learn their old ways"},
+    {id = "corruption", name = "The Corruption Spreads", description = "Discover the AI's plan"},
+    {id = "resistance", name = "Join the Resistance", description = "Unite the old guard"},
+    {id = "final_render", name = "The Final Render", description = "Stop the reality corruption"}
+]
+
+[game.quests.side]
+polygon_wars = {
+    name = "Tales from the Polygon Wars"
+    description = "Collect stories from veterans about 90s gaming"
+    quest_giver = "The Old Guard"
+    rewards = ["Retro Shader Pack", "Classic Weapon Skins"]
+}
+
+ghost_fragments = {
+    name = "Ghost in the Wireframe"
+    description = "Find the mysterious guide who only appears in debug mode"
+    special_requirement = "Must be in wireframe mode to see quest markers"
+    rewards = ["Debug Vision", "Wireframe Weapon"]
+}
+
+speedrun_challenges = {
+    name = "Retro Runner"
+    description = "Complete levels under par time in 320x200 mode"
+    dynamic = true
+    leaderboard = true
+}
+
+[game.npcs]
+[game.npcs.old_guard]
+name = "The Old Guard"
+role = "Veteran Mentor"
+backstory = "Fought in the original Polygon Wars of the 90s"
+dialogue_topics = ["Gaming history", "Carmack's genius", "Why raycasting matters"]
+special_quotes = {
+    first_meeting = "You think your RTX is impressive? Let me tell you about 320x200...",
+    teaching_moment = "See that wall? It's not really 3D. Let me show you the magic.",
+    before_boss = "The Renderer thinks in polygons. You must think in rays."
+}
+
+[game.npcs.bit_shifted_betty]
+name = "Bit-Shifted Betty"
+role = "Corrupted NPC"
+gimmick = "Her dialogue literally shifts bits as she speaks"
+dialogue_examples = [
+    "H3llo th3r3, n1c3 to m33t you",  # Bit shift corruption
+    "My data is c0rrupt3d but my h3art is tru3",
+    "Watch out for the Renderer's tri△ngle attacks"
+]
+
+[game.npcs.ghost_wireframe]
+name = "Ghost in the Wireframe"
+role = "Secret Guide"
+visibility = "Only appears in wireframe rendering mode"
+provides = ["Secret locations", "Optimization tips", "Hidden lore"]
+mystery = "Is this a debug feature or a sentient program?"
+
+[game.npcs.renderer_boss]
+name = "The Renderer"
+role = "Main Antagonist"
+description = "An AI that controls the graphics pipeline itself"
+dialogue_style = "Speaks in graphics programming terms"
+boss_quotes = {
+    phase1 = "Initiating depth buffer clear...",
+    phase2 = "Fragment shader corruption at 60%...",
+    phase3 = "FATAL ERROR: Reality.exe has stopped responding"
+}
 
 [game.mechanics]
 [game.mechanics.raycasting]
