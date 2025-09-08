@@ -153,7 +153,7 @@ async def generate_game(game_spec_path: Path, output_dir: Optional[Path] = None)
 async def generate_assets(assets_spec_path: Path, output_dir: Optional[Path] = None):
     """Generate assets from a specification file."""
     import tomllib
-    from ai_game_dev.graphics import generate_game_sprite, generate_game_background
+    from ai_game_dev.graphics import generate_sprite, generate_background
     from ai_game_dev.audio import generate_sound_effect, generate_background_music
     from ai_game_dev.assets.asset_registry import get_asset_registry
     from ai_game_dev.cache import initialize_sqlite_cache_and_memory
@@ -197,10 +197,9 @@ async def generate_assets(assets_spec_path: Path, output_dir: Optional[Path] = N
                 print(f"  Creating sprite: {category}/{name}")
                 
                 try:
-                    result = await generate_game_sprite(
-                        name=name,
-                        description=item_spec.get("description", f"{name} sprite"),
-                        style=item_spec.get("style", "cyberpunk"),
+                    result = await generate_sprite(
+                        object_name=name,
+                        art_style=item_spec.get("style", "pixel"),
                         save_path=str(sprite_dir / f"{name}.png")
                     )
                     
@@ -285,7 +284,7 @@ async def generate_assets(assets_spec_path: Path, output_dir: Optional[Path] = N
                 print(f"  Creating background: {name}")
                 
                 try:
-                    result = await generate_game_background(
+                    result = await generate_background(
                         scene=scene_spec.get("description", name),
                         style=scene_spec.get("style", "cyberpunk"),
                         save_path=str(bg_dir / f"{name}.png")
