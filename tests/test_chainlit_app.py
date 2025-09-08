@@ -27,31 +27,21 @@ from ai_game_dev.chainlit_app import (
     handle_challenge_submission
 )
 
-from contextlib import contextmanager
-
-@contextmanager
-def mock_chainlit_context():
-    """Mock Chainlit context for testing."""
-    with patch('chainlit.context.context') as mock_ctx:
-        mock_ctx.session = MagicMock()
-        mock_ctx.session.id = "test-session-id"
-        mock_ctx.current_task = None
-        mock_ctx.current_run = None
-        yield mock_ctx
-
-
 class TestChainlitApp:
     """Test the Chainlit application functions."""
     
     @pytest.mark.asyncio
     async def test_start(self):
         """Test session initialization."""
-        with mock_chainlit_context():
-            with patch('chainlit.user_session.set') as mock_set:
-                await start()
-                assert mock_set.called
-                mock_set.assert_any_call("mode", None)
-                mock_set.assert_any_call("state", {})
+        # Mock the chainlit session
+        with patch('chainlit.user_session') as mock_session:
+            mock_session.set = MagicMock()
+            
+            await start()
+            
+            # Verify session initialization
+            mock_session.set.assert_any_call("mode", None)
+            mock_session.set.assert_any_call("state", {})
     
     @pytest.mark.asyncio
     async def test_main_no_mode(self):
@@ -59,32 +49,47 @@ class TestChainlitApp:
         message = Mock(spec=cl.Message)
         message.content = "Hello"
         
-        with mock_chainlit_context():
-            with patch('chainlit.user_session') as mock_session:
-                mock_session.get = Mock(return_value=None)
-                with patch('chainlit.Message.send', new_callable=AsyncMock) as mock_send:
-                    await main(message)
-                    # Should show welcome message when no mode selected
-                assert mock_send.called
+        with patch('chainlit.user_session') as mock_session:
+            mock_session.get = Mock(return_value=None)
+            with patch('chainlit.Message') as MockMessage:
+                mock_msg_instance = AsyncMock()
+                MockMessage.return_value = mock_msg_instance
+                
+                await main(message)
+                
+                # Should send welcome message
+                MockMessage.assert_called()
+                mock_msg_instance.send.assert_called()
     
     @pytest.mark.asyncio
     async def test_handle_mode_selection_workshop(self):
         """Test workshop mode selection."""
-        with mock_chainlit_context():
-            with patch('chainlit.user_session.set') as mock_set:
-                with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
-                    await handle_mode_selection("workshop")
-                    mock_set.assert_called_with("mode", "workshop")
-                    assert mock_msg.called
+        with patch('chainlit.user_session') as mock_session:
+            mock_session.set = MagicMock()
+            with patch('chainlit.Message') as MockMessage:
+                mock_msg_instance = AsyncMock()
+                MockMessage.return_value = mock_msg_instance
+                
+                await handle_mode_selection("workshop")
+                
+                mock_session.set.assert_called_with("mode", "workshop")
+                MockMessage.assert_called()
+                mock_msg_instance.send.assert_called()
     
     @pytest.mark.asyncio
     async def test_handle_mode_selection_academy(self):
         """Test academy mode selection."""
-        with patch('chainlit.user_session.set') as mock_set:
-            with patch('chainlit.Message', return_value=AsyncMock()) as mock_msg:
+        with patch('chainlit.user_session') as mock_session:
+            mock_session.set = MagicMock()
+            with patch('chainlit.Message') as MockMessage:
+                mock_msg_instance = AsyncMock()
+                MockMessage.return_value = mock_msg_instance
+                
                 await handle_mode_selection("academy")
-                mock_set.assert_called_with("mode", "academy")
-                assert mock_msg.called
+                
+                mock_session.set.assert_called_with("mode", "academy")
+                MockMessage.assert_called()
+                mock_msg_instance.send.assert_called()
     
     def test_determine_sprites_needed(self):
         """Test sprite determination from description."""
