@@ -1,14 +1,14 @@
 [project]
 name = "ai-game-dev"
 version = "1.0.0"
-description = "Revolutionary AI-powered game development library with multi-LLM support and comprehensive asset generation"
+description = "AI-powered game development platform using OpenAI agents with Chainlit UI"
 authors = [
     {name = "AI Game Dev Team", email = "team@ai-game-dev.com"}
 ]
 readme = {content-type = "text/x-rst", file = "docs/index.rst"}
 license = {text = "MIT"}
 requires-python = ">=3.11"
-keywords = ["ai", "game-development", "langchain", "langgraph", "assets", "procedural"]
+keywords = ["ai", "game-development", "openai", "gpt-5", "chainlit", "procedural"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
