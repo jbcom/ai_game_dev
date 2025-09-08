@@ -1,0 +1,53 @@
+Create a complete Pygame project with this structure:
+
+```
+{{ game_spec.title | lower | replace(" ", "_") }}/
+├── main.py              # Entry point and game loop
+├── game.py              # Core game class
+├── states/
+│   ├── __init__.py
+│   ├── menu.py          # Menu state
+│   ├── gameplay.py      # Main gameplay state
+│   └── gameover.py      # Game over state
+├── entities/
+│   ├── __init__.py
+│   ├── player.py        # Player class
+│   ├── enemies.py       # Enemy classes
+│   └── items.py         # Collectibles and power-ups
+├── systems/
+│   ├── __init__.py
+│   ├── physics.py       # Physics and collision
+│   ├── rendering.py     # Rendering system
+│   └── audio.py         # Audio management
+├── assets/
+│   ├── sprites/         # Image files
+│   ├── sounds/          # Sound effects
+│   └── music/           # Background music
+├── config.py            # Game configuration
+└── requirements.txt     # Python dependencies
+```
+
+## Key Implementation Details
+
+1. **main.py** - Initialize Pygame, create game instance, run main loop
+2. **game.py** - Manage states, handle global game logic
+3. **states/** - Each state handles its own update/render/events
+4. **entities/** - Game objects with update/render methods
+5. **systems/** - Reusable game systems
+
+{% if educational_mode %}
+## Educational Features
+
+- Add docstrings explaining each class and method
+- Include inline comments for complex algorithms
+- Create practice challenges in TODO comments
+- Provide multiple solution approaches where applicable
+{% endif %}
+
+{% if include_comments %}
+Remember to:
+- Use type hints for better code clarity
+- Follow PEP 8 style guidelines
+- Handle errors gracefully
+- Make controls customizable
+{% endif %}

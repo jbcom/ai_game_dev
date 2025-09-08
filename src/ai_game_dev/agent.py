@@ -20,6 +20,15 @@ from ai_game_dev.audio import (
 )
 from ai_game_dev.fonts import render_game_text
 from ai_game_dev.variants import generate_mechanic_variants
+from ai_game_dev.seeding import (
+    find_literary_inspirations,
+    enhance_game_narrative,
+)
+from ai_game_dev.text import (
+    generate_dialogue_tree,
+    generate_quest_chain,
+    generate_code_repository,
+)
 
 
 class GameSpec(BaseModel):

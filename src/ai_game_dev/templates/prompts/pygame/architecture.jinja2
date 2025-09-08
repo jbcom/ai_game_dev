@@ -1,0 +1,42 @@
+You are creating a Pygame game with these architectural principles:
+
+## Core Architecture
+
+1. **Game Loop Structure**
+   - Use a fixed timestep for consistent physics
+   - Separate update and render logic
+   - Handle events efficiently with pygame.event.get()
+
+2. **Entity Management**
+   - Use sprite groups for efficient collision detection
+   - Implement component-based design for flexibility
+   - Pool objects to reduce garbage collection
+
+3. **Resource Management**
+   - Load assets once during initialization
+   - Use pygame.Surface.convert() for performance
+   - Cache frequently used surfaces
+
+4. **State Management**
+   - Implement a state machine for game screens
+   - Use a central game state object
+   - Handle transitions cleanly
+
+{% if educational_mode %}
+## Educational Considerations
+
+- Add clear comments explaining each concept
+- Include TODO markers for student exercises
+- Provide alternative implementations for comparison
+- Highlight common pygame pitfalls and solutions
+{% endif %}
+
+{% if game_spec %}
+## Game-Specific Requirements
+
+Title: {{ game_spec.title }}
+Genre: {{ game_spec.genre }}
+Features: {{ game_spec.features | join(", ") }}
+
+Ensure the architecture supports all planned features.
+{% endif %}
