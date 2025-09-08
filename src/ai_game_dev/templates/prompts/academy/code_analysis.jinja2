@@ -1,0 +1,66 @@
+## Code Analysis for Educational Opportunities
+
+Analyze this code to identify teachable moments and learning opportunities.
+
+### Code to Analyze:
+```{{ language }}
+{{ code }}
+```
+
+### Student Profile:
+- **Level**: {{ student_level }}
+- **Previous Experience**: {{ previous_concepts | join(", ") if previous_concepts else "None specified" }}
+- **Learning Goals**: {{ learning_goals | join(", ") if learning_goals else "General programming" }}
+
+### Analysis Required:
+
+1. **Concept Identification**
+   - What programming concepts are demonstrated?
+   - Which concepts are appropriate for this student level?
+   - What prerequisites should be covered first?
+
+2. **Teachable Moments**
+   For each identified concept:
+   - Line numbers where it appears
+   - Why this is a good teaching opportunity
+   - How to explain it simply
+   - Common misconceptions to address
+
+3. **Interactive Opportunities**
+   - Where can we add student challenges?
+   - What modifications would reinforce learning?
+   - Which parts should students implement themselves?
+
+4. **Scaffolding Suggestions**
+   - Break down complex sections
+   - Identify good stopping points
+   - Suggest incremental improvements
+
+### Educational Enhancements:
+
+{% if add_comments %}
+Add educational comments using this format:
+```{{ language }}
+# LEARN: [Concept name]
+# [Simple explanation]
+# [Real-world analogy]
+
+# TRY: [Challenge description]
+# Hint: [Helpful hint without giving away the answer]
+```
+{% endif %}
+
+{% if create_exercises %}
+Create exercises that:
+- Build on the existing code
+- Are achievable but challenging
+- Include clear success criteria
+- Provide learning through experimentation
+{% endif %}
+
+### Focus Areas:
+{% for area in focus_areas %}
+- {{ area }}
+{% endfor %}
+
+Remember: Every student can succeed with the right guidance. Make learning feel like play!
