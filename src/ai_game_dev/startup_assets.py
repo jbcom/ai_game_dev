@@ -12,7 +12,6 @@ import hashlib
 from ai_game_dev.agents.subgraphs import GraphicsSubgraph, AudioSubgraph
 from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
 from ai_game_dev.variants import InteractiveVariantSystem
-from ai_game_dev.game_specification import GameSpecificationParser
 
 
 class StartupAssetGenerator:
@@ -90,17 +89,21 @@ class StartupAssetGenerator:
         """Generate all required assets idempotently."""
         print("🎨 Starting comprehensive asset generation...")
         
-        # Parse the comprehensive platform asset specification
-        parser = GameSpecificationParser()
-        platform_spec = parser.parse_platform_assets_spec()
+        # Load the unified platform specification
+        unified_spec_path = self.workspace_root / "src/ai_game_dev/specs/unified_platform_spec.toml"
+        with open(unified_spec_path, 'r') as f:
+            unified_spec = toml.load(f)
         
-        # 1. Generate all platform assets from spec
-        await self._generate_platform_assets(platform_spec)
+        # 1. Generate platform UI and branding assets
+        await self._generate_platform_assets_from_unified(unified_spec)
         
-        # 2. Generate Arcade Academy RPG game code and assets
-        await self._generate_academy_rpg_complete()
+        # 2. Generate platform audio assets
+        await self._generate_platform_audio_from_unified(unified_spec)
         
-        # 3. Generate example games with variants
+        # 3. Generate the complete Academy RPG using the unified spec
+        await self._generate_academy_rpg_from_unified(unified_spec)
+        
+        # 4. Generate example games with variants
         await self._generate_example_games()
         
         # Save manifest
@@ -216,56 +219,104 @@ class StartupAssetGenerator:
         for audio_spec in audio_assets:
             await self._generate_audio_if_needed(audio_spec)
     
-    async def _generate_platform_assets(self, platform_spec: GameSpecification):
-        """Generate all platform assets from specification."""
-        print("🎨 Generating platform assets from specification...")
+    async def _generate_platform_assets_from_unified(self, unified_spec: Dict[str, Any]):
+        """Generate all platform visual assets from unified specification."""
+        print("🎨 Generating platform visual assets...")
         
-        # Read the TOML spec directly for complete asset lists
-        spec_file = Path("src/ai_game_dev/specs/web_platform_assets.toml")
-        with open(spec_file, 'r') as f:
-            toml_data = toml.load(f)
+        platform_assets = unified_spec.get("platform_assets", {})
         
-        # Process each asset category
-        assets_data = toml_data.get("assets", {})
+        for category_name, category_data in platform_assets.items():
+            if category_name in ["ui", "characters", "environments"]:
+                prompts = category_data.get("prompts", [])
+                size = category_data.get("size", "512x512")
+                quality = category_data.get("quality", "hd")
+                category_path = category_data.get("category", category_name)
+                
+                print(f"📦 Processing {category_name} ({len(prompts)} assets)...")
+                
+                for i, prompt in enumerate(prompts):
+                    asset_name = f"{category_name}_{i}"
+                    output_path = self.assets_dir / category_path / f"{asset_name}.png"
+                    
+                    # Generate hash for idempotency
+                    spec_hash = self._get_asset_hash({
+                        "prompt": prompt,
+                        "size": size,
+                        "quality": quality
+                    })
+                    
+                    manifest_key = f"{category_path}/{asset_name}"
+                    
+                    # Check if already generated
+                    if self.manifest["generated_assets"].get(manifest_key) == spec_hash and output_path.exists():
+                        print(f"  ✓ {asset_name} already exists")
+                        continue
+                    
+                    print(f"  🎨 Generating {asset_name}...")
+                    
+                    # Ensure directory exists
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Generate using graphics subgraph
+                    result = await self.graphics_subgraph.process({
+                        "task": "generate_asset",
+                        "prompt": prompt,
+                        "size": size,
+                        "quality": quality,
+                        "output_path": str(output_path)
+                    })
+                    
+                    # Update manifest
+                    self.manifest["generated_assets"][manifest_key] = spec_hash
+    
+    async def _generate_platform_audio_from_unified(self, unified_spec: Dict[str, Any]):
+        """Generate all platform audio assets from unified specification."""
+        print("🎵 Generating platform audio assets...")
         
-        for category_name, category_data in assets_data.items():
-            prompts = category_data.get("prompts", [])
-            size = category_data.get("size", "512x512")
-            quality = category_data.get("quality", "hd")
-            asset_category = category_data.get("category", category_name)
-            
-            print(f"📦 Processing {category_name} ({len(prompts)} assets)...")
-            
-            for i, prompt in enumerate(prompts):
-                # Generate unique name from prompt
-                asset_name = f"{category_name}_{i}"
-                output_path = self.assets_dir / asset_category / f"{asset_name}.png"
-                
-                # Check if already exists
-                spec_hash = self._get_asset_hash({"prompt": prompt, "size": size})
-                manifest_key = f"{asset_category}/{asset_name}"
-                
-                if self.manifest["generated_assets"].get(manifest_key) == spec_hash and output_path.exists():
-                    print(f"  ✓ {asset_name} already exists")
-                    continue
-                
-                print(f"  🎨 Generating {asset_name}...")
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                # Generate using graphics subgraph
-                result = await self.graphics_subgraph.process({
-                    "task": "generate_asset",
-                    "prompt": prompt,
-                    "size": size,
-                    "quality": quality,
-                    "output_path": str(output_path)
-                })
-                
-                # Update manifest
-                self.manifest["generated_assets"][manifest_key] = spec_hash
+        platform_audio = unified_spec.get("platform_audio", {})
         
-        # Generate audio assets
-        await self._generate_platform_audio(toml_data.get("audio", {}))
+        for category_name, category_data in platform_audio.items():
+            if category_name in ["ui_sounds", "ambient"]:
+                effects = category_data.get("effects", [])
+                durations = category_data.get("duration_ms", [])
+                format = category_data.get("format", "wav")
+                
+                print(f"🎵 Processing {category_name} ({len(effects)} sounds)...")
+                
+                for i, effect_name in enumerate(effects):
+                    duration_ms = durations[i] if i < len(durations) else 1000
+                    output_path = self.assets_dir / "audio" / f"{effect_name}.{format}"
+                    
+                    # Generate hash for idempotency
+                    spec_hash = self._get_asset_hash({
+                        "effect": effect_name,
+                        "duration": duration_ms,
+                        "format": format
+                    })
+                    
+                    manifest_key = f"audio/{effect_name}"
+                    
+                    # Check if already generated
+                    if self.manifest["generated_assets"].get(manifest_key) == spec_hash and output_path.exists():
+                        print(f"  ✓ {effect_name} already exists")
+                        continue
+                    
+                    print(f"  🎵 Generating {effect_name}...")
+                    
+                    # Ensure directory exists
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Generate using audio subgraph
+                    result = await self.audio_subgraph.process({
+                        "task": "generate_sound_effect",
+                        "effect_name": effect_name,
+                        "duration_ms": duration_ms,
+                        "category": category_name,
+                        "output_path": str(output_path)
+                    })
+                    
+                    # Update manifest
+                    self.manifest["generated_assets"][manifest_key] = spec_hash
     
     async def _generate_platform_audio(self, audio_spec: Dict[str, Any]):
         """Generate all platform audio assets."""
@@ -310,6 +361,67 @@ class StartupAssetGenerator:
                 
                 # Update manifest
                 self.manifest["generated_assets"][manifest_key] = spec_hash
+    
+    async def _generate_academy_rpg_from_unified(self, unified_spec: Dict[str, Any]):
+        """Generate the complete Academy RPG from unified specification."""
+        print("🎓 Generating NeoTokyo Code Academy RPG from unified spec...")
+        
+        # Extract the RPG game specification
+        rpg_spec = unified_spec.get("rpg_game", {})
+        
+        # Add metadata required by the workshop
+        rpg_spec["title"] = rpg_spec.get("name", "NeoTokyo Code Academy")
+        rpg_spec["features"] = rpg_spec.get("features", {}).get("main", [])
+        
+        # Use the academy subgraph which inherits from workshop
+        from ai_game_dev.agents.subgraphs import ArcadeAcademySubgraph
+        
+        # Get paths from the RPG spec
+        paths_config = rpg_spec.get("paths", {})
+        code_base = Path(paths_config.get("code_base", "generated_games/academy"))
+        project_name = paths_config.get("project_name", "neotokyo_code_academy")
+        
+        # Create full path (relative to workspace root)
+        rpg_dir = self.workspace_root / code_base / project_name
+        spec_hash = self._get_asset_hash(rpg_spec)
+        
+        if self.manifest["generated_examples"].get("academy_rpg_unified") == spec_hash and rpg_dir.exists():
+            print("✓ NeoTokyo Academy RPG already generated")
+            return
+        
+        print("📝 Generating complete RPG code and assets...")
+        
+        # Initialize and use the academy subgraph
+        academy_subgraph = ArcadeAcademySubgraph()
+        await academy_subgraph.initialize()
+        
+        # Process the RPG spec as an uploaded spec
+        result = await academy_subgraph.process({
+            "uploaded_spec": rpg_spec,
+            "educational_mode": True
+        })
+        
+        if result["success"]:
+            # Extract generated code
+            project_data = result["project"]
+            rpg_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Save all generated files
+            for filename, content in project_data["code"].items():
+                file_path = rpg_dir / filename
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(content)
+            
+            print(f"✅ RPG code saved to: {rpg_dir}")
+            print(f"✅ Assets will be in: {paths_config.get('assets_base', '')}")
+        else:
+            print(f"❌ Failed to generate RPG: {result.get('errors', [])}")
+            return
+        
+        # Update manifest
+        self.manifest["generated_examples"]["academy_rpg_unified"] = spec_hash
+        
+        print("✅ NeoTokyo Academy RPG generated successfully!")
     
     async def _generate_academy_rpg_complete(self):
         """Generate the complete Arcade Academy RPG."""

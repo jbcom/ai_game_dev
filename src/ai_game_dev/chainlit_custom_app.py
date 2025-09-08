@@ -338,6 +338,10 @@ async def handle_academy_chat(message: str):
         # Handle lesson-specific commands
         if message.startswith("start_lesson:"):
             lesson = message.split(":")[1]
+            # Load RPG spec if not already loaded
+            if not hasattr(academy_subgraph, 'rpg_spec') or academy_subgraph.rpg_spec is None:
+                academy_subgraph.rpg_spec = academy_subgraph._load_rpg_spec_from_unified()
+            
             result = await academy_subgraph.process_with_education({
                 "uploaded_spec": academy_subgraph.rpg_spec,
                 "lesson_focus": lesson,

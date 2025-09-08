@@ -1,0 +1,416 @@
+# Unified AI Game Development Platform Specification
+# This comprehensive spec includes all platform assets and the complete RPG game
+
+[metadata]
+title = "AI Game Development Platform"
+version = "1.0"
+description = "Complete specification for platform UI, assets, and educational RPG game"
+
+# Path configuration
+[paths]
+assets_base = "public/static/assets/generated"
+code_base = "generated_games"
+use_relative_paths = true
+
+# Platform-wide UI and branding assets
+[platform_assets]
+
+# UI Components
+[platform_assets.ui]
+category = "ui"
+size = "1024x1024"
+quality = "hd"
+prompts = [
+    "Cyberpunk neon circuit board pattern with flowing data streams, dark background with electric blue and magenta accents",
+    "Futuristic holographic interface panels with glowing edges and matrix rain effects",
+    "Digital workshop environment with floating code fragments and holographic tools",
+    "Virtual academy classroom with holographic displays and cyberpunk aesthetic",
+    "Neon-lit loading screen with animated circuit pathways",
+    "Holographic project cards with glowing borders and data visualization",
+    "Cyberpunk file browser interface with neon highlights",
+    "Futuristic dashboard with real-time data streams and monitoring panels",
+    "Virtual reality game preview environment with floating UI elements",
+    "Holographic success celebration animation with particle effects"
+]
+
+# Character assets
+[platform_assets.characters]
+category = "characters"
+size = "512x512"
+quality = "hd"
+prompts = [
+    "Professor Pixel - wise holographic AI teacher with glowing blue form and cyberpunk professor attire",
+    "Code Knight - cybernetic warrior in futuristic armor with digital sword",
+    "Data Sage - mystical hacker in flowing robes with holographic staff",
+    "Bug Hunter - agile cyber-assassin with stealth suit and digital weapons",
+    "Script Sorcerer - young mage manipulating floating code symbols",
+    "Binary Boss - intimidating villain made of corrupted data and red code",
+    "Quantum Guardian - ethereal protector of the digital realm",
+    "Cache Sprite - small helpful AI companion with glowing form",
+    "Network Ninja - swift warrior navigating data streams",
+    "Algorithm Apprentice - eager student with holographic notebook"
+]
+
+# Environment backgrounds
+[platform_assets.environments]
+category = "backgrounds"
+size = "1920x1080"
+quality = "hd"
+prompts = [
+    "Cyberpunk game workshop with holographic displays and neon lighting",
+    "Virtual academy main hall with floating platforms and data streams",
+    "Digital library with towers of glowing data cubes",
+    "Neon-lit server room dungeon with maze-like corridors",
+    "Holographic training arena with configurable environments",
+    "Cyberspace hub world with floating islands of code",
+    "Underground hacker hideout with multiple monitors and neon signs",
+    "Virtual reality testing chamber with grid patterns",
+    "Data stream highway for fast travel between locations",
+    "Corrupted zone with glitching textures and red static"
+]
+
+# Platform audio assets
+[platform_audio]
+
+[platform_audio.ui_sounds]
+category = "ui"
+format = "wav"
+effects = [
+    "button_click_cyber",
+    "menu_hover_electronic", 
+    "success_chime_digital",
+    "error_buzz_glitch",
+    "transition_whoosh_data",
+    "notification_ping_hologram",
+    "loading_hum_energy",
+    "typing_keyboard_mechanical"
+]
+duration_ms = [100, 150, 500, 300, 400, 200, 2000, 50]
+
+[platform_audio.ambient]
+category = "ambient"
+format = "mp3"
+effects = [
+    "workshop_atmosphere_tech",
+    "academy_background_learning",
+    "cyberspace_ambience_data",
+    "server_room_hum_electronic"
+]
+duration_ms = [120000, 120000, 120000, 120000]
+
+# ============================================================================
+# COMPLETE RPG GAME SPECIFICATION
+# ============================================================================
+
+[rpg_game]
+name = "NeoTokyo Code Academy: The Binary Rebellion"
+description = "A cyberpunk educational RPG where students join a secret academy of rebel hackers fighting against the oppressive Algorithm Empire in 2087 Neo-Tokyo"
+engine = "pygame"
+complexity = "advanced"
+genre = "educational_rpg"
+target_audience = "students"
+
+# RPG-specific paths
+[rpg_game.paths]
+assets_base = "public/static/assets/generated/academy"
+code_base = "generated_games/academy" 
+use_relative_paths = true
+project_name = "neotokyo_code_academy"
+
+# Art and display
+[rpg_game.display]
+art_style = "pixel_art_16bit"
+view_perspective = "top_down_3quarter"
+resolution = "1280x720"
+tile_size = 32
+fps_target = 60
+
+# Core features
+[rpg_game.features]
+main = ["story_driven", "turn_based_combat", "skill_trees", "quest_system", "dialogue_trees"]
+educational = ["programming_puzzles", "code_challenges", "concept_tutorials", "progress_tracking"]
+gameplay = ["exploration", "inventory", "party_management", "save_system", "achievements"]
+
+# Game mechanics
+[rpg_game.mechanics.combat]
+type = "turn_based"
+party_size = 4
+formation_rows = ["front", "back"]
+elements = ["Binary", "Quantum", "Neural", "Crypto"]
+status_effects = ["Debugged", "Encrypted", "Overclocked", "Corrupted", "Optimized"]
+combo_attacks = true
+limit_breaks = true
+
+[rpg_game.mechanics.progression]
+max_level = 50
+experience_curve = "quadratic"
+stat_points_per_level = 3
+skill_points_per_level = 1
+abilities_unlock_by_level = true
+
+[rpg_game.mechanics.educational]
+lessons = ["variables", "loops", "conditionals", "functions", "classes", "algorithms"]
+puzzle_types = ["code_completion", "bug_fixing", "algorithm_design", "output_prediction"]
+hint_system = true
+adaptive_difficulty = true
+
+# Character classes
+[[rpg_game.characters]]
+name = "Code Knight"
+role = "tank"
+description = "Cybernetic warrior who defends with object-oriented mastery"
+base_stats = { health = 120, mana = 60, attack = 15, defense = 18, speed = 8 }
+learns = ["OOP", "Classes", "Inheritance", "Polymorphism"]
+abilities = ["Neural Shield", "Class Strike", "Inheritance Wall", "Digital Fortress"]
+
+[[rpg_game.characters]]
+name = "Data Sage"  
+role = "mage"
+description = "Mystical hacker who manipulates digital reality"
+base_stats = { health = 85, mana = 180, attack = 10, defense = 8, speed = 12 }
+learns = ["Data Structures", "Algorithms", "Complexity", "Recursion"]
+abilities = ["List Storm", "Dictionary Heal", "Algorithm Singularity", "Reality Recursion"]
+
+[[rpg_game.characters]]
+name = "Bug Hunter"
+role = "assassin"
+description = "Agile cyber-assassin who exploits vulnerabilities"
+base_stats = { health = 95, mana = 100, attack = 20, defense = 10, speed = 18 }
+learns = ["Debugging", "Testing", "Optimization", "Security"]
+abilities = ["Breakpoint Strike", "Memory Leak", "Zero Day", "Trace Route"]
+
+[[rpg_game.characters]]
+name = "Script Sorcerer"
+role = "support"
+description = "Young mage who scripts reality with code"
+base_stats = { health = 90, mana = 150, attack = 12, defense = 12, speed = 14 }
+learns = ["Functions", "Libraries", "APIs", "Automation"]
+abilities = ["Function Call", "Import Power", "Async Heal", "Library Shield"]
+
+# Story chapters
+[[rpg_game.story.chapters]]
+id = "chapter_1"
+title = "The Admission Test"
+description = "Prove your worth to enter the secret Code Academy"
+location = "academy_entrance"
+boss = "Gatekeeper Algorithm"
+teaches = ["variables", "basic_syntax"]
+objectives = [
+    "Complete the entrance examination",
+    "Defeat the Gatekeeper Algorithm", 
+    "Unlock the Academy doors"
+]
+
+[[rpg_game.story.chapters]]
+id = "chapter_2"
+title = "First Lessons"
+description = "Learn the fundamentals while uncovering a conspiracy"
+location = "academy_halls"
+boss = "Professor Malware"
+teaches = ["loops", "conditionals"]
+objectives = [
+    "Attend your first classes",
+    "Investigate strange occurrences",
+    "Expose Professor Malware"
+]
+
+[[rpg_game.story.chapters]]
+id = "chapter_3"
+title = "The Data Dungeons"
+description = "Venture into corrupted servers to gather evidence"
+location = "server_dungeons"
+boss = "Cache Dragon"
+teaches = ["functions", "data_structures"]
+objectives = [
+    "Navigate the Data Dungeons",
+    "Collect memory fragments",
+    "Defeat the Cache Dragon"
+]
+
+[[rpg_game.story.chapters]]
+id = "chapter_4"
+title = "The Binary Rebellion"
+description = "Join the resistance against the Algorithm Empire"
+location = "rebel_hideout"
+boss = "Commander Compile"
+teaches = ["classes", "inheritance"]
+objectives = [
+    "Join the Binary Rebellion",
+    "Plan the resistance strategy",
+    "Confront Commander Compile"
+]
+
+[[rpg_game.story.chapters]]
+id = "chapter_5"
+title = "The Final Algorithm"
+description = "Face the Emperor Algorithm in the core system"
+location = "system_core"
+boss = "Emperor Algorithm"
+teaches = ["algorithms", "optimization"]
+objectives = [
+    "Infiltrate the System Core",
+    "Decode the Final Algorithm",
+    "Defeat Emperor Algorithm",
+    "Free the digital realm"
+]
+
+# Required game assets
+[rpg_game.assets_needed]
+
+[rpg_game.assets_needed.sprites]
+characters = [
+    "player_male", "player_female",
+    "code_knight", "data_sage", "bug_hunter", "script_sorcerer",
+    "professor_pixel", "gatekeeper_algorithm", "professor_malware",
+    "cache_dragon", "commander_compile", "emperor_algorithm",
+    "npc_student_1", "npc_student_2", "npc_teacher_1", "npc_rebel_1"
+]
+enemies = [
+    "bug_swarm", "syntax_error", "memory_leak", "infinite_loop",
+    "null_pointer", "stack_overflow", "race_condition", "deadlock"
+]
+items = [
+    "health_potion", "mana_elixir", "debug_scroll", "optimization_gem",
+    "algorithm_tome", "syntax_sword", "firewall_shield", "compiler_staff"
+]
+
+[rpg_game.assets_needed.tilesets]
+environments = [
+    "academy_interior", "academy_exterior",
+    "server_room", "digital_dungeon",
+    "cyberspace", "rebel_base",
+    "system_core", "corrupted_zone"
+]
+objects = [
+    "computer_terminal", "holographic_door", "data_chest",
+    "save_point", "teleporter", "puzzle_console"
+]
+
+[rpg_game.assets_needed.backgrounds]
+battles = [
+    "digital_arena", "server_battlefield", "cyberspace_void",
+    "corrupted_memory", "system_core_final"
+]
+cutscenes = [
+    "academy_entrance", "professor_office", "rebel_meeting",
+    "empire_throne", "ending_celebration"
+]
+
+[rpg_game.assets_needed.ui]
+elements = [
+    "dialogue_box", "menu_frame", "health_bar", "mana_bar",
+    "experience_bar", "ability_icons", "status_icons",
+    "inventory_grid", "quest_log", "map_overlay"
+]
+
+[rpg_game.assets_needed.effects]
+visual = [
+    "spell_cast", "sword_slash", "explosion", "healing_aura",
+    "level_up", "item_get", "critical_hit", "shield_block"
+]
+particles = [
+    "data_stream", "code_fragments", "digital_sparks", "corruption"
+]
+
+# Audio requirements
+[rpg_game.audio_specs]
+music_tracks = 12
+voice_acting = false
+
+[rpg_game.audio_specs.music]
+tracks = [
+    "title_theme", "academy_peaceful", "academy_tense",
+    "battle_normal", "battle_boss", "battle_final",
+    "dungeon_explore", "emotional_scene", "victory_fanfare",
+    "game_over", "rebellion_theme", "ending_credits"
+]
+style = "chiptune_orchestral_hybrid"
+
+[rpg_game.audio_specs.sound_effects]
+categories = {
+    combat = ["attack_physical", "attack_magical", "defend", "critical", "miss"],
+    menu = ["cursor_move", "confirm", "cancel", "error", "save"],
+    exploration = ["footstep", "door_open", "chest_open", "item_pickup", "teleport"],
+    abilities = ["heal", "buff", "debuff", "special_attack", "limit_break"]
+}
+
+# Educational content
+[rpg_game.educational]
+
+[[rpg_game.educational.tutorials]]
+concept = "variables"
+unlock_level = 1
+interactive = true
+exercises = [
+    "Declare health and mana variables",
+    "Modify character stats",
+    "Store item quantities"
+]
+
+[[rpg_game.educational.tutorials]]
+concept = "loops"
+unlock_level = 5
+interactive = true
+exercises = [
+    "Navigate a repeating dungeon",
+    "Process inventory items",
+    "Spawn enemy waves"
+]
+
+[[rpg_game.educational.tutorials]]
+concept = "conditionals"
+unlock_level = 10
+interactive = true
+exercises = [
+    "Make dialogue choices",
+    "Implement combat decisions",
+    "Solve logic gates puzzles"
+]
+
+[[rpg_game.educational.tutorials]]
+concept = "functions"
+unlock_level = 15
+interactive = true
+exercises = [
+    "Create spell combinations",
+    "Build reusable abilities",
+    "Optimize combat routines"
+]
+
+[[rpg_game.educational.tutorials]]
+concept = "classes"
+unlock_level = 20
+interactive = true
+exercises = [
+    "Design character classes",
+    "Implement enemy behaviors",
+    "Create item systems"
+]
+
+# Dialogue samples
+[rpg_game.dialogue.samples]
+professor_pixel_intro = """
+Welcome, young coder, to the NeoTokyo Code Academy! I am Professor Pixel, 
+your guide through the digital realm. Here, you'll learn not just to code, 
+but to wield the very fabric of our reality. Are you ready to begin your journey?
+"""
+
+gatekeeper_challenge = """
+HALT! To enter these hallowed halls, you must prove your worth. 
+Show me you understand the basics of variables and data types. 
+Only then shall the gates of knowledge open before you!
+"""
+
+emperor_algorithm_final = """
+Foolish students! You think your simple scripts can defeat my optimized algorithms?
+I have computed every possible outcome. Your rebellion ends here, in an infinite loop of despair!
+"""
+
+# Save this comprehensive spec for the platform
+[metadata.usage]
+description = """
+This unified specification can be used by:
+1. StartupAssetGenerator - to generate all platform and game assets
+2. GameWorkshopSubgraph - to create the RPG when uploaded as a spec
+3. ArcadeAcademySubgraph - inherits workshop functionality, uses this spec directly
+"""

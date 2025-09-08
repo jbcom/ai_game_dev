@@ -4,9 +4,10 @@ Extends Game Workshop with educational features and teachable moments
 """
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
+import toml
+from pathlib import Path
 
 from .workshop_subgraph import GameWorkshopSubgraph, WorkshopState
-from ai_game_dev.education.rpg_specification import RPG_GAME_SPEC
 
 
 @dataclass
@@ -32,10 +33,45 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
     
     def __init__(self):
         super().__init__()
-        # Pre-load the RPG specification
-        self.rpg_spec = RPG_GAME_SPEC
+        # Load the RPG spec from unified TOML on initialization
+        self.rpg_spec = None
         self.current_lesson = None
         self.lesson_plans = self._load_lesson_plans()
+    
+    def _load_rpg_spec_from_unified(self) -> Dict[str, Any]:
+        """Load the RPG specification from the unified platform spec."""
+        # Find workspace root
+        current = Path.cwd()
+        while current != current.parent:
+            if (current / "pyproject.toml").exists():
+                break
+            current = current.parent
+        
+        # Load unified spec
+        unified_spec_path = current / "src/ai_game_dev/specs/unified_platform_spec.toml"
+        if unified_spec_path.exists():
+            with open(unified_spec_path, 'r') as f:
+                unified_spec = toml.load(f)
+                rpg_spec = unified_spec.get("rpg_game", {})
+                # Add required fields for compatibility
+                rpg_spec["title"] = rpg_spec.get("name", "NeoTokyo Code Academy")
+                rpg_spec["features"] = rpg_spec.get("features", {}).get("main", [])
+                return rpg_spec
+        else:
+            # Fallback to a basic spec
+            return {
+                "name": "NeoTokyo Code Academy: The Binary Rebellion",
+                "title": "NeoTokyo Code Academy",
+                "description": "Educational RPG for learning programming",
+                "engine": "pygame",
+                "features": ["educational_rpg", "turn_based_combat", "skill_trees"],
+                "paths": {
+                    "assets_base": "public/static/assets/generated/academy",
+                    "code_base": "generated_games/academy",
+                    "use_relative_paths": True,
+                    "project_name": "neotokyo_code_academy"
+                }
+            }
     
     def _load_lesson_plans(self) -> Dict[str, Any]:
         """Load educational lesson plans."""
@@ -84,19 +120,13 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
     
     async def start_academy_mode(self) -> Dict[str, Any]:
         """Initialize academy mode with the RPG game."""
-        # Ensure RPG spec has proper paths
-        rpg_spec_with_paths = self.rpg_spec.copy()
-        if "paths" not in rpg_spec_with_paths:
-            rpg_spec_with_paths["paths"] = {
-                "assets_base": "public/static/assets/generated/academy",
-                "code_base": "generated_games/academy",
-                "use_relative_paths": True,
-                "project_name": "neotokyo_code_academy"
-            }
+        # Load RPG spec from unified TOML if not already loaded
+        if self.rpg_spec is None:
+            self.rpg_spec = self._load_rpg_spec_from_unified()
         
-        # Use the pre-configured RPG spec
+        # Use the loaded RPG spec
         result = await self.process({
-            "uploaded_spec": rpg_spec_with_paths,
+            "uploaded_spec": self.rpg_spec,
             "educational_mode": True
         })
         
