@@ -133,11 +133,8 @@ class StartupGenerator:
         # Generate common assets
         await self._generate_common_assets(manifest)
         
-        # Generate example games
+        # Generate all games and server assets from specs
         await self._generate_example_games(manifest)
-        
-        # Generate the educational RPG from spec
-        await self._generate_educational_rpg(manifest)
         
         # Save updated manifest
         self._save_manifest(manifest)
@@ -331,12 +328,18 @@ class StartupGenerator:
         # Load all platform game specs
         platform_specs = load_platform_specs()
         
-        for spec_name, game_spec in platform_specs.items():
-            # Skip the educational RPG - it has its own generation method
-            if spec_name == "educational_rpg":
+        for spec_name, spec_data in platform_specs.items():
+            # Handle server assets separately
+            if spec_name == "server_assets":
+                await self._generate_server_assets(manifest, spec_data)
                 continue
                 
-            game_key = f"example_{spec_name}"
+            # Skip if not a game spec
+            if not hasattr(spec_data, 'title'):
+                continue
+                
+            game_spec = spec_data
+            game_key = spec_name
             if game_key not in manifest.get("games", {}):
                 print(f"\n  Creating {game_spec.title} ({game_spec.engine})...")
                 
@@ -401,82 +404,91 @@ class StartupGenerator:
             else:
                 print(f"  ✓ {game_spec.title} already exists")
                 
-    async def _generate_educational_rpg(self, manifest: Dict[str, Any]):
-        """Generate the full educational RPG from specification."""
-        print("🎓 Generating NeoTokyo Code Academy RPG...")
+    async def _generate_server_assets(self, manifest: Dict[str, Any], assets_spec: Dict[str, Any]):
+        """Generate platform-wide server assets."""
+        print("🎨 Generating server assets...")
         
-        rpg_key = "educational_rpg_full"
-        if rpg_key not in manifest.get("games", {}):
-            try:
-                # Load the educational RPG spec
-                platform_specs = load_platform_specs()
-                rpg_spec = platform_specs.get("educational_rpg")
+        # Get asset registry
+        registry = get_asset_registry()
+        
+        # Generate UI sprites
+        if "sprites" in assets_spec.get("generated", {}):
+            for category, items_data in assets_spec["generated"]["sprites"].items():
+                sprite_dir = self.assets_dir / "sprites" / category
+                sprite_dir.mkdir(parents=True, exist_ok=True)
                 
-                if not rpg_spec:
-                    print("    ❌ Educational RPG spec not found!")
-                    return
+                for item_spec in items_data.get("items", []):
+                    name = item_spec["name"]
+                    asset_key = f"server_sprite_{category}_{name}"
+                    
+                    if asset_key not in manifest.get("assets", {}):
+                        print(f"  Creating server sprite: {category}/{name}")
+                        
+                        result = await generate_game_sprite(
+                            name=name,
+                            description=f"{name} for platform UI",
+                            style=item_spec.get("style", "cyberpunk"),
+                            save_path=str(sprite_dir / f"{name}.png")
+                        )
+                        
+                        # Register in asset registry
+                        asset_path = f"/public/static/assets/generated/sprites/{category}/{name}.png"
+                        registry.register_asset(
+                            name=name,
+                            path=asset_path,
+                            asset_type="sprites",
+                            category=category,
+                            generated=True,
+                            metadata={"platform_asset": True}
+                        )
+                        
+                        manifest["assets"][asset_key] = {
+                            "type": "sprite",
+                            "category": category,
+                            "name": name,
+                            "path": str(sprite_dir / f"{name}.png"),
+                            "generated": True,
+                            "platform_asset": True
+                        }
+        
+        # Generate platform sounds
+        if "audio" in assets_spec.get("generated", {}):
+            for category, sounds_data in assets_spec["generated"]["audio"].items():
+                audio_dir = self.assets_dir / "audio" / category
+                audio_dir.mkdir(parents=True, exist_ok=True)
                 
-                # Get asset paths for Pygame
-                asset_paths = rpg_spec.get_engine_specific_paths()
-                
-                # Generate the complete educational RPG
-                output_dir = rpg_spec.get_absolute_save_path()
-                output_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Create full game specification
-                full_spec = {
-                    "title": rpg_spec.title,
-                    "type": rpg_spec.type,
-                    "engine": rpg_spec.engine,
-                    "description": rpg_spec.description_full,
-                    "assets": asset_paths,
-                    "mechanics": rpg_spec.mechanics,
-                    "levels": rpg_spec.levels,
-                    "features": rpg_spec.features,
-                    "characters": rpg_spec.characters,
-                    "educational": rpg_spec.educational,
-                    "dialogue": rpg_spec.dialogue,
-                    "ui": rpg_spec.ui
-                }
-                
-                project = await create_educational_game(
-                    topic=rpg_spec.description_short,
-                    concepts=rpg_spec.educational.get("concepts", []),
-                    level="progressive",
-                    game_spec=full_spec
-                )
-                
-                # Save to special directory
-                rpg_dir = self.games_dir / "neotokyo_code_academy"
-                rpg_dir.mkdir(exist_ok=True)
-                
-                # Write all game files
-                for filename, content in project.code_files.items():
-                    (rpg_dir / filename).write_text(content)
-                
-                # Save the full RPG specification
-                spec_path = rpg_dir / "full_game_spec.json"
-                spec_path.write_text(json.dumps(rpg_spec, indent=2))
-                
-                manifest["games"][rpg_key] = {
-                    "title": "NeoTokyo Code Academy: The Binary Rebellion",
-                    "engine": "pygame",
-                    "path": str(rpg_dir),
-                    "type": "educational_rpg",
-                    "generated": True
-                }
-                
-                print("    ✅ Educational RPG generated successfully!")
-                
-            except Exception as e:
-                print(f"    ❌ Error generating RPG: {e}")
-                manifest["games"][rpg_key] = {
-                    "title": "NeoTokyo Code Academy",
-                    "error": str(e),
-                    "generated": False
-                }
-        else:
-            print("  ✓ Educational RPG already exists")
+                for sound_spec in sounds_data.get("sounds", []):
+                    name = sound_spec["name"]
+                    asset_key = f"server_audio_{category}_{name}"
+                    
+                    if asset_key not in manifest.get("assets", {}):
+                        print(f"  Creating server sound: {category}/{name}")
+                        
+                        result = await generate_sound_effect(
+                            effect_name=name,
+                            style=sound_spec.get("style", "digital"),
+                            save_path=str(audio_dir / f"{name}.wav")
+                        )
+                        
+                        # Register in asset registry
+                        asset_path = f"/public/static/assets/generated/audio/{category}/{name}.wav"
+                        registry.register_asset(
+                            name=name,
+                            path=asset_path,
+                            asset_type="audio",
+                            category=category,
+                            generated=True,
+                            metadata={"platform_asset": True}
+                        )
+                        
+                        manifest["assets"][asset_key] = {
+                            "type": "audio",
+                            "category": category,
+                            "name": name,
+                            "path": str(audio_dir / f"{name}.wav"),
+                            "generated": True,
+                            "platform_asset": True
+                        }
 
 
 async def run_startup_generation():

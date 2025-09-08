@@ -1,0 +1,228 @@
+# NeoTokyo Code Academy Game Specification
+# This is the internal game spec for our educational RPG
+
+[game]
+title = "NeoTokyo Code Academy: The Binary Rebellion"
+engine = "pygame"
+type = "educational_rpg"
+version = "1.0.0"
+save_path = "games/pygame/neotokyo_code_academy"  # Relative to project root
+
+[game.description]
+short = "Learn programming through a cyberpunk RPG adventure"
+full = """
+In the year 2089, NeoTokyo is ruled by the malevolent AI Corporation. 
+As a student at the underground Code Academy, you must learn programming 
+to fight back against the digital oppression. Master variables, loops, 
+functions, and classes to become a true Code Warrior!
+"""
+
+[game.features]
+combat_system = "turn-based with code challenges"
+progression_system = "unlock abilities through learning concepts"
+dialogue_system = "interactive conversations teaching programming"
+exploration = "open world with coding puzzles"
+save_system = "checkpoint-based with lesson progress tracking"
+
+[game.educational]
+mode = "progressive"
+concepts = [
+    "variables",
+    "data_types", 
+    "conditionals",
+    "loops",
+    "functions",
+    "arrays",
+    "objects", 
+    "classes",
+    "inheritance",
+    "algorithms",
+    "debugging"
+]
+difficulty_scaling = true
+hints_enabled = true
+practice_mode = true
+
+[game.assets]
+# Use paths relative to public/static/assets/
+sprites.player = "characters/professor_pixel.png"
+sprites.enemies = [
+    "generated/sprites/game_elements/enemy_slime.png",
+    "generated/sprites/game_elements/bug_creature.png",
+    "generated/sprites/game_elements/error_demon.png"
+]
+sprites.npcs = [
+    "generated/sprites/characters/mentor_ai.png",
+    "generated/sprites/characters/student_coder.png",
+    "generated/sprites/characters/bug_boss.png"
+]
+sprites.items = [
+    "generated/sprites/game_elements/collectible_gem.png",
+    "generated/sprites/game_elements/powerup_star.png",
+    "generated/sprites/game_elements/health_potion.png"
+]
+sprites.weapons = [
+    "generated/sprites/weapons/laser_beam.png",
+    "generated/sprites/weapons/plasma_sword.png", 
+    "generated/sprites/weapons/shield_bubble.png"
+]
+sprites.effects = [
+    "generated/sprites/effects/explosion.png",
+    "generated/sprites/effects/sparkle.png",
+    "generated/sprites/effects/damage_flash.png"
+]
+
+backgrounds = [
+    "generated/backgrounds/environments/academy_classroom.png",
+    "generated/backgrounds/environments/digital_realm.png",
+    "generated/backgrounds/environments/cyberpunk_city.png",
+    "generated/backgrounds/environments/boss_arena.png"
+]
+
+audio.ui = {
+    click = "audio/button_click_futuristic.wav",
+    hover = "audio/hover_beep_cyberpunk.wav",
+    success = "audio/success_ding_pleasant.wav",
+    error = "audio/error_buzz_warning.wav",
+    notification = "audio/notification_chime_tech.wav"
+}
+
+audio.effects = {
+    jump = "generated/audio/gameplay/jump.wav",
+    collect = "generated/audio/gameplay/collect.wav",
+    damage = "generated/audio/gameplay/damage.wav", 
+    levelup = "generated/audio/gameplay/levelup.wav",
+    shoot = "generated/audio/combat/shoot.wav",
+    explosion = "generated/audio/combat/explosion.wav",
+    dialogue = "generated/audio/ui/dialogue_beep.wav"
+}
+
+audio.music = {
+    menu = "generated/audio/music/menu_theme.mp3",
+    exploration = "generated/audio/music/exploration_theme.mp3",
+    battle = "generated/audio/music/battle_theme.mp3",
+    victory = "generated/audio/music/victory_theme.mp3"
+}
+
+fonts = [
+    "fonts/inter-400.woff2",
+    "fonts/inter-600.woff2", 
+    "fonts/jetbrains-mono-400.woff2"
+]
+
+ui.frames = ["frames/tech-frame.png"]
+ui.panels = ["textures/glass-panel.png"]
+ui.overlays = ["textures/hexagon-overlay.png"]
+
+[game.characters]
+[game.characters.player]
+name = "Pixel"
+class = "Student Coder"
+starting_level = 1
+starting_hp = 100
+starting_skills = ["basic_syntax", "print_statement"]
+
+[game.characters.mentor]
+name = "Master Compiler"
+role = "Guide and teacher"
+location = "Academy Hub"
+
+[game.characters.antagonist]
+name = "CEO Null Pointer"
+role = "Final boss"
+location = "Binary Tower"
+
+[[game.characters.enemies]]
+name = "Syntax Error"
+type = "bug"
+level = 1
+drops = ["syntax_token"]
+
+[[game.characters.enemies]]
+name = "Runtime Exception"
+type = "error"
+level = 3
+drops = ["debug_crystal"]
+
+[[game.characters.enemies]]
+name = "Memory Leak"
+type = "glitch"
+level = 5
+drops = ["garbage_collector"]
+
+[game.levels]
+[game.levels.tutorial]
+name = "Academy Training Grounds"
+objectives = ["Learn movement", "Practice basic attacks", "Understand UI"]
+enemies = []
+npcs = ["Master Compiler"]
+
+[game.levels.level1]
+name = "Variable Valley"
+objectives = ["Understand variables", "Defeat 5 Syntax Errors", "Collect Variable Gems"]
+enemies = ["Syntax Error"]
+boss = "Uninitialized Variable"
+concepts_taught = ["variables", "data_types"]
+
+[game.levels.level2]
+name = "Loop Lake"
+objectives = ["Master loops", "Solve iteration puzzles", "Break infinite loops"]
+enemies = ["Infinite Loop", "Off-by-One Error"]
+boss = "While True Monster"
+concepts_taught = ["for_loops", "while_loops", "break_continue"]
+
+[game.levels.level3]
+name = "Function Forest"
+objectives = ["Create functions", "Use parameters", "Return values"]
+enemies = ["Undefined Function", "Wrong Arguments"]
+boss = "Recursive Nightmare"
+concepts_taught = ["functions", "parameters", "return_values", "recursion"]
+
+[game.levels.level4]
+name = "Class Castle"
+objectives = ["Design classes", "Use inheritance", "Implement polymorphism"]
+enemies = ["Abstract Error", "Private Variable"]
+boss = "Singleton Overlord"
+concepts_taught = ["classes", "objects", "inheritance", "encapsulation"]
+
+[game.levels.final]
+name = "Binary Tower"
+objectives = ["Apply all knowledge", "Defeat CEO Null Pointer", "Save NeoTokyo"]
+enemies = ["Memory Leak", "Stack Overflow", "Race Condition"]
+boss = "CEO Null Pointer"
+concepts_tested = ["all"]
+
+[game.mechanics]
+[game.mechanics.combat]
+type = "turn_based"
+actions = ["attack", "defend", "code_cast", "debug"]
+code_challenges = true
+timer_mode = false
+
+[game.mechanics.progression]
+experience_system = "concept_based"
+skill_tree = true
+ability_unlocks = [
+    {level = 1, ability = "print_attack"},
+    {level = 3, ability = "loop_shield"},
+    {level = 5, ability = "function_call"},
+    {level = 7, ability = "class_instantiate"},
+    {level = 10, ability = "polymorphic_strike"}
+]
+
+[game.mechanics.puzzles]
+types = ["code_completion", "bug_fixing", "logic_gates", "algorithm_tracing"]
+difficulty_scaling = true
+hint_system = true
+
+[game.dialogue]
+format = "yarnspinner"
+branching = true
+educational_hints = true
+character_portraits = true
+
+[game.ui]
+style = "cyberpunk"
+theme_colors = {primary = "#00ffff", secondary = "#ff00ff", background = "#0a0a0a"}
+animations = true
+particle_effects = true

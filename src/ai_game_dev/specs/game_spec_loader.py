@@ -210,20 +210,35 @@ class GameSpecLoader:
         
         return spec
     
-    def load_platform_specs(self) -> Dict[str, GameSpec]:
-        """Load all platform game specifications."""
+    def load_platform_specs(self) -> Dict[str, Any]:
+        """Load all platform specifications (games and assets)."""
         platform_spec_path = self.specs_dir / "unified_platform_spec.toml"
         
         with open(platform_spec_path, 'rb') as f:
             platform_data = tomllib.load(f)
         
         specs = {}
-        game_specs = platform_data.get('game_specs', {})
+        spec_files = platform_data.get('game_specs', {})
         
-        for name, spec_file in game_specs.items():
+        for name, spec_file in spec_files.items():
             try:
-                spec = self.load_spec(spec_file)
-                specs[name] = spec
+                # Handle relative paths
+                if spec_file.startswith("../"):
+                    spec_path = self.specs_dir / spec_file
+                else:
+                    spec_path = self.specs_dir / spec_file
+                    
+                with open(spec_path, 'rb') as f:
+                    data = tomllib.load(f)
+                
+                # Check if it's a game spec or asset spec
+                if 'game' in data:
+                    specs[name] = self._parse_spec(data)
+                elif 'assets' in data:
+                    specs[name] = data['assets']  # Return raw asset spec
+                else:
+                    print(f"Unknown spec type in {spec_file}")
+                    
             except Exception as e:
                 print(f"Error loading spec {spec_file}: {e}")
         

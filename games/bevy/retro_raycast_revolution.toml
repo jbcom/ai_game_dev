@@ -1,0 +1,189 @@
+# Retro Raycast Revolution - Bevy Educational FPS
+# Learn 90s-style 3D rendering through raycasting in a cyberpunk setting
+
+[game]
+title = "Retro Raycast Revolution"
+engine = "bevy"
+type = "educational_fps"
+version = "1.0.0"
+save_path = "games/bevy/retro_raycast_revolution"
+
+[game.description]
+short = "Learn raycasting and 90s 3D techniques in a cyberpunk FPS"
+full = """
+The year is 2089. You're a security specialist in NeoTokyo's digital underground, 
+tasked with infiltrating corrupted data centers using vintage 90s hacking tools. 
+Master the art of raycasting - the technique that powered Wolfenstein 3D and DOOM - 
+as you navigate through cyberspace mazes, learning how 2.5D graphics created the 
+illusion of 3D worlds before true 3D acceleration existed.
+
+Each level teaches a different aspect of raycasting: from basic wall rendering to 
+sprites, textures, and even floor/ceiling casting. Use your "retro-vision" goggles 
+to switch between modern graphics and classic pixelated raycasting view!
+"""
+
+[game.features]
+raycasting_engine = "interactive visualization of ray casting"
+weapon_system = "pixel guns with visible ray trajectories"
+hacking_minigames = "code-based puzzles to unlock doors"
+retro_mode_toggle = "switch between modern and 90s graphics"
+educational_overlay = "real-time visualization of rendering math"
+
+[game.educational]
+mode = "intermediate"
+concepts = [
+    "raycasting_basics",
+    "2d_to_3d_projection",
+    "texture_mapping",
+    "sprite_rendering",
+    "fov_calculations",
+    "distance_fog",
+    "performance_optimization",
+    "spatial_data_structures",
+    "vector_math",
+    "rendering_pipeline"
+]
+difficulty_scaling = true
+visualization_tools = true
+code_examples = true
+
+[game.assets]
+# Retro-styled assets matching the cyberpunk theme
+sprites.player_weapon = "generated/sprites/weapons/pixel_blaster.png"
+sprites.enemies = [
+    "generated/sprites/characters/corrupt_ai_guard.png",
+    "generated/sprites/characters/firewall_sentinel.png",
+    "generated/sprites/characters/virus_bot.png"
+]
+sprites.items = [
+    "generated/sprites/items/data_chip.png",
+    "generated/sprites/items/key_card.png",
+    "generated/sprites/items/health_terminal.png"
+]
+sprites.hud = [
+    "generated/sprites/ui/retro_hud.png",
+    "generated/sprites/ui/minimap_frame.png",
+    "generated/sprites/ui/ammo_counter.png"
+]
+
+textures.walls = [
+    "generated/textures/cyber_wall_1.png",
+    "generated/textures/cyber_wall_2.png",
+    "generated/textures/server_rack.png",
+    "generated/textures/neon_panel.png"
+]
+
+textures.floors = [
+    "generated/textures/grid_floor.png",
+    "generated/textures/metal_grating.png"
+]
+
+audio.effects = {
+    shoot = "generated/audio/combat/laser_shot.wav",
+    hit = "generated/audio/combat/digital_impact.wav",
+    pickup = "generated/audio/gameplay/data_collect.wav",
+    door = "generated/audio/environment/cyber_door.wav",
+    alarm = "generated/audio/environment/security_alert.wav"
+}
+
+audio.music = {
+    menu = "generated/audio/music/retro_synth_menu.mp3",
+    gameplay = "generated/audio/music/cyberpunk_action.mp3",
+    stealth = "generated/audio/music/digital_ambience.mp3"
+}
+
+[game.characters]
+[game.characters.player]
+name = "Ray Caster"
+role = "Retro Security Specialist"
+starting_weapon = "pixel_blaster"
+abilities = ["strafe", "peek", "hack_terminal", "retro_vision"]
+
+[[game.characters.enemies]]
+name = "Firewall Guardian"
+type = "stationary"
+behavior = "shoots_on_sight"
+teaches = "basic_raycasting"
+
+[[game.characters.enemies]]
+name = "Patrol Drone"
+type = "moving"
+behavior = "patrols_corridor"
+teaches = "sprite_sorting"
+
+[[game.characters.enemies]]
+name = "Data Phantom"
+type = "phasing"
+behavior = "appears_disappears"
+teaches = "transparency_rendering"
+
+[game.levels]
+[game.levels.tutorial]
+name = "Retro Boot Camp"
+layout = "simple_corridor"
+objectives = ["Learn movement", "Understand raycasting basics", "Toggle retro mode"]
+concepts_taught = ["raycasting_fundamentals", "movement_in_2d_space"]
+
+[game.levels.level1]
+name = "Server Room Alpha"
+layout = "maze_like"
+objectives = ["Find keycard", "Avoid guards", "Reach data terminal"]
+concepts_taught = ["wall_rendering", "collision_detection"]
+
+[game.levels.level2]
+name = "The Texture Cache"
+layout = "textured_maze"
+objectives = ["Navigate using different wall textures", "Solve pattern puzzles"]
+concepts_taught = ["texture_mapping", "wall_slicing"]
+
+[game.levels.level3]
+name = "Sprite City"
+layout = "open_area_with_pillars"
+objectives = ["Defeat enemies", "Collect data chips", "Master sprite rendering"]
+concepts_taught = ["sprite_billboarding", "z_ordering"]
+
+[game.levels.level4]
+name = "The Rendering Pipeline"
+layout = "multi_floor"
+objectives = ["Use floor/ceiling casting", "Navigate vertical spaces"]
+concepts_taught = ["floor_ceiling_casting", "height_mapping"]
+
+[game.levels.final]
+name = "Core Processor"
+layout = "complex_fortress"
+objectives = ["Apply all techniques", "Defeat the Render Boss", "Escape in time"]
+concepts_tested = ["all_raycasting_concepts"]
+
+[game.mechanics]
+[game.mechanics.raycasting]
+fov = 90
+render_distance = 20
+wall_height = 1.0
+resolution_modes = ["320x200", "640x480", "modern"]
+debug_overlay = true
+
+[game.mechanics.movement]
+walk_speed = 3.0
+run_speed = 5.0
+strafe_enabled = true
+mouse_look = true
+classic_controls_option = true
+
+[game.mechanics.combat]
+hitscan_weapons = true
+visible_rays = true
+damage_falloff = true
+ammo_management = true
+
+[game.mechanics.educational]
+code_terminals = true  # Show actual raycasting code
+math_visualizer = true  # Show calculations in real-time
+performance_meter = true  # FPS counter and optimization tips
+algorithm_challenges = true  # Implement raycasting algorithms
+
+[game.ui]
+style = "retro_cyber"
+theme_colors = {primary = "#00ff00", secondary = "#ff00ff", background = "#000033"}
+pixel_perfect = true
+scanline_effect = true
+crt_curvature = "optional"

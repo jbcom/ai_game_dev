@@ -84,13 +84,15 @@ scenes = [
 
 # Game specifications to load on startup
 [game_specs]
-# These follow the same format as user-provided game specs
-educational_rpg = "educational_rpg.toml"
-example_platformer = "example_platformer.toml"
-example_space_shooter = "example_space_shooter.toml"
+# Server assets that need to be generated
+server_assets = "server_assets.toml"
 
-# Additional game specs can be added here
-# Users can provide their own game specs in the same format
+# Educational game progression (Beginner -> Intermediate -> Advanced)
+neotokyo_code_academy = "../../../games/pygame/neotokyo_code_academy.toml"  # Beginner: 2D RPG
+retro_raycast_revolution = "../../../games/bevy/retro_raycast_revolution.toml"  # Intermediate: Raycasting FPS
+neural_nexus_3d = "../../../games/godot/neural_nexus_3d.toml"  # Advanced: Full 3D
+
+# These games form a cohesive learning journey through the cyberpunk universe
 
 # Asset path mappings
 [asset_paths]

@@ -1,0 +1,174 @@
+# Server Assets Specification
+# Common assets used across the platform UI and all games
+
+[assets]
+name = "AI Game Dev Platform Assets"
+version = "1.0.0"
+description = "Core platform assets for UI, branding, and shared game elements"
+
+[assets.static]
+# Already exist - do not regenerate
+[assets.static.audio.ui]
+files = [
+    "button_click_futuristic.wav",
+    "hover_beep_cyberpunk.wav",
+    "error_buzz_warning.wav",
+    "success_ding_pleasant.wav",
+    "notification_chime_tech.wav",
+    "typing_mechanical_keyboard.wav"
+]
+
+[assets.static.audio.menu]
+files = [
+    "menu_open_whoosh.wav",
+    "menu_close_whoosh_reverse.wav"
+]
+
+[assets.static.sprites.characters]
+files = ["professor_pixel.png"]
+
+[assets.static.sprites.mascots]
+files = [
+    "ai-orb-mascot.png",
+    "professor-pixel-mascot.png",
+    "ai-orb-transparent.png",
+    "professor-pixel-transparent.png"
+]
+
+[assets.static.panels]
+files = [
+    "arcade-academy-panel.png",
+    "game-workshop-panel.png",
+    "bevy-panel.png",
+    "godot-panel.png",
+    "pygame-panel.png"
+]
+
+[assets.static.ui]
+files = [
+    "play-button.png",
+    "pause-button.png",
+    "stop-button.png",
+    "skip-button.png",
+    "volume-slider.png",
+    "tech-frame.png"
+]
+
+[assets.static.logos]
+files = [
+    "arcade-academy-condensed.png",
+    "game-workshop-condensed.png",
+    "main-logo.svg",
+    "platform-logo.png"
+]
+
+[assets.static.fonts]
+files = [
+    "inter-400.woff2",
+    "inter-600.woff2",
+    "jetbrains-mono-400.woff2"
+]
+
+[assets.static.textures]
+files = [
+    "circuit-pattern.png",
+    "glass-panel.png",
+    "hexagon-overlay.png",
+    "particle-glow.png"
+]
+
+[assets.static.videos]
+files = [
+    "game-workshop-intro.mp4",
+    "arcade-academy-intro.mp4"
+]
+
+# Assets to generate for platform and shared game use
+[assets.generated]
+
+[assets.generated.sprites.ui_elements]
+items = [
+    {name = "loading_spinner", style = "cyberpunk", animated = true},
+    {name = "progress_ring", style = "neon", variations = 3},
+    {name = "modal_frame", style = "holographic"},
+    {name = "tooltip_bubble", style = "glass"}
+]
+
+[assets.generated.sprites.game_common]
+items = [
+    {name = "health_bar", style = "pixel", variations = ["full", "half", "critical"]},
+    {name = "mana_bar", style = "pixel", color = "blue"},
+    {name = "exp_bar", style = "pixel", color = "yellow"},
+    {name = "coin_icon", style = "pixel", animated = true},
+    {name = "key_icon", style = "pixel", colors = ["red", "blue", "green"]}
+]
+
+[assets.generated.backgrounds.platform]
+scenes = [
+    {name = "workshop_bg", description = "Futuristic workshop with holographic displays"},
+    {name = "academy_bg", description = "High-tech classroom environment"},
+    {name = "menu_cyberpunk", description = "Animated cyberpunk cityscape"},
+    {name = "loading_neural", description = "Neural network visualization"}
+]
+
+[assets.generated.effects]
+particles = [
+    {name = "code_particles", description = "Floating code snippets"},
+    {name = "digital_sparkles", description = "Pixelated sparkle effects"},
+    {name = "hologram_glitch", description = "Glitch effect for holograms"},
+    {name = "data_stream", description = "Flowing data visualization"}
+]
+
+[assets.generated.audio.platform]
+sounds = [
+    {name = "modal_open", style = "digital", duration = 0.5},
+    {name = "modal_close", style = "digital", duration = 0.5},
+    {name = "tab_switch", style = "subtle", duration = 0.2},
+    {name = "upload_complete", style = "success", duration = 1.0},
+    {name = "generation_start", style = "energetic", duration = 1.5},
+    {name = "generation_complete", style = "triumphant", duration = 2.0}
+]
+
+[assets.generated.audio.educational]
+sounds = [
+    {name = "lesson_start", style = "chime", duration = 1.0},
+    {name = "concept_unlock", style = "achievement", duration = 1.5},
+    {name = "quiz_correct", style = "positive", duration = 0.8},
+    {name = "quiz_incorrect", style = "gentle_negative", duration = 0.8},
+    {name = "professor_appear", style = "magical", duration = 1.0}
+]
+
+# Special 3D assets for advanced games
+[assets.generated.models]
+# These would be generated as simple primitives or downloaded from asset packs
+basic_shapes = [
+    {name = "cube_wireframe", format = "gltf"},
+    {name = "sphere_lowpoly", format = "gltf"},
+    {name = "pyramid_hologram", format = "gltf"},
+    {name = "torus_data", format = "gltf"}
+]
+
+[assets.webassembly]
+# Configuration for WebAssembly compilation
+[assets.webassembly.pygame]
+target = "pyodide"
+dependencies = ["pygame-ce", "numpy"]
+output = "public/wasm/pygame/"
+
+[assets.webassembly.bevy]
+target = "wasm32-unknown-unknown"
+features = ["webgl2"]
+output = "public/wasm/bevy/"
+
+[assets.webassembly.godot]
+export_template = "web"
+features = ["threads", "webxr"]
+output = "public/wasm/godot/"
+
+# Modal and overlay configurations
+[assets.modal]
+professor_pixel_position = "bottom-right"
+teachable_moment_style = "glass-panel"
+variant_choice_style = "cyberpunk-selection"
+game_viewport_size = {width = 1280, height = 720}
+overlay_opacity = 0.9
