@@ -29,9 +29,6 @@ from ai_game_dev.assets.asset_registry import get_asset_registry
 initialize_sqlite_cache_and_memory()
 project_manager = ProjectManager()
 
-# Run startup generation in the background
-asyncio.create_task(run_startup_generation())
-
 
 @cl.on_chat_start
 async def start():

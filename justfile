@@ -15,15 +15,43 @@ default:
 # Start the Chainlit platform
 run:
     @echo "🚀 Starting AI Game Development Platform with Chainlit..."
-    hatch run server
+    hatch run python -m ai_game_dev
 
 # Start in development mode with auto-reload
 dev:
     @echo "🔄 Starting in development mode with auto-reload..."
-    hatch run python -m chainlit run src/ai_game_dev/chainlit_app.py --port 8000 -w
+    hatch run python -m ai_game_dev --port 8000
 
 # Quick start (alias for run)
 start: run
+
+# =============================================================================
+# 🎮 GENERATION COMMANDS
+# =============================================================================
+
+# Generate server assets
+generate-assets:
+    @echo "🎨 Generating server assets..."
+    hatch run python -m ai_game_dev --assets-spec src/ai_game_dev/specs/server_assets.toml
+
+# Generate Pygame educational RPG
+generate-pygame:
+    @echo "🎮 Generating NeoTokyo Code Academy (Pygame)..."
+    hatch run python -m ai_game_dev --game-spec games/pygame/neotokyo_code_academy.toml
+
+# Generate Bevy FPS
+generate-bevy:
+    @echo "🎮 Generating Retro Raycast Revolution (Bevy)..."
+    hatch run python -m ai_game_dev --game-spec games/bevy/retro_raycast_revolution.toml
+
+# Generate Godot 3D game
+generate-godot:
+    @echo "🎮 Generating Neural Nexus 3D (Godot)..."
+    hatch run python -m ai_game_dev --game-spec games/godot/neural_nexus_3d.toml
+
+# Build all assets and games
+build-all-games: generate-assets generate-pygame generate-bevy generate-godot
+    @echo "✅ All assets and games generated!"
 
 # =============================================================================
 # 🏗️ BUILD COMMANDS
