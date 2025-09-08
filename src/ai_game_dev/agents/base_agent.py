@@ -6,13 +6,13 @@ Provides foundation for specialized agents with LangGraph integration
 import asyncio
 import os
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Dict, List, Any, Optional, TypeVar, Generic
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Generic, TypeVar
 
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 
@@ -22,11 +22,11 @@ T = TypeVar('T')
 @dataclass
 class AgentState:
     """Base state for agent operations."""
-    messages: List[BaseMessage] = field(default_factory=list)
-    current_task: Optional[str] = None
-    context: Dict[str, Any] = field(default_factory=dict)
-    outputs: Dict[str, Any] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
+    messages: list[BaseMessage] = field(default_factory=list)
+    current_task: str | None = None
+    context: dict[str, Any] = field(default_factory=dict)
+    outputs: dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
 
 
 @dataclass 
@@ -34,9 +34,9 @@ class AgentConfig:
     """Configuration for agent behavior."""
     model: str = "gpt-4o"
     temperature: float = 0.3
-    max_tokens: Optional[int] = None
+    max_tokens: int | None = None
     instructions: str = ""
-    tools: List[str] = field(default_factory=list)
+    tools: list[str] = field(default_factory=list)
 
 
 class BaseAgent(ABC):
@@ -51,7 +51,7 @@ class BaseAgent(ABC):
     - State persistence and recovery
     """
     
-    def __init__(self, config: Optional[AgentConfig] = None):
+    def __init__(self, config: AgentConfig | None = None):
         self.config = config or AgentConfig()
         self.llm = ChatOpenAI(
             model=self.config.model,
@@ -59,7 +59,7 @@ class BaseAgent(ABC):
             max_tokens=self.config.max_tokens,
             api_key=os.getenv("OPENAI_API_KEY")
         )
-        self.graph: Optional[CompiledStateGraph] = None
+        self.graph: CompiledStateGraph | None = None
         self.state: AgentState = AgentState()
         
     async def initialize(self):
@@ -94,7 +94,7 @@ class BaseAgent(ABC):
         """Build the agent's computation graph."""
         pass
         
-    async def execute_task(self, task: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def execute_task(self, task: str, context: dict[str, Any] = None) -> dict[str, Any]:
         """Execute a task using the agent's graph."""
         if not self.graph:
             raise RuntimeError("Agent not initialized. Call initialize() first.")
@@ -162,7 +162,7 @@ class GameDevelopmentAgent(BaseAgent):
     Extends BaseAgent with game-specific capabilities.
     """
     
-    def __init__(self, config: Optional[AgentConfig] = None):
+    def __init__(self, config: AgentConfig | None = None):
         if config is None:
             config = AgentConfig(
                 model="gpt-4o",
@@ -253,7 +253,7 @@ class GameDevelopmentAgent(BaseAgent):
         
         return state
         
-    def _determine_task_type(self, task: str, context: Dict[str, Any]) -> str:
+    def _determine_task_type(self, task: str, context: dict[str, Any]) -> str:
         """Determine the type of task being requested."""
         
         asset_type = context.get("asset_type", "")
@@ -279,7 +279,7 @@ class GameDevelopmentAgent(BaseAgent):
         else:
             return "complex"
             
-    def _identify_required_tools(self, task: str, context: Dict[str, Any]) -> List[str]:
+    def _identify_required_tools(self, task: str, context: dict[str, Any]) -> list[str]:
         """Identify required tools for the task."""
         
         tools = []
@@ -294,7 +294,7 @@ class GameDevelopmentAgent(BaseAgent):
             
         return tools
         
-    def _plan_execution(self, task: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _plan_execution(self, task: str, context: dict[str, Any]) -> dict[str, Any]:
         """Plan the execution strategy."""
         
         return {
@@ -304,7 +304,7 @@ class GameDevelopmentAgent(BaseAgent):
             "batch_processing": context.get("asset_type", "") != "test"
         }
         
-    def _calculate_quality_score(self, outputs: Dict[str, Any], errors: List[str]) -> float:
+    def _calculate_quality_score(self, outputs: dict[str, Any], errors: list[str]) -> float:
         """Calculate a quality score for the outputs."""
         
         base_score = 1.0
@@ -359,7 +359,7 @@ class PygameAgent(GameDevelopmentAgent):
     Pygame-specific agent for Python game development.
     """
     
-    def __init__(self, config: Optional[AgentConfig] = None):
+    def __init__(self, config: AgentConfig | None = None):
         super().__init__(config)
         
     async def _get_extended_instructions(self) -> str:

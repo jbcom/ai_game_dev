@@ -4,51 +4,18 @@ Supports OpenAI, Anthropic, Google Gemini, and local LLM providers
 with unified interface for game generation workflows.
 """
 
-from typing import Any, Dict, List, Optional, Union, Literal
-from dataclasses import dataclass
-from enum import Enum
 import os
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Literal, Union
 
-# LLM Provider imports with graceful fallbacks
-try:
-    from langchain_openai import ChatOpenAI
-    OPENAI_AVAILABLE = True
-except ImportError:
-    ChatOpenAI = None
-    OPENAI_AVAILABLE = False
-
-try:
-    from langchain_anthropic import ChatAnthropic
-    ANTHROPIC_AVAILABLE = True
-except ImportError:
-    ChatAnthropic = None
-    ANTHROPIC_AVAILABLE = False
-
-try:
-    from langchain_google_genai import ChatGoogleGenerativeAI
-    GOOGLE_AVAILABLE = True
-except ImportError:
-    ChatGoogleGenerativeAI = None
-    GOOGLE_AVAILABLE = False
-
-try:
-    from langchain_community.llms import Ollama
-    OLLAMA_AVAILABLE = True
-except ImportError:
-    Ollama = None
-    OLLAMA_AVAILABLE = False
-
-try:
-    from langchain_core.language_models import BaseLanguageModel
-    from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-    LANGCHAIN_CORE_AVAILABLE = True
-except ImportError:
-    BaseLanguageModel = None
-    BaseMessage = None
-    HumanMessage = None
-    SystemMessage = None
-    LANGCHAIN_CORE_AVAILABLE = False
+from langchain_anthropic import ChatAnthropic
+from langchain_community.llms import Ollama
+from langchain_core.language_models import BaseLanguageModel
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 
 
 class LLMProvider(Enum):
@@ -66,10 +33,10 @@ class ModelConfig:
     provider: LLMProvider
     model_name: str
     temperature: float = 0.7
-    max_tokens: Optional[int] = None
-    api_key: Optional[str] = None
-    base_url: Optional[str] = None
-    additional_params: Optional[Dict[str, Any]] = None
+    max_tokens: int | None = None
+    api_key: str | None = None
+    base_url: str | None = None
+    additional_params: dict[str, Any | None] = None
     
     def __post_init__(self):
         if self.additional_params is None:
@@ -81,7 +48,7 @@ class BaseLLMProvider(ABC):
     
     def __init__(self, config: ModelConfig):
         self.config = config
-        self._model: Optional[BaseLanguageModel] = None
+        self._model: BaseLanguageModel | None = None
     
     @abstractmethod
     def _create_model(self) -> BaseLanguageModel:
@@ -95,7 +62,7 @@ class BaseLLMProvider(ABC):
             self._model = self._create_model()
         return self._model
     
-    def invoke(self, messages: Union[str, List[BaseMessage]], **kwargs) -> str:
+    def invoke(self, messages: Union[str, list[BaseMessage]], **kwargs) -> str:
         """Invoke the model with messages."""
         if isinstance(messages, str):
             messages = [HumanMessage(content=messages)]
@@ -103,7 +70,7 @@ class BaseLLMProvider(ABC):
         response = self.model.invoke(messages, **kwargs)
         return response.content if hasattr(response, 'content') else str(response)
     
-    async def ainvoke(self, messages: Union[str, List[BaseMessage]], **kwargs) -> str:
+    async def ainvoke(self, messages: Union[str, list[BaseMessage]], **kwargs) -> str:
         """Async invoke the model with messages."""
         if isinstance(messages, str):
             messages = [HumanMessage(content=messages)]
@@ -204,8 +171,8 @@ class LLMProviderManager:
     }
     
     def __init__(self):
-        self._providers: Dict[str, BaseLLMProvider] = {}
-        self._default_provider: Optional[str] = None
+        self._providers: dict[str, BaseLLMProvider] = {}
+        self._default_provider: str | None = None
     
     def add_provider(
         self,
@@ -236,7 +203,7 @@ class LLMProviderManager:
         
         return provider
     
-    def get_provider(self, name: Optional[str] = None) -> BaseLLMProvider:
+    def get_provider(self, name: str | None = None) -> BaseLLMProvider:
         """Get a provider by name, or the default provider."""
         if name is None:
             name = self._default_provider
@@ -252,13 +219,13 @@ class LLMProviderManager:
             raise ValueError(f"Provider '{name}' not found")
         self._default_provider = name
     
-    def list_providers(self) -> List[str]:
+    def list_providers(self) -> list[str]:
         """List all configured provider names."""
         return list(self._providers.keys())
     
     def create_quick_setup(
         self,
-        preferred_providers: Optional[List[LLMProvider]] = None
+        preferred_providers: list[LLMProvider | None] = None
     ) -> "LLMProviderManager":
         """Create a quick setup with automatic provider detection."""
         
@@ -302,7 +269,7 @@ class LLMProviderManager:
     async def generate_with_fallback(
         self,
         prompt: str,
-        provider_names: Optional[List[str]] = None,
+        provider_names: list[str | None] = None,
         **kwargs
     ) -> str:
         """Generate text with automatic fallback between providers."""
@@ -329,7 +296,7 @@ class LLMProviderManager:
 # Convenience functions for quick setup
 def setup_openai(
     model: str = "gpt-4o-mini",
-    api_key: Optional[str] = None,
+    api_key: str | None = None,
     **kwargs
 ) -> OpenAIProvider:
     """Quick setup for OpenAI provider."""
@@ -344,7 +311,7 @@ def setup_openai(
 
 def setup_anthropic(
     model: str = "claude-3-5-sonnet-20241022", 
-    api_key: Optional[str] = None,
+    api_key: str | None = None,
     **kwargs
 ) -> AnthropicProvider:
     """Quick setup for Anthropic provider."""
@@ -359,7 +326,7 @@ def setup_anthropic(
 
 def setup_google(
     model: str = "gemini-1.5-flash",
-    api_key: Optional[str] = None,
+    api_key: str | None = None,
     **kwargs
 ) -> GoogleProvider:
     """Quick setup for Google provider."""

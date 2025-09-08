@@ -4,7 +4,7 @@ Proper LangGraph StateGraph workflow for visual asset generation using LangChain
 """
 
 from typing_extensions import TypedDict
-from typing import List, Dict, Any
+from typing import Any
 from pathlib import Path
 import requests
 
@@ -15,11 +15,11 @@ from langchain_community.tools.openai_dalle_image_generation import OpenAIDALLEI
 
 # State definition following LangGraph patterns
 class GraphicsState(TypedDict):
-    game_spec: Dict[str, Any]
-    asset_requests: List[Dict[str, str]]
-    generated_graphics: List[Dict[str, Any]]
-    failed_graphics: List[Dict[str, Any]]
-    final_output: Dict[str, Any]
+    game_spec: dict[str, Any]
+    asset_requests: list[dict[str, str]]
+    generated_graphics: list[dict[str, Any]]
+    failed_graphics: list[dict[str, Any]]
+    final_output: dict[str, Any]
 
 
 def prepare_asset_requests(state: GraphicsState) -> GraphicsState:
@@ -173,7 +173,7 @@ class GraphicsSubgraph:
         """Initialize the graphics subgraph."""
         pass  # No async initialization needed
     
-    async def generate_graphics(self, game_spec: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_graphics(self, game_spec: dict[str, Any]) -> dict[str, Any]:
         """Generate graphics using the LangGraph workflow."""
         
         try:

@@ -4,7 +4,7 @@ Proper LangGraph StateGraph workflow for dialogue and narrative generation
 """
 
 from typing_extensions import TypedDict
-from typing import Dict, Any, List
+from typing import Any
 from langchain_core.messages import HumanMessage
 from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, START, END
@@ -13,11 +13,11 @@ import os
 
 # State definition following LangGraph patterns
 class DialogueState(TypedDict):
-    game_spec: Dict[str, Any]
-    character_profiles: List[Dict[str, str]]
-    dialogue_categories: List[str]
-    generated_dialogue: Dict[str, Any]
-    final_output: Dict[str, Any]
+    game_spec: dict[str, Any]
+    character_profiles: list[dict[str, str]]
+    dialogue_categories: list[str]
+    generated_dialogue: dict[str, Any]
+    final_output: dict[str, Any]
 
 
 def analyze_dialogue_needs(state: DialogueState) -> DialogueState:
@@ -223,7 +223,7 @@ class DialogueSubgraph:
         """Initialize the dialogue subgraph."""
         pass  # No async initialization needed
     
-    async def generate_dialogue(self, game_spec: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_dialogue(self, game_spec: dict[str, Any]) -> dict[str, Any]:
         """Generate dialogue using the LangGraph workflow."""
         
         try:

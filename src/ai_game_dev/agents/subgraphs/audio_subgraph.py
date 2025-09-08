@@ -4,7 +4,7 @@ Proper LangGraph StateGraph workflow for audio specifications and sound design
 """
 
 from typing_extensions import TypedDict
-from typing import Dict, Any, List
+from typing import Any
 from langchain_core.messages import HumanMessage
 from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, START, END
@@ -12,13 +12,13 @@ from langgraph.graph import StateGraph, START, END
 
 # State definition following LangGraph patterns
 class AudioState(TypedDict):
-    game_spec: Dict[str, Any]
-    audio_categories: List[str]
-    music_specifications: Dict[str, Any]
-    sfx_specifications: Dict[str, Any]
-    voice_guidelines: Dict[str, Any]
-    technical_specs: Dict[str, Any]
-    final_output: Dict[str, Any]
+    game_spec: dict[str, Any]
+    audio_categories: list[str]
+    music_specifications: dict[str, Any]
+    sfx_specifications: dict[str, Any]
+    voice_guidelines: dict[str, Any]
+    technical_specs: dict[str, Any]
+    final_output: dict[str, Any]
 
 
 def analyze_audio_needs(state: AudioState) -> AudioState:
@@ -353,7 +353,7 @@ class AudioSubgraph:
         """Initialize the audio subgraph."""
         pass  # No async initialization needed
     
-    async def generate_audio_specs(self, game_spec: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_audio_specs(self, game_spec: dict[str, Any]) -> dict[str, Any]:
         """Generate audio specifications using the LangGraph workflow."""
         
         try:

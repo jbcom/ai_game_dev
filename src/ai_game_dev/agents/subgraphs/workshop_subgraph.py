@@ -3,7 +3,7 @@ Game Workshop Orchestration Subgraph
 Routes game specifications to appropriate engine and asset subgraphs
 """
 import asyncio
-from typing import Dict, Any, List, Optional
+from typing import Any
 from dataclasses import dataclass, field
 from langgraph.graph import StateGraph, END
 import json
@@ -27,21 +27,21 @@ class WorkshopState:
     # Input
     user_input: str = ""
     input_type: str = "description"  # "description" or "spec_upload"
-    uploaded_spec: Optional[Dict[str, Any]] = None
+    uploaded_spec: dict[str, Any | None] = None
     
     # Processing
-    game_spec: Dict[str, Any] = field(default_factory=dict)
+    game_spec: dict[str, Any] = field(default_factory=dict)
     engine: str = ""
     
     # Outputs
-    generated_code: Dict[str, str] = field(default_factory=dict)
-    generated_assets: Dict[str, List[Any]] = field(default_factory=dict)
-    project_structure: Dict[str, Any] = field(default_factory=dict)
+    generated_code: dict[str, str] = field(default_factory=dict)
+    generated_assets: dict[str, list[Any]] = field(default_factory=dict)
+    project_structure: dict[str, Any] = field(default_factory=dict)
     
     # Status
     stage: str = "initializing"
     progress: float = 0.0
-    errors: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
     complete: bool = False
 
 
@@ -273,7 +273,7 @@ class GameWorkshopSubgraph(BaseAgent):
         
         return state
     
-    async def _generate_graphics(self, spec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _generate_graphics(self, spec: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate graphics assets."""
         assets_needed = spec.get("assets_needed", {}).get("sprites", [])
         backgrounds = spec.get("assets_needed", {}).get("backgrounds", [])
@@ -312,7 +312,7 @@ class GameWorkshopSubgraph(BaseAgent):
         
         return results
     
-    async def _generate_audio(self, spec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _generate_audio(self, spec: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate audio assets."""
         audio_specs = spec.get("audio_specs", {})
         sound_effects = audio_specs.get("sound_effects", [])
@@ -353,7 +353,7 @@ class GameWorkshopSubgraph(BaseAgent):
         
         return results
     
-    async def _generate_dialogue(self, spec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _generate_dialogue(self, spec: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate dialogue content."""
         result = await self.dialogue_subgraph.process({
             "task": "generate_dialogue_tree",
@@ -363,7 +363,7 @@ class GameWorkshopSubgraph(BaseAgent):
         })
         return [result]
     
-    async def _generate_quests(self, spec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _generate_quests(self, spec: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate quest content."""
         result = await self.quest_subgraph.process({
             "task": "generate_quest_chain",
@@ -412,7 +412,7 @@ class GameWorkshopSubgraph(BaseAgent):
         
         return state
     
-    def _generate_instructions(self, state: WorkshopState) -> Dict[str, str]:
+    def _generate_instructions(self, state: WorkshopState) -> dict[str, str]:
         """Generate project setup and run instructions."""
         engine = state.engine
         
@@ -446,7 +446,7 @@ class GameWorkshopSubgraph(BaseAgent):
             current = current.parent
         return Path.cwd()  # Fallback to current directory
     
-    def _resolve_path(self, path_spec: str, path_config: Dict[str, Any]) -> Path:
+    def _resolve_path(self, path_spec: str, path_config: dict[str, Any]) -> Path:
         """Resolve a path based on specification configuration."""
         if path_config.get("use_relative_paths", True):
             # Relative to workspace root
@@ -455,7 +455,7 @@ class GameWorkshopSubgraph(BaseAgent):
             # Absolute path
             return Path(path_spec)
     
-    def _get_asset_path(self, spec: Dict[str, Any], asset_type: str, asset_name: str) -> Path:
+    def _get_asset_path(self, spec: dict[str, Any], asset_type: str, asset_name: str) -> Path:
         """Get the full path for an asset based on spec configuration."""
         paths = spec.get("paths", {})
         assets_base = paths.get("assets_base", "public/static/assets/generated")
@@ -467,7 +467,7 @@ class GameWorkshopSubgraph(BaseAgent):
         # Create full asset path: base/project_name/asset_type/asset_name
         return base_path / project_name / asset_type / asset_name
     
-    def _get_code_path(self, spec: Dict[str, Any]) -> Path:
+    def _get_code_path(self, spec: dict[str, Any]) -> Path:
         """Get the base path for generated code."""
         paths = spec.get("paths", {})
         code_base = paths.get("code_base", "generated_games")
@@ -479,7 +479,7 @@ class GameWorkshopSubgraph(BaseAgent):
         # Create full code path: base/project_name/
         return base_path / project_name
     
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process workshop request."""
         # Create initial state
         initial_state = WorkshopState(

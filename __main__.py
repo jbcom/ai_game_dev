@@ -3,14 +3,19 @@
 Production-ready entry point for AI Game Development Platform.
 Uses proper FastAPI + Jinja2 template architecture.
 """
-import sys
 import os
+import socket
 import sqlite3
+import subprocess
+import sys
 from pathlib import Path
+
+import chainlit
 
 # Add src to path for imports
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
+
 
 def init_player_db():
     """Initialize player database for user progression tracking."""
@@ -45,6 +50,7 @@ def init_player_db():
     conn.close()
     print(f"📊 Player database initialized at {db_path}")
 
+
 def main():
     """Main entry point using Chainlit for direct subgraph orchestration."""
     # Initialize player database
@@ -55,22 +61,10 @@ def main():
     print("🎮 Game Workshop | 🎓 Arcade Academy")
     print("📊 SQLite persistence enabled")
     
-    # Run Chainlit app
-    import subprocess
-    import sys
-    
-    try:
-        # Check if Chainlit is installed
-        import chainlit
-    except ImportError:
-        print("❌ Error: Chainlit is not installed!")
-        print("Please install it with: pip install chainlit")
-        print("Or run: hatch env create")
-        sys.exit(1)
+    # Get port from environment or use default
+    port = int(os.environ.get('AI_GAME_DEV_PORT', '8000'))
     
     # Check if port is available
-    import socket
-    port = 8000
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.bind(('127.0.0.1', port))
@@ -79,10 +73,6 @@ def main():
             print("Please stop any other services running on this port")
             print("Or set a different port with environment variable: AI_GAME_DEV_PORT=8001")
             sys.exit(1)
-    
-    # Get port from environment or use default
-    import os
-    port = int(os.environ.get('AI_GAME_DEV_PORT', '8000'))
     
     print(f"🌐 Opening http://localhost:{port}")
     print("")
@@ -99,11 +89,11 @@ def main():
         print(f"Exit code: {e.returncode}")
         if e.returncode == 1:
             print("This might be due to:")
-            print("  - Missing chainlit_app.py file")
+            print("  - Missing chainlit_custom_app.py file")
             print("  - Syntax errors in the application")
             print("  - Missing dependencies")
         print("\nTry running with debug mode:")
-        print(f"  chainlit run src/ai_game_dev/chainlit_app.py --port {port} --debug")
+        print(f"  chainlit run src/ai_game_dev/chainlit_custom_app.py --port {port} --debug")
         sys.exit(1)
     except FileNotFoundError:
         print("❌ Error: Python executable not found!")
@@ -116,6 +106,7 @@ def main():
         print(f"❌ Unexpected error: {e}")
         print("Please report this issue on GitHub")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

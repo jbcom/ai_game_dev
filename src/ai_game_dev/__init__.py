@@ -5,48 +5,23 @@ featuring multi-LLM support, comprehensive asset generation, and
 engine-specific TOML specifications.
 """
 
-# Core imports without dependency chains
-try:
-    from ai_game_dev.models import (
-        GameSpec,
-        GameEngine,
-        GameType,
-        ComplexityLevel
-    )
-    MODELS_AVAILABLE = True
-except ImportError:
-    MODELS_AVAILABLE = False
-
-try:
-    from ai_game_dev.providers import (
-        LLMProvider,
-        ModelConfig,
-        setup_openai,
-        setup_anthropic,
-        setup_google,
-        setup_ollama,
-        create_default_manager
-    )
-    PROVIDERS_AVAILABLE = True
-except ImportError:
-    PROVIDERS_AVAILABLE = False
-
-try:
-    from ai_game_dev.library import AIGameDev
-    LIBRARY_AVAILABLE = True
-except ImportError:
-    AIGameDev = None
-    LIBRARY_AVAILABLE = False
-
-# Audio tools
+from ai_game_dev.models import (
+    GameSpec,
+    GameEngine,
+    GameType,
+    ComplexityLevel
+)
+from ai_game_dev.providers import (
+    LLMProvider,
+    ModelConfig,
+    setup_openai,
+    setup_anthropic,
+    setup_google,
+    setup_ollama,
+    create_default_manager
+)
+from ai_game_dev.library import AIGameDev
 from ai_game_dev.audio import AudioTools
-
-# Cache and memory configuration available on demand
-
-# Asset management
-# Asset generation now handled by LangChain DALLE in subgraphs
-
-# Graphics and fonts
 from ai_game_dev.graphics import CC0Libraries
 from ai_game_dev.fonts import GoogleFonts
 
@@ -64,7 +39,6 @@ __all__ = [
     "ComplexityLevel",
     
     # LLM providers
-    "LLMProviderManager",
     "LLMProvider",
     "ModelConfig",
     "setup_openai",
@@ -73,12 +47,11 @@ __all__ = [
     "setup_ollama",
     "create_default_manager",
     
+    # Main library
+    "AIGameDev",
+    
     # Audio tools
     "AudioTools",
-    
-    # Asset tools
-    "AssetTools",
-    "ArchiveSeeder",
     
     # Graphics and fonts
     "CC0Libraries",
@@ -86,7 +59,7 @@ __all__ = [
     
     # Version
     "__version__",
-] + (["AIGameDev"] if AIGameDev is not None else [])
+]
 
 
 def get_version() -> str:

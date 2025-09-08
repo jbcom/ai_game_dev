@@ -2,35 +2,22 @@
 
 import json
 import sqlite3
-from pathlib import Path
-from typing import Any, TypedDict, Annotated
 from datetime import datetime
+from pathlib import Path
+from typing import Annotated, Any, TypedDict
 
-from langchain_core.messages import HumanMessage, BaseMessage
-from langchain_core.tools import tool, InjectedToolCallId
+from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.tools import InjectedToolCallId, tool
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END, START, MessagesState
-from langgraph.prebuilt import ToolNode, create_react_agent, InjectedState
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.graph import END, START, MessagesState, StateGraph
+from langgraph.prebuilt import InjectedState, ToolNode, create_react_agent
 from langgraph.types import Command
-try:
-    from langgraph.checkpoint.sqlite import SqliteSaver
-except ImportError:
-    try:
-        from langgraph_checkpoint.sqlite import SqliteSaver  
-    except ImportError:
-        # Fallback - create a simple state manager without checkpointing
-        SqliteSaver = None
 
-from ai_game_dev.engine_adapters import EngineAdapterManager
+from ai_game_assets import AssetTools, AudioTools
 from ai_game_dev.config import get_config
+from ai_game_dev.engine_adapters import EngineAdapterManager
 from ai_game_dev.logging_config import get_logger
-
-# Import asset generation tools from the separate package
-try:
-    from ai_game_assets import AudioTools, AssetTools
-except ImportError:
-    AudioTools = None
-    AssetTools = None
 
 logger = get_logger(__name__, component="langgraph_agents")
 

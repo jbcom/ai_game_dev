@@ -3,14 +3,15 @@ Startup asset generation system
 Ensures all required internal assets are generated idempotently on server start
 """
 import asyncio
-import json
-import toml
-from pathlib import Path
-from typing import Dict, List, Any
 import hashlib
+import json
+from pathlib import Path
+from typing import Any
 
-from ai_game_dev.agents.subgraphs import GraphicsSubgraph, AudioSubgraph
+import toml
+
 from ai_game_dev.agents.arcade_academy_agent import ArcadeAcademyAgent
+from ai_game_dev.agents.subgraphs import AudioSubgraph, GraphicsSubgraph
 from ai_game_dev.variants import InteractiveVariantSystem
 
 
@@ -49,7 +50,7 @@ class StartupAssetGenerator:
             current = current.parent
         return Path.cwd()  # Fallback to current directory
     
-    def _load_manifest(self) -> Dict[str, Any]:
+    def _load_manifest(self) -> dict[str, Any]:
         """Load asset generation manifest for idempotency."""
         if self.manifest_file.exists():
             with open(self.manifest_file, 'r') as f:
@@ -65,7 +66,7 @@ class StartupAssetGenerator:
         with open(self.manifest_file, 'w') as f:
             json.dump(self.manifest, f, indent=2)
     
-    def _get_asset_hash(self, spec: Dict[str, Any]) -> str:
+    def _get_asset_hash(self, spec: dict[str, Any]) -> str:
         """Generate hash for asset specification."""
         spec_str = json.dumps(spec, sort_keys=True)
         return hashlib.md5(spec_str.encode()).hexdigest()
@@ -219,7 +220,7 @@ class StartupAssetGenerator:
         for audio_spec in audio_assets:
             await self._generate_audio_if_needed(audio_spec)
     
-    async def _generate_platform_assets_from_unified(self, unified_spec: Dict[str, Any]):
+    async def _generate_platform_assets_from_unified(self, unified_spec: dict[str, Any]):
         """Generate all platform visual assets from unified specification."""
         print("🎨 Generating platform visual assets...")
         
@@ -269,7 +270,7 @@ class StartupAssetGenerator:
                     # Update manifest
                     self.manifest["generated_assets"][manifest_key] = spec_hash
     
-    async def _generate_platform_audio_from_unified(self, unified_spec: Dict[str, Any]):
+    async def _generate_platform_audio_from_unified(self, unified_spec: dict[str, Any]):
         """Generate all platform audio assets from unified specification."""
         print("🎵 Generating platform audio assets...")
         
@@ -318,7 +319,7 @@ class StartupAssetGenerator:
                     # Update manifest
                     self.manifest["generated_assets"][manifest_key] = spec_hash
     
-    async def _generate_platform_audio(self, audio_spec: Dict[str, Any]):
+    async def _generate_platform_audio(self, audio_spec: dict[str, Any]):
         """Generate all platform audio assets."""
         print("🎵 Generating platform audio assets...")
         
@@ -362,7 +363,7 @@ class StartupAssetGenerator:
                 # Update manifest
                 self.manifest["generated_assets"][manifest_key] = spec_hash
     
-    async def _generate_academy_rpg_from_unified(self, unified_spec: Dict[str, Any]):
+    async def _generate_academy_rpg_from_unified(self, unified_spec: dict[str, Any]):
         """Generate the complete Academy RPG from unified specification."""
         print("🎓 Generating NeoTokyo Code Academy RPG from unified spec...")
         
@@ -547,7 +548,7 @@ class StartupAssetGenerator:
         for game_spec in example_games:
             await self._generate_game_with_variants(game_spec)
     
-    async def _generate_game_with_variants(self, game_spec: Dict[str, Any]):
+    async def _generate_game_with_variants(self, game_spec: dict[str, Any]):
         """Generate a game with all its variants."""
         game_name = game_spec["name"]
         output_dir = self.examples_dir / game_name
@@ -591,7 +592,7 @@ class StartupAssetGenerator:
         
         print(f"✅ {game_name} generated with {len(variants)} variants")
     
-    async def _generate_base_game_code(self, game_spec: Dict[str, Any]) -> str:
+    async def _generate_base_game_code(self, game_spec: dict[str, Any]) -> str:
         """Generate base game code for a specification."""
         # This would use the appropriate engine agent
         # For now, return a template
@@ -601,7 +602,7 @@ class StartupAssetGenerator:
 # Auto-generated with variant support
 
 import {game_spec['engine']}
-from variants import load_variant_config
+        from ai_game_dev.variants import load_variant_config
 
 # Load feature flags
 config = load_variant_config('features.toml')
@@ -620,7 +621,7 @@ if __name__ == "__main__":
     game.run()
 """
     
-    async def _generate_asset_if_needed(self, asset_spec: Dict[str, Any], category: str):
+    async def _generate_asset_if_needed(self, asset_spec: dict[str, Any], category: str):
         """Generate an asset if it hasn't been generated yet."""
         asset_name = asset_spec["name"]
         asset_path = self.assets_dir / category / f"{asset_name}.png"
@@ -664,7 +665,7 @@ if __name__ == "__main__":
         
         print(f"✅ {asset_name} generated")
     
-    async def _generate_audio_if_needed(self, audio_spec: Dict[str, Any]):
+    async def _generate_audio_if_needed(self, audio_spec: dict[str, Any]):
         """Generate audio asset if needed."""
         audio_name = audio_spec["name"]
         audio_path = self.assets_dir / "audio" / f"{audio_name}.wav"

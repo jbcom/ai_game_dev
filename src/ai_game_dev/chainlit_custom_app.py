@@ -1,11 +1,12 @@
 """
 Enhanced Chainlit app with full HTMX-style UI
 """
-import chainlit as cl
-from pathlib import Path
-import json
 import asyncio
-from typing import Dict, Any, List, Optional
+import json
+from pathlib import Path
+from typing import Any
+
+import chainlit as cl
 
 # Import our components
 from ai_game_dev.agents.subgraphs import (
@@ -288,7 +289,7 @@ async def update_progress(stage: str, percent: int):
     })
 
 
-async def send_ui_update(data: Dict[str, Any]):
+async def send_ui_update(data: dict[str, Any]):
     """Send update to custom UI."""
     await cl.Message(
         content="",

@@ -2,7 +2,7 @@
 Arcade Academy Subgraph
 Extends Game Workshop with educational features and teachable moments
 """
-from typing import Dict, Any, List, Optional
+from typing import Any
 from dataclasses import dataclass, field
 import toml
 from pathlib import Path
@@ -13,9 +13,9 @@ from .workshop_subgraph import GameWorkshopSubgraph, WorkshopState
 @dataclass
 class AcademyState(WorkshopState):
     """Extended state for educational features."""
-    lesson_objectives: List[str] = field(default_factory=list)
-    teachable_moments: List[Dict[str, Any]] = field(default_factory=list)
-    player_progress: Dict[str, Any] = field(default_factory=dict)
+    lesson_objectives: list[str] = field(default_factory=list)
+    teachable_moments: list[dict[str, Any]] = field(default_factory=list)
+    player_progress: dict[str, Any] = field(default_factory=dict)
     educational_mode: bool = True
 
 
@@ -38,7 +38,7 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
         self.current_lesson = None
         self.lesson_plans = self._load_lesson_plans()
     
-    def _load_rpg_spec_from_unified(self) -> Dict[str, Any]:
+    def _load_rpg_spec_from_unified(self) -> dict[str, Any]:
         """Load the RPG specification from the unified platform spec."""
         # Find workspace root
         current = Path.cwd()
@@ -73,7 +73,7 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
                 }
             }
     
-    def _load_lesson_plans(self) -> Dict[str, Any]:
+    def _load_lesson_plans(self) -> dict[str, Any]:
         """Load educational lesson plans."""
         return {
             "variables": {
@@ -118,7 +118,7 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
             }
         }
     
-    async def start_academy_mode(self) -> Dict[str, Any]:
+    async def start_academy_mode(self) -> dict[str, Any]:
         """Initialize academy mode with the RPG game."""
         # Load RPG spec from unified TOML if not already loaded
         if self.rpg_spec is None:
@@ -140,7 +140,7 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
         
         return result
     
-    async def process_with_education(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_with_education(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process with educational features enabled."""
         # First run standard workshop process
         result = await self.process(inputs)
@@ -161,7 +161,7 @@ class ArcadeAcademySubgraph(GameWorkshopSubgraph):
         
         return result
     
-    def _inject_teachable_moments(self, project: Dict[str, Any], lesson_focus: str) -> Dict[str, Any]:
+    def _inject_teachable_moments(self, project: dict[str, Any], lesson_focus: str) -> dict[str, Any]:
         """Inject educational comments and interactive tutorials into code."""
         lesson = self.lesson_plans.get(lesson_focus, self.lesson_plans["variables"])
         
@@ -184,7 +184,7 @@ Follow along with Professor Pixel as we explore these concepts!
         
         return project
     
-    def _add_inline_education(self, code: str, lesson: Dict[str, Any]) -> str:
+    def _add_inline_education(self, code: str, lesson: dict[str, Any]) -> str:
         """Add inline educational comments to code."""
         lines = code.split('\n')
         modified_lines = []
@@ -216,7 +216,7 @@ Follow along with Professor Pixel as we explore these concepts!
         }
         return explanations.get(concept, f"Concept: {concept}")
     
-    def _extract_teachable_moments(self, project: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_teachable_moments(self, project: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract teachable moments from the generated project."""
         moments = []
         
@@ -240,7 +240,7 @@ Follow along with Professor Pixel as we explore these concepts!
         
         return moments
     
-    def _generate_exercises(self, lesson_focus: str) -> List[Dict[str, Any]]:
+    def _generate_exercises(self, lesson_focus: str) -> list[dict[str, Any]]:
         """Generate coding exercises for the lesson."""
         exercises = {
             "variables": [
@@ -265,7 +265,7 @@ Follow along with Professor Pixel as we explore these concepts!
         
         return exercises.get(lesson_focus, [])
     
-    def _generate_hints(self, lesson_focus: str) -> List[str]:
+    def _generate_hints(self, lesson_focus: str) -> list[str]:
         """Generate hints for the current lesson."""
         hints = {
             "variables": [
@@ -282,7 +282,7 @@ Follow along with Professor Pixel as we explore these concepts!
         
         return hints.get(lesson_focus, [])
     
-    def _get_player_progress(self) -> Dict[str, Any]:
+    def _get_player_progress(self) -> dict[str, Any]:
         """Get current player progress."""
         # This would connect to actual progress tracking
         return {

@@ -2,7 +2,7 @@
 Game Specification Builder Subgraph
 Converts user descriptions and engine choices into comprehensive game specifications
 """
-from typing import Dict, Any, List, Optional
+from typing import Any
 from dataclasses import dataclass, field
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
@@ -16,12 +16,12 @@ class GameSpecState:
     user_description: str = ""
     engine: str = "pygame"
     detected_genre: str = ""
-    detected_features: List[str] = field(default_factory=list)
+    detected_features: list[str] = field(default_factory=list)
     detected_art_style: str = "modern"
     complexity: str = "intermediate"
     target_audience: str = "general"
-    generated_spec: Dict[str, Any] = field(default_factory=dict)
-    validation_errors: List[str] = field(default_factory=list)
+    generated_spec: dict[str, Any] = field(default_factory=dict)
+    validation_errors: list[str] = field(default_factory=list)
     spec_complete: bool = False
 
 
@@ -284,7 +284,7 @@ class GameSpecSubgraph(BaseAgent):
         state.spec_complete = True
         return state
     
-    def _generate_mechanics(self, state: GameSpecState) -> Dict[str, Any]:
+    def _generate_mechanics(self, state: GameSpecState) -> dict[str, Any]:
         """Generate detailed game mechanics based on genre and features."""
         mechanics = {}
         
@@ -324,7 +324,7 @@ class GameSpecSubgraph(BaseAgent):
         
         return mechanics
     
-    def _generate_asset_requirements(self, state: GameSpecState) -> Dict[str, List[str]]:
+    def _generate_asset_requirements(self, state: GameSpecState) -> dict[str, list[str]]:
         """Generate comprehensive asset requirements."""
         assets = {
             "sprites": [],
@@ -384,7 +384,7 @@ class GameSpecSubgraph(BaseAgent):
         else:
             return 6  # Multiple level themes
     
-    def _get_sound_effects_list(self, state: GameSpecState) -> List[str]:
+    def _get_sound_effects_list(self, state: GameSpecState) -> list[str]:
         """Generate list of required sound effects."""
         effects = ["ui_click", "ui_hover", "pause", "unpause"]
         
@@ -396,7 +396,7 @@ class GameSpecSubgraph(BaseAgent):
             
         return effects
     
-    def _get_hud_elements(self, state: GameSpecState) -> List[str]:
+    def _get_hud_elements(self, state: GameSpecState) -> list[str]:
         """Determine HUD elements based on game type."""
         elements = []
         
@@ -411,7 +411,7 @@ class GameSpecSubgraph(BaseAgent):
             
         return elements
     
-    def _get_control_scheme(self, state: GameSpecState) -> Dict[str, str]:
+    def _get_control_scheme(self, state: GameSpecState) -> dict[str, str]:
         """Define control scheme based on game type."""
         if state.detected_genre == "platformer":
             return {
@@ -460,7 +460,7 @@ class GameSpecSubgraph(BaseAgent):
         sanitized = re.sub(r'[-\s]+', '_', sanitized)
         return sanitized[:50]  # Limit length
     
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process game specification request."""
         # Create initial state
         initial_state = GameSpecState(

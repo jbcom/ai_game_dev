@@ -4,7 +4,7 @@ Proper LangGraph StateGraph workflow for quest design and progression systems
 """
 
 from typing_extensions import TypedDict
-from typing import Dict, Any, List
+from typing import Any
 from langchain_core.messages import HumanMessage
 from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, START, END
@@ -12,13 +12,13 @@ from langgraph.graph import StateGraph, START, END
 
 # State definition following LangGraph patterns
 class QuestState(TypedDict):
-    game_spec: Dict[str, Any]
-    quest_categories: List[str]
-    main_quests: List[Dict[str, Any]]
-    side_quests: List[Dict[str, Any]]
-    tutorial_quests: List[Dict[str, Any]]
-    progression_system: Dict[str, Any]
-    final_output: Dict[str, Any]
+    game_spec: dict[str, Any]
+    quest_categories: list[str]
+    main_quests: list[dict[str, Any]]
+    side_quests: list[dict[str, Any]]
+    tutorial_quests: list[dict[str, Any]]
+    progression_system: dict[str, Any]
+    final_output: dict[str, Any]
 
 
 def analyze_quest_requirements(state: QuestState) -> QuestState:
@@ -294,7 +294,7 @@ class QuestSubgraph:
         """Initialize the quest subgraph."""
         pass  # No async initialization needed
     
-    async def generate_quests(self, game_spec: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_quests(self, game_spec: dict[str, Any]) -> dict[str, Any]:
         """Generate quests using the LangGraph workflow."""
         
         try:
