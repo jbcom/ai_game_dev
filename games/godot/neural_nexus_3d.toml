@@ -57,7 +57,7 @@ shader_playground = true
 physics_sandbox = true
 
 [game.assets]
-# 3D models for Godot (these would be .glb/.gltf files in reality)
+# 3D models for Godot - generated using Point-E
 models.player = "generated/models/data_architect.glb"
 models.companion = "generated/models/professor_pixel_3d.glb"
 models.enemies = [
@@ -76,6 +76,21 @@ models.tools = [
     "generated/models/code_injector.glb",
     "generated/models/shader_brush.glb"
 ]
+
+# Model generation specs for Point-E
+[game.assets.model_specs]
+data_architect = {description = "futuristic cyberpunk character in digital armor with holographic visor", style = "stylized"}
+professor_pixel_3d = {description = "friendly holographic AI professor made of glowing pixels", style = "stylized"}
+corrupt_neuron = {description = "corrupted digital brain cell with glitch effects", style = "stylized"}
+rogue_process = {description = "abstract digital entity made of code fragments", style = "lowpoly"}
+memory_leak_entity = {description = "flowing liquid-like digital creature", style = "stylized"}
+neural_node = {description = "glowing spherical network node with connections", style = "lowpoly"}
+synapse_bridge = {description = "energy bridge connecting two points", style = "stylized"}
+data_crystal_3d = {description = "floating crystalline data storage device", style = "lowpoly"}
+firewall_barrier = {description = "geometric shield barrier with hexagonal pattern", style = "lowpoly"}
+debug_scanner = {description = "handheld holographic scanning device", style = "stylized"}
+code_injector = {description = "futuristic syringe-like programming tool", style = "stylized"}
+shader_brush = {description = "digital paintbrush that creates shader effects", style = "stylized"}
 
 # Textures for 3D models
 textures.neural = [

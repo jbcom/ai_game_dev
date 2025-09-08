@@ -10,8 +10,13 @@ from typing import Dict, Any, List
 
 from ai_game_dev.agent import create_game, create_educational_game
 from ai_game_dev.graphics import generate_game_sprite, generate_ui_pack, generate_game_background
+try:
+    from ai_game_dev.graphics import generate_3d_model, generate_game_3d_asset
+    HAS_3D = True
+except ImportError:
+    HAS_3D = False
 from ai_game_dev.audio import generate_sound_effect, generate_background_music
-from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR, PLATFORM_SPEC_PATH, ASSETS_DIR
+from ai_game_dev.constants import GENERATED_ASSETS_DIR, GAMES_DIR, PLATFORM_SPEC_PATH, ASSETS_DIR
 from ai_game_dev.text import get_rpg_specification
 from ai_game_dev.assets.asset_registry import get_asset_registry
 from ai_game_dev.specs.game_spec_loader import load_platform_specs
@@ -114,7 +119,7 @@ class StartupGenerator:
     
     def __init__(self):
         self.assets_dir = Path(GENERATED_ASSETS_DIR)
-        self.games_dir = Path(GENERATED_GAMES_DIR)
+        self.games_dir = Path(GAMES_DIR)
         self.specs_dir = Path("src/ai_game_dev/specs")
         self.manifest_path = self.assets_dir / "manifest.json"
         self.platform_spec = self._load_platform_spec()
@@ -351,6 +356,10 @@ class StartupGenerator:
                     output_dir = game_spec.get_absolute_save_path()
                     output_dir.mkdir(parents=True, exist_ok=True)
                     
+                    # Check if this game needs 3D models
+                    if game_spec.engine == "godot" and HAS_3D and "model_specs" in game_spec.assets:
+                        await self._generate_3d_models_for_game(manifest, game_spec)
+                    
                     # Create full game specification
                     full_spec = {
                         "title": game_spec.title,
@@ -489,6 +498,60 @@ class StartupGenerator:
                             "generated": True,
                             "platform_asset": True
                         }
+    
+    async def _generate_3d_models_for_game(self, manifest: Dict[str, Any], game_spec):
+        """Generate 3D models for games that need them."""
+        print("🎨 Generating 3D models...")
+        
+        # Get asset registry
+        registry = get_asset_registry()
+        
+        models_dir = self.assets_dir / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        
+        for model_name, model_info in game_spec.assets.get("model_specs", {}).items():
+            asset_key = f"3d_model_{model_name}"
+            
+            if asset_key not in manifest.get("assets", {}):
+                print(f"  Creating 3D model: {model_name}")
+                
+                try:
+                    result = await generate_game_3d_asset(
+                        asset_type="prop",  # Default type
+                        name=model_name,
+                        style=model_info.get("style", "stylized"),
+                        save_path=str(models_dir / f"{model_name}.glb")
+                    )
+                    
+                    if result['success']:
+                        # Register in asset registry
+                        asset_path = f"/public/static/assets/generated/models/{model_name}.glb"
+                        registry.register_asset(
+                            name=model_name,
+                            path=asset_path,
+                            asset_type="models",
+                            category="3d",
+                            generated=True,
+                            metadata={
+                                "vertices": result.get("vertices"),
+                                "faces": result.get("faces"),
+                                "engine": game_spec.engine
+                            }
+                        )
+                        
+                        manifest["assets"][asset_key] = {
+                            "type": "3d_model",
+                            "name": model_name,
+                            "path": str(models_dir / f"{model_name}.glb"),
+                            "generated": True,
+                            "vertices": result.get("vertices"),
+                            "faces": result.get("faces")
+                        }
+                    else:
+                        print(f"    ⚠️  Failed to generate 3D model {model_name}: {result.get('error')}")
+                        
+                except Exception as e:
+                    print(f"    ❌ Error generating 3D model {model_name}: {e}")
 
 
 async def run_startup_generation():

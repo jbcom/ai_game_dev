@@ -14,6 +14,17 @@ from ai_game_dev.graphics.tool import (
     generate_complete_graphics_pack,
 )
 
+# Import 3D capabilities if available
+try:
+    from ai_game_dev.graphics.point_cloud_3d import (
+        generate_3d_model,
+        generate_game_3d_asset,
+        generate_3d_sprite_sheet
+    )
+    _3D_AVAILABLE = True
+except ImportError:
+    _3D_AVAILABLE = False
+
 __all__ = [
     "CC0Libraries",
     "ImageProcessor",
@@ -24,3 +35,11 @@ __all__ = [
     "process_game_image",
     "generate_complete_graphics_pack",
 ]
+
+# Add 3D tools if available
+if _3D_AVAILABLE:
+    __all__.extend([
+        "generate_3d_model",
+        "generate_game_3d_asset",
+        "generate_3d_sprite_sheet"
+    ])

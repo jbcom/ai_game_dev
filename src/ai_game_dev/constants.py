@@ -7,7 +7,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 PUBLIC_DIR = PROJECT_ROOT / "public"
 ASSETS_DIR = PUBLIC_DIR / "static" / "assets"
 GENERATED_ASSETS_DIR = ASSETS_DIR / "generated"
-GENERATED_GAMES_DIR = PROJECT_ROOT / "generated_games"
+GAMES_DIR = PROJECT_ROOT / "games"
 
 # OpenAI Model Configuration
 OPENAI_MODELS = {
