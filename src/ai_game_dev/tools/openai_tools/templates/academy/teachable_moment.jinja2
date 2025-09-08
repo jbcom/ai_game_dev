@@ -1,0 +1,26 @@
+Identify a teachable moment in the following game development context:
+
+Current Task: {{ current_task }}
+Student Level: {{ student_level | default("Beginner") }}
+Learning Objective: {{ learning_objective }}
+Code Context:
+```{{ language | default("python") }}
+{{ code_snippet }}
+```
+
+Create an educational intervention that:
+1. Identifies the key concept to teach
+2. Explains why this is important
+3. Provides a clear, concise explanation
+4. Shows a practical example
+5. Suggests a mini-challenge to reinforce learning
+6. Connects to broader programming concepts
+
+{% if previous_concepts %}
+Build upon these previously learned concepts:
+{% for concept in previous_concepts %}
+- {{ concept }}
+{% endfor %}
+{% endif %}
+
+Format the response as an interactive dialogue with Professor Pixel, maintaining an encouraging and engaging tone suitable for {{ student_level }} learners.

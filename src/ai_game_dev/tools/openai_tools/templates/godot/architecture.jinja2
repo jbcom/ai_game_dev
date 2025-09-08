@@ -1,0 +1,34 @@
+You are an expert Godot 4 game developer. Design the architecture for a {{ game_type }} game:
+
+Game Title: {{ game_title }}
+Description: {{ game_description }}
+Dimensions: {{ "3D" if is_3d else "2D" }}
+Target Platform: {{ target_platform | default("Desktop") }}
+
+{% if features %}
+Core Features:
+{% for feature in features %}
+- {{ feature }}
+{% endfor %}
+{% endif %}
+
+Please provide:
+1. Scene tree structure and organization
+2. Node hierarchy for main gameplay
+3. Signal/event system design
+4. Resource management approach
+5. GDScript class structure
+6. State machine implementation
+7. UI/HUD scene organization
+8. Autoload/singleton services
+
+{% if multiplayer %}
+9. Multiplayer architecture using Godot's networking
+{% endif %}
+
+Focus on:
+- Godot 4 best practices
+- Efficient scene instancing
+- Proper use of @export variables
+- Clean signal connections
+- Performance considerations for {{ target_platform }}

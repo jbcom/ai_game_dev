@@ -1,0 +1,35 @@
+You are an expert Rust/Bevy game developer. Design the ECS architecture for a {{ game_type }} game:
+
+Game Title: {{ game_title }}
+Description: {{ game_description }}
+Target Performance: {{ target_fps | default(60) }} FPS
+Build Target: {{ build_target | default("native") }}
+
+{% if features %}
+Required Systems:
+{% for feature in features %}
+- {{ feature }}
+{% endfor %}
+{% endif %}
+
+Design the following:
+1. Component structure (data-oriented design)
+2. System organization and execution order
+3. Resource management
+4. Plugin architecture
+5. State management with Bevy States
+6. Event system design
+7. Asset loading pipeline
+8. Rendering pipeline customization
+
+{% if networking %}
+9. Networking architecture (using bevy_replicon or similar)
+{% endif %}
+
+Focus on:
+- ECS best practices
+- System parallelization
+- Efficient queries
+- Proper use of Bevy's scheduling
+- Memory-efficient component design
+- {{ "WASM compatibility" if build_target == "wasm" else "Native performance" }}

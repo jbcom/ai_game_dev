@@ -1,0 +1,38 @@
+Create a structured lesson plan for teaching: {{ topic }}
+
+Course: {{ course_name | default("Game Development Fundamentals") }}
+Duration: {{ duration | default("45 minutes") }}
+Prerequisites: {{ prerequisites | join(", ") if prerequisites else "None" }}
+
+Learning Objectives:
+{% for objective in learning_objectives %}
+- {{ objective }}
+{% endfor %}
+
+Generate:
+1. Introduction (5 min)
+   - Hook to engage students
+   - Real-world relevance
+   - Learning goals overview
+
+2. Concept Explanation (15 min)
+   - Core concepts breakdown
+   - Visual analogies
+   - Code examples in {{ language | default("Python") }}
+
+3. Guided Practice (15 min)
+   - Step-by-step exercise
+   - Common pitfalls to avoid
+   - Best practices
+
+4. Independent Challenge (10 min)
+   - Creative coding challenge
+   - Multiple difficulty levels
+   - Extension opportunities
+
+5. Wrap-up (5 min)
+   - Key takeaways
+   - Connection to next lesson
+   - Resources for further learning
+
+Include interactive elements and checkpoints for understanding throughout.

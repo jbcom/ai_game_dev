@@ -1,6 +1,6 @@
 """
 OpenAI image generation tools for game assets.
-Uses DALL-E 3 for high-quality game art generation.
+Uses GPT-Image-1 (DALL-E 3) for high-quality game art generation.
 """
 from pathlib import Path
 from typing import Literal
@@ -53,7 +53,7 @@ async def generate_game_asset(
     prompt = prompts.get(asset_type, f"Game asset: {description}, {art_style} style")
     
     response = await client.images.generate(
-        model="dall-e-3",
+        model="gpt-image-1",  # Using the latest image model
         prompt=prompt,
         size=size,
         quality="hd",

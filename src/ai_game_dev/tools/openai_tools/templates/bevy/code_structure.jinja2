@@ -1,0 +1,56 @@
+Generate a complete Bevy {{ bevy_version | default("0.12") }} project for: {{ game_title }}
+
+ECS Architecture:
+{{ architecture_summary }}
+
+Create the following Rust module structure:
+
+```
+src/
+├── main.rs          // App setup and plugin registration
+├── lib.rs           // Library root (if needed)
+├── components/
+│   ├── mod.rs
+│   ├── player.rs    // Player components
+│   ├── physics.rs   // Physics components
+│   └── game.rs      // Game-specific components
+├── systems/
+│   ├── mod.rs
+│   ├── movement.rs  // Movement systems
+│   ├── input.rs     // Input handling
+│   ├── rendering.rs // Custom rendering
+│   └── gameplay.rs  // Core gameplay
+├── resources/
+│   ├── mod.rs
+│   └── game_state.rs
+├── plugins/
+│   ├── mod.rs
+│   ├── game.rs      // Main game plugin
+│   └── ui.rs        // UI plugin
+└── states/
+    ├── mod.rs
+    └── game_states.rs
+```
+
+Cargo.toml dependencies:
+- bevy = "{{ bevy_version | default("0.12") }}"
+- bevy-inspector-egui (for debugging)
+{% if physics_2d %}
+- bevy_rapier2d
+{% endif %}
+{% if networking %}
+- bevy_replicon
+{% endif %}
+
+Implementation requirements:
+- Use Bevy's built-in features effectively
+- Implement proper system sets and ordering
+- Use Resources for shared state
+- Events for decoupled communication
+- Proper asset handling with AssetServer
+- Type-safe component bundles
+
+{% if special_features %}
+Special Features:
+{{ special_features }}
+{% endif %}
