@@ -8,12 +8,12 @@ from typing import Any, Dict, List, Literal
 from agents import function_tool
 from openai import AsyncOpenAI
 
-from ai_game_dev.constants import OPENAI_API_KEY, OPENAI_MODELS
+from ai_game_dev.constants import OPENAI_MODELS
 from ai_game_dev.templates import TemplateLoader
 from ai_game_dev.assets.asset_registry import get_asset_registry
 
 # Initialize components
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI()  # Will use OPENAI_API_KEY env var automatically
 template_loader = TemplateLoader()
 
 
