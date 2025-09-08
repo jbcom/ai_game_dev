@@ -62,7 +62,7 @@ async def generate_game(game_spec_path: Path, output_dir: Optional[Path] = None)
     from ai_game_dev.specs.game_spec_loader import load_game_spec
     from ai_game_dev.agent import create_game, create_educational_game
     from ai_game_dev.assets.asset_registry import get_asset_registry
-    from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
+    from ai_game_dev.cache import initialize_sqlite_cache_and_memory
     
     # Initialize cache
     initialize_sqlite_cache_and_memory()
@@ -156,7 +156,7 @@ async def generate_assets(assets_spec_path: Path, output_dir: Optional[Path] = N
     from ai_game_dev.graphics import generate_game_sprite, generate_game_background
     from ai_game_dev.audio import generate_sound_effect, generate_background_music
     from ai_game_dev.assets.asset_registry import get_asset_registry
-    from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
+    from ai_game_dev.cache import initialize_sqlite_cache_and_memory
     
     # Initialize cache
     initialize_sqlite_cache_and_memory()

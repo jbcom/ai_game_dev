@@ -1,1 +1,0 @@
-"""Example game generation module integrated with Hatch build system."""

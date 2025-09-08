@@ -14,11 +14,11 @@ from ai_game_dev.agent import (
     workshop_agent,
     academy_agent,
 )
-from ai_game_dev.graphics import generate_game_sprite, generate_game_background, generate_ui_pack
+from ai_game_dev.graphics import generate_sprite, generate_background, generate_ui_elements
 from ai_game_dev.audio import generate_sound_effect, generate_background_music, generate_voice_acting
 from ai_game_dev.fonts import generate_text_assets
 from ai_game_dev.variants import generate_mechanic_variants
-from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
+from ai_game_dev.cache import initialize_sqlite_cache_and_memory
 from ai_game_dev.project_manager import ProjectManager
 from ai_game_dev.constants import CHAINLIT_CONFIG
 # Startup generation now handled via Justfile
@@ -268,9 +268,8 @@ async def generate_game_workshop(state: Dict[str, Any]):
     sprite_names = determine_sprites_needed(state["description"], state["engine"])
     
     for sprite_name in sprite_names[:3]:  # Limit to 3 main sprites
-        sprite = await generate_game_sprite(
-            name=sprite_name,
-            description=f"{sprite_name} for {state['description']}",
+        sprite = await generate_sprite(
+            object_name=sprite_name,
             style="pixel" if state["engine"] == "pygame" else "cartoon",
             save_path=f"temp/{sprite_name}.png"
         )
@@ -281,7 +280,7 @@ async def generate_game_workshop(state: Dict[str, Any]):
     await msg.update(content="🎨 Creating backgrounds...")
     await send_progress_update("Designing game environments...", 55)
     
-    background = await generate_game_background(
+    background = await generate_background(
         scene=extract_scene_from_description(state["description"]),
         style="pixel" if state["engine"] == "pygame" else "painted",
         save_path="temp/background.png"
@@ -292,8 +291,8 @@ async def generate_game_workshop(state: Dict[str, Any]):
     await msg.update(content="🎨 Designing UI elements...")
     await send_progress_update("Creating user interface...", 70)
     
-    ui_pack = await generate_ui_pack(
-        theme=extract_theme_from_description(state["description"]),
+    ui_pack = await generate_ui_elements(
+        ui_theme=extract_theme_from_description(state["description"]),
         style="retro" if state["engine"] == "pygame" else "modern",
         save_dir="temp/ui"
     )
