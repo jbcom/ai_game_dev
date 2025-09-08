@@ -1,0 +1,24 @@
+{
+  "name": "AI Game Development Platform",
+  "language": "python3",
+  "description": "Educational game development platform with Chainlit UI, LangGraph orchestration, and integrated code generation",
+  "tags": ["ai", "game-development", "education", "langchain", "chainlit"],
+  "iconUrl": "https://raw.githubusercontent.com/replit/polygott/master/languages/python3.svg",
+  "categories": ["education", "ai", "games"],
+  "env": {
+    "AI_GAME_DEV_PORT": {
+      "description": "Port for the Chainlit server",
+      "default": "8000"
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API key for AI features",
+      "required": true,
+      "secret": true
+    },
+    "ANTHROPIC_API_KEY": {
+      "description": "Anthropic API key (optional)",
+      "required": false,
+      "secret": true
+    }
+  }
+}
