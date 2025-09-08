@@ -91,6 +91,20 @@ async def generate_sprite(
             async with aiofiles.open(path, 'wb') as f:
                 await f.write(img_response.content)
         
+        # Post-process with Pillow
+        processor = ImageProcessor()
+        img = Image.open(path)
+        
+        # Remove excess transparency for sprites
+        img = processor.remove_excess_transparency(img, padding=2)
+        
+        # Resize to target size if different from 1024x1024
+        if size != "1024x1024":
+            img = processor.resize_with_padding(img, (width, height))
+        
+        # Optimize and save
+        img.save(path, "PNG", optimize=True)
+        
         return GeneratedImage(
             type="sprite",
             description=f"{art_style} sprite of {object_name}",
@@ -328,6 +342,107 @@ async def generate_ui_elements(
         ))
     
     return results
+
+
+@function_tool
+async def find_or_generate_sprite(
+    object_name: str,
+    prefer_cc0: bool = True,
+    art_style: str = "pixel",
+    save_path: str | None = None,
+) -> GeneratedImage:
+    """Find a CC0 sprite or generate one if not found.
+    
+    Args:
+        object_name: Name of the sprite to find/generate
+        prefer_cc0: Try to find CC0 assets first
+        art_style: Art style if generating
+        save_path: Path to save the sprite
+        
+    Returns:
+        GeneratedImage from CC0 or AI generation
+    """
+    if prefer_cc0:
+        async with CC0Libraries() as cc0:
+            results = await cc0.search_assets(object_name, category="sprites")
+            if results:
+                # Found CC0 asset
+                asset = results[0]
+                if save_path:
+                    downloaded = await cc0.download_asset_pack(asset, Path(save_path).parent)
+                    return GeneratedImage(
+                        type="sprite",
+                        description=f"CC0 {asset['description']}",
+                        path=str(downloaded) if downloaded else None,
+                        size=(128, 128),  # Default CC0 sprite size
+                        url=asset.get('download_url')
+                    )
+    
+    # No CC0 found or not preferred - generate with AI
+    return await generate_sprite(
+        object_name=object_name,
+        art_style=art_style,
+        save_path=save_path
+    )
+
+
+@function_tool
+async def process_spritesheet(
+    image_path: str,
+    sprite_width: int,
+    sprite_height: int,
+    output_dir: str | None = None,
+) -> dict[str, Any]:
+    """Process a spritesheet into individual sprites.
+    
+    Args:
+        image_path: Path to the spritesheet
+        sprite_width: Width of each sprite
+        sprite_height: Height of each sprite
+        output_dir: Directory to save individual sprites
+        
+    Returns:
+        Dict with paths to individual sprites
+    """
+    processor = ImageProcessor()
+    img = Image.open(image_path)
+    
+    sprites = []
+    cols = img.width // sprite_width
+    rows = img.height // sprite_height
+    
+    output_dir = Path(output_dir) if output_dir else Path(image_path).parent / "sprites"
+    output_dir.mkdir(exist_ok=True)
+    
+    for row in range(rows):
+        for col in range(cols):
+            # Extract sprite
+            left = col * sprite_width
+            top = row * sprite_height
+            right = left + sprite_width
+            bottom = top + sprite_height
+            
+            sprite = img.crop((left, top, right, bottom))
+            
+            # Remove excess transparency
+            sprite = processor.remove_excess_transparency(sprite, padding=1)
+            
+            # Save sprite
+            sprite_path = output_dir / f"sprite_{row}_{col}.png"
+            sprite.save(sprite_path, "PNG", optimize=True)
+            
+            sprites.append({
+                "path": str(sprite_path),
+                "row": row,
+                "col": col,
+                "index": row * cols + col
+            })
+    
+    return {
+        "sprites": sprites,
+        "total": len(sprites),
+        "grid": {"rows": rows, "cols": cols}
+    }
 
 
 @function_tool

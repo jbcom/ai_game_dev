@@ -1,9 +1,9 @@
 """
 OpenAI function tools for audio generation.
+Integrates TTS, music generation, and Freesound API.
 """
-import asyncio
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any
 
 import aiofiles
 import httpx
@@ -13,6 +13,9 @@ from pydantic import BaseModel
 from agents import function_tool
 
 from ai_game_dev.constants import OPENAI_MODELS
+from ai_game_dev.audio.tts_generator import TTSGenerator
+from ai_game_dev.audio.music_generator import MusicGenerator
+from ai_game_dev.audio.freesound_client import FreesoundClient
 
 
 class GeneratedAudio(BaseModel):
