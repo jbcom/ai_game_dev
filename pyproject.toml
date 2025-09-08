@@ -47,6 +47,13 @@ dependencies = [
     "toml>=0.10.0",
     # Async performance
     "uvloop>=0.20.0; platform_system != 'Windows'",
+    # LangChain dependencies (for legacy code)
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-community>=0.3.0",
+    "langchain-openai>=0.3.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-google-genai>=0.3.0",
 ]
 
 [project.optional-dependencies]
