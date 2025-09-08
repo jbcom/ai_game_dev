@@ -278,3 +278,76 @@ a:hover {
     filter: drop-shadow(0 0 10px var(--primary-pink));
     transform: scale(1.1);
 }
+/* Progress bars */
+.progress {
+    background: rgba(0, 255, 255, 0.1);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Engine selection */
+.engine-icon-placeholder {
+    text-align: center;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid rgba(0, 255, 255, 0.2);
+    margin-bottom: 1rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: #00ffff;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #00ffff;
+}
+
+.tab-btn:hover {
+    color: #00ffff;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Upload area */
+.upload-area {
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: rgba(0, 255, 255, 0.6);
+    background: rgba(0, 255, 255, 0.05);
+}

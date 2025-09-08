@@ -1,0 +1,58 @@
+# Example Platformer Game Specification
+
+[game]
+title = "Pixel Jump Adventure"
+engine = "pygame"
+type = "platformer"
+version = "1.0.0"
+save_path = "generated_games/pixel_jump_adventure"
+
+[game.description]
+short = "A classic 2D platformer with jumping mechanics"
+full = "Jump through colorful levels collecting gems and avoiding enemies in this retro-style platformer"
+
+[game.features]
+movement = "run and jump"
+collectibles = true
+enemies = true
+power_ups = true
+level_progression = "linear"
+
+[game.assets]
+# Relative to public/static/assets/
+sprites.player = "generated/sprites/characters/pixel_hero.png"
+sprites.enemies = ["generated/sprites/game_elements/enemy_slime.png"]
+sprites.items = [
+    "generated/sprites/game_elements/collectible_gem.png",
+    "generated/sprites/game_elements/powerup_star.png"
+]
+sprites.tiles = ["generated/sprites/game_elements/platform_tile.png"]
+sprites.effects = ["generated/sprites/effects/sparkle.png"]
+
+backgrounds = ["generated/backgrounds/environments/colorful_hills.png"]
+
+audio.effects = {
+    jump = "generated/audio/gameplay/jump.wav",
+    collect = "generated/audio/gameplay/collect.wav",
+    damage = "generated/audio/gameplay/damage.wav",
+    powerup = "generated/audio/gameplay/levelup.wav"
+}
+
+audio.ui = {
+    click = "audio/button_click_futuristic.wav",
+    success = "audio/success_ding_pleasant.wav"
+}
+
+[game.levels]
+count = 5
+themes = ["grassland", "desert", "ice", "volcano", "sky"]
+
+[game.mechanics]
+[game.mechanics.player]
+jump_height = 150
+move_speed = 200
+lives = 3
+
+[game.mechanics.physics]
+gravity = 800
+terminal_velocity = 500

@@ -22,6 +22,8 @@ from ai_game_dev.cache_config import initialize_sqlite_cache_and_memory
 from ai_game_dev.project_manager import ProjectManager
 from ai_game_dev.constants import CHAINLIT_CONFIG
 from ai_game_dev.startup import run_startup_generation
+from ai_game_dev.specs.game_spec_loader import GameSpecLoader, GameSpec
+from ai_game_dev.assets.asset_registry import get_asset_registry
 
 # Initialize components
 initialize_sqlite_cache_and_memory()
@@ -133,6 +135,68 @@ async def handle_workshop_message(message: cl.Message):
     state = cl.user_session.get("workshop_state")
     stage = state["stage"]
     
+    # Handle spec upload
+    if message.content == "spec_upload":
+        state["stage"] = "spec_upload"
+        cl.user_session.set("workshop_state", state)
+        await cl.Message(
+            content="📄 Ready to receive your game specification. Please send the spec content."
+        ).send()
+        return
+    
+    if stage == "spec_upload":
+        # Handle spec file content
+        try:
+            spec_data = json.loads(message.content)
+            if spec_data.get("type") == "game_spec":
+                # Parse the spec
+                loader = GameSpecLoader()
+                
+                # Save spec content to temporary file
+                import tempfile
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
+                    f.write(spec_data["content"])
+                    temp_path = f.name
+                
+                try:
+                    game_spec = loader.load_spec(temp_path)
+                    
+                    # Validate the spec
+                    errors = loader.validate_spec(game_spec)
+                    if errors:
+                        await cl.Message(
+                            content=f"❌ **Spec Validation Errors:**\n\n" + "\n".join(f"- {e}" for e in errors)
+                        ).send()
+                        return
+                    
+                    # Store spec in state
+                    state["game_spec"] = game_spec
+                    state["engine"] = game_spec.engine
+                    state["stage"] = "generating"
+                    cl.user_session.set("workshop_state", state)
+                    
+                    await cl.Message(
+                        content=f"✅ **Game Spec Loaded:** {game_spec.title}\n\n"
+                                f"**Engine:** {game_spec.engine}\n"
+                                f"**Type:** {game_spec.type}\n\n"
+                                f"Starting game generation..."
+                    ).send()
+                    
+                    # Start generation with spec
+                    await handle_workshop_flow(state)
+                    
+                finally:
+                    # Clean up temp file
+                    import os
+                    os.unlink(temp_path)
+                    
+                return
+        except json.JSONDecodeError:
+            await cl.Message(
+                content="❌ Invalid JSON format. Please check your spec file."
+            ).send()
+            return
+    
     if stage == "engine_selection":
         # User selected an engine
         if message.content.lower() in ["pygame", "godot", "bevy"]:
@@ -178,9 +242,26 @@ async def generate_game_workshop(state: Dict[str, Any]):
     # Update UI to show progress
     await send_progress_update("Analyzing game concept...", 10)
     
-    # Step 1: Generate game specification
-    await msg.update(content="🔧 Creating game architecture...")
-    await send_progress_update("Designing game architecture...", 25)
+    # Check if we have a pre-loaded game spec
+    if "game_spec" in state:
+        game_spec = state["game_spec"]
+        
+        # Get assets from registry
+        registry = get_asset_registry()
+        asset_paths = game_spec.get_engine_specific_paths()
+        
+        await msg.update(content="📄 Using provided game specification...")
+        await send_progress_update("Loading game specification...", 20)
+        
+        # Use the spec for generation
+        state["description"] = game_spec.description_full or game_spec.description_short
+        state["asset_paths"] = asset_paths
+        state["game_type"] = game_spec.type
+        state["features"] = list(game_spec.features.keys())
+    else:
+        # Step 1: Generate game specification
+        await msg.update(content="🔧 Creating game architecture...")
+        await send_progress_update("Designing game architecture...", 25)
     
     # Step 2: Generate sprites
     await msg.update(content="🎨 Generating sprites...")
@@ -240,10 +321,30 @@ async def generate_game_workshop(state: Dict[str, Any]):
     await send_progress_update("Generating game code...", 95)
     
     # Use the agent to create the game
-    project = await create_game(
-        description=state["description"],
-        engine=state["engine"]
-    )
+    if "game_spec" in state:
+        # Use the loaded spec
+        game_spec = state["game_spec"]
+        full_spec = {
+            "title": game_spec.title,
+            "type": game_spec.type,
+            "engine": game_spec.engine,
+            "description": game_spec.description_full or game_spec.description_short,
+            "assets": state.get("asset_paths", {}),
+            "mechanics": game_spec.mechanics,
+            "levels": game_spec.levels,
+            "features": game_spec.features
+        }
+        project = await create_game(
+            description=state["description"],
+            engine=state["engine"],
+            game_spec=full_spec
+        )
+    else:
+        # Generate without spec
+        project = await create_game(
+            description=state["description"],
+            engine=state["engine"]
+        )
     
     state["code"] = project.code_files
     state["stage"] = "complete"

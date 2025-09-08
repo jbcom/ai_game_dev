@@ -82,66 +82,15 @@ scenes = [
     {name = "boss_arena", style = "dramatic", description = "Epic battle arena with dramatic lighting"}
 ]
 
-# Example games to generate
-[example_games]
+# Game specifications to load on startup
+[game_specs]
+# These follow the same format as user-provided game specs
+educational_rpg = "educational_rpg.toml"
+example_platformer = "example_platformer.toml"
+example_space_shooter = "example_space_shooter.toml"
 
-[example_games.platformer]
-title = "Pixel Jump Adventure"
-engine = "pygame"
-type = "platformer"
-description = "A classic 2D platformer with jumping mechanics and collectibles"
-features = ["jumping", "collectibles", "enemies", "levels"]
-
-[example_games.space_shooter]
-title = "Galaxy Defender"
-engine = "godot"
-type = "space_shooter"
-description = "A space shooter with wave-based enemies and power-ups"
-features = ["shooting", "enemies", "powerups", "boss_battles"]
-
-[example_games.puzzle]
-title = "Code Blocks"
-engine = "bevy"
-type = "puzzle"
-description = "A puzzle game that teaches programming concepts through block manipulation"
-features = ["puzzle_mechanics", "educational_elements", "progression"]
-
-# Educational RPG Specification
-[educational_rpg]
-title = "NeoTokyo Code Academy: The Binary Rebellion"
-engine = "pygame"
-type = "educational_rpg"
-description = """
-In the year 2089, NeoTokyo is ruled by the malevolent AI Corporation. 
-As a student at the underground Code Academy, you must learn programming 
-to fight back against the digital oppression. Master variables, loops, 
-functions, and classes to become a true Code Warrior!
-"""
-
-[educational_rpg.features]
-combat = "turn-based with code challenges"
-progression = "unlock new abilities through learning concepts"
-dialogue = "interactive conversations teaching programming"
-exploration = "discover coding concepts in the game world"
-
-[educational_rpg.educational_concepts]
-beginner = ["variables", "data types", "conditionals", "loops"]
-intermediate = ["functions", "arrays", "objects", "classes"]
-advanced = ["algorithms", "design patterns", "optimization", "debugging"]
-
-[educational_rpg.characters]
-player = {name = "Professor Pixel", role = "Student turned teacher"}
-mentor = {name = "Master Compiler", role = "Wise coding sage"}
-antagonist = {name = "CEO Null Pointer", role = "Corporate villain"}
-npcs = ["Debug Sprite", "Syntax Error", "Runtime Exception"]
-
-[educational_rpg.levels]
-tutorial = "Academy Training Grounds"
-level1 = "Variable Valley"
-level2 = "Loop Lake"
-level3 = "Function Forest"
-level4 = "Class Castle"
-boss = "Binary Tower"
+# Additional game specs can be added here
+# Users can provide their own game specs in the same format
 
 # Asset path mappings
 [asset_paths]

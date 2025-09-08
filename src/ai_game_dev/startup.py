@@ -14,6 +14,7 @@ from ai_game_dev.audio import generate_sound_effect, generate_background_music
 from ai_game_dev.constants import GENERATED_ASSETS_DIR, GENERATED_GAMES_DIR, PLATFORM_SPEC_PATH, ASSETS_DIR
 from ai_game_dev.text import get_rpg_specification
 from ai_game_dev.assets.asset_registry import get_asset_registry
+from ai_game_dev.specs.game_spec_loader import load_platform_specs
 
 
 # Example game specifications
@@ -88,16 +89,22 @@ EXISTING_ASSETS = {
 # Assets to generate that don't exist yet
 ASSETS_TO_GENERATE = {
     "sprites": {
-        "game_elements": ["collectible_gem", "enemy_slime", "platform_tile", "powerup_star"],
-        "weapons": ["laser_beam", "plasma_sword", "shield_bubble"],
-        "effects": ["explosion", "sparkle", "damage_flash"]
+        "game_elements": ["collectible_gem", "enemy_slime", "platform_tile", "powerup_star", 
+                         "health_potion", "bug_creature", "error_demon"],
+        "weapons": ["laser_beam", "plasma_sword", "shield_bubble", "missile"],
+        "effects": ["explosion", "sparkle", "damage_flash", "shield_hit"],
+        "characters": ["mentor_ai", "student_coder", "bug_boss", "pixel_hero"],
+        "vehicles": ["spaceship", "enemy_fighter", "boss_ship"]
     },
     "audio": {
         "gameplay": ["jump", "collect", "damage", "levelup"],
-        "combat": ["shoot", "explosion", "shield_activate"]
+        "combat": ["shoot", "explosion", "shield_activate"],
+        "ui": ["dialogue_beep"],
+        "music": ["menu_theme", "exploration_theme", "battle_theme", "victory_theme"]
     },
     "backgrounds": {
-        "environments": ["cyberpunk_city", "digital_realm", "academy_classroom", "boss_arena"]
+        "environments": ["cyberpunk_city", "digital_realm", "academy_classroom", "boss_arena",
+                        "colorful_hills", "space_nebula"]
     }
 }
 
@@ -108,6 +115,7 @@ class StartupGenerator:
     def __init__(self):
         self.assets_dir = Path(GENERATED_ASSETS_DIR)
         self.games_dir = Path(GENERATED_GAMES_DIR)
+        self.specs_dir = Path("src/ai_game_dev/specs")
         self.manifest_path = self.assets_dir / "manifest.json"
         self.platform_spec = self._load_platform_spec()
         
@@ -235,6 +243,52 @@ class StartupGenerator:
                         "generated": True
                     }
         
+        # Music tracks
+        music_tracks = ASSETS_TO_GENERATE.get("audio", {}).get("music", [])
+        if music_tracks:
+            music_dir = self.assets_dir / "audio" / "music"
+            music_dir.mkdir(parents=True, exist_ok=True)
+            
+            for track in music_tracks:
+                asset_key = f"audio_music_{track}"
+                
+                if asset_key not in manifest.get("assets", {}):
+                    print(f"  Creating music: {track}")
+                    
+                    # Determine music style based on track name
+                    style = "electronic"
+                    if "battle" in track:
+                        style = "orchestral"
+                    elif "menu" in track:
+                        style = "ambient"
+                    elif "victory" in track:
+                        style = "chiptune"
+                    
+                    result = await generate_background_music(
+                        name=track.replace('_', ' '),
+                        style=style,
+                        duration=120,  # 2 minutes
+                        save_path=str(music_dir / f"{track}.mp3")
+                    )
+                    
+                    # Register in asset registry
+                    asset_path = f"/public/static/assets/generated/audio/music/{track}.mp3"
+                    registry.register_asset(
+                        name=track,
+                        path=asset_path,
+                        asset_type="audio",
+                        category="music",
+                        generated=True
+                    )
+                    
+                    manifest["assets"][asset_key] = {
+                        "type": "audio",
+                        "category": "music",
+                        "name": track,
+                        "path": result.path if hasattr(result, 'path') else str(music_dir / f"{track}.mp3"),
+                        "generated": True
+                    }
+        
         # Backgrounds
         for category, items in ASSETS_TO_GENERATE.get("backgrounds", {}).items():
             bg_dir = self.assets_dir / "backgrounds" / category
@@ -271,62 +325,81 @@ class StartupGenerator:
                     }
                     
     async def _generate_example_games(self, manifest: Dict[str, Any]):
-        """Generate example games for each engine."""
+        """Generate example games from platform specs."""
         print("🎮 Generating example games...")
         
-        for game_id, spec in EXAMPLE_GAMES.items():
-            if game_id not in manifest.get("games", {}):
-                print(f"\n  Creating {spec['title']} ({spec['engine']})...")
+        # Load all platform game specs
+        platform_specs = load_platform_specs()
+        
+        for spec_name, game_spec in platform_specs.items():
+            # Skip the educational RPG - it has its own generation method
+            if spec_name == "educational_rpg":
+                continue
+                
+            game_key = f"example_{spec_name}"
+            if game_key not in manifest.get("games", {}):
+                print(f"\n  Creating {game_spec.title} ({game_spec.engine})...")
                 
                 try:
-                    if spec.get("educational"):
-                        # Generate educational game
-                        project = await create_educational_game(
-                            topic="Programming Fundamentals",
-                            concepts=spec.get("concepts", ["variables", "loops"]),
-                            level="beginner"
-                        )
-                    else:
-                        # Generate regular game
-                        project = await create_game(
-                            description=spec["description"],
-                            engine=spec["engine"]
-                        )
+                    # Get asset paths for this engine
+                    asset_paths = game_spec.get_engine_specific_paths()
                     
-                    # Save project info
-                    game_dir = self.games_dir / game_id
-                    game_dir.mkdir(exist_ok=True)
+                    # Generate the game using the spec
+                    output_dir = game_spec.get_absolute_save_path()
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Create full game specification
+                    full_spec = {
+                        "title": game_spec.title,
+                        "type": game_spec.type,
+                        "engine": game_spec.engine,
+                        "description": game_spec.description_full or game_spec.description_short,
+                        "assets": asset_paths,
+                        "mechanics": game_spec.mechanics,
+                        "levels": game_spec.levels,
+                        "features": game_spec.features
+                    }
+                    
+                    # Generate the game
+                    project = await create_game(
+                        description=game_spec.description_full or game_spec.description_short,
+                        engine=game_spec.engine,
+                        game_spec=full_spec
+                    )
                     
                     # Write game files
                     for filename, content in project.code_files.items():
-                        (game_dir / filename).write_text(content)
+                        (output_dir / filename).write_text(content)
                     
-                    # Write game spec
-                    spec_path = game_dir / "game_spec.json"
-                    spec_path.write_text(json.dumps({
-                        **spec,
-                        "generated_at": str(asyncio.get_event_loop().time())
-                    }, indent=2))
+                    # Copy the original spec file
+                    spec_path = output_dir / "game_spec.toml"
+                    import shutil
+                    shutil.copy(
+                        self.specs_dir / f"{spec_name}.toml",
+                        spec_path
+                    )
                     
-                    manifest["games"][game_id] = {
-                        "title": spec["title"],
-                        "engine": spec["engine"],
-                        "path": str(game_dir),
+                    manifest["games"][game_key] = {
+                        "title": game_spec.title,
+                        "engine": game_spec.engine,
+                        "path": str(output_dir),
+                        "type": game_spec.type,
+                        "spec_file": f"{spec_name}.toml",
                         "generated": True
                     }
                     
-                    print(f"    ✅ {spec['title']} generated successfully!")
+                    print(f"    ✅ {game_spec.title} generated successfully!")
                     
                 except Exception as e:
-                    print(f"    ❌ Error generating {spec['title']}: {e}")
-                    manifest["games"][game_id] = {
-                        "title": spec["title"],
-                        "engine": spec["engine"],
+                    print(f"    ❌ Error generating {game_spec.title}: {e}")
+                    manifest["games"][game_key] = {
+                        "title": game_spec.title,
+                        "engine": game_spec.engine,
                         "error": str(e),
                         "generated": False
                     }
             else:
-                print(f"  ✓ {spec['title']} already exists")
+                print(f"  ✓ {game_spec.title} already exists")
                 
     async def _generate_educational_rpg(self, manifest: Dict[str, Any]):
         """Generate the full educational RPG from specification."""
@@ -335,19 +408,42 @@ class StartupGenerator:
         rpg_key = "educational_rpg_full"
         if rpg_key not in manifest.get("games", {}):
             try:
-                # Get the full RPG specification
-                rpg_spec = get_rpg_specification()
+                # Load the educational RPG spec
+                platform_specs = load_platform_specs()
+                rpg_spec = platform_specs.get("educational_rpg")
                 
-                # Get asset configuration from registry
-                registry = get_asset_registry()
-                asset_config = registry.get_educational_rpg_assets()
+                if not rpg_spec:
+                    print("    ❌ Educational RPG spec not found!")
+                    return
                 
-                # Generate the complete educational RPG with asset paths
+                # Get asset paths for Pygame
+                asset_paths = rpg_spec.get_engine_specific_paths()
+                
+                # Generate the complete educational RPG
+                output_dir = rpg_spec.get_absolute_save_path()
+                output_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Create full game specification
+                full_spec = {
+                    "title": rpg_spec.title,
+                    "type": rpg_spec.type,
+                    "engine": rpg_spec.engine,
+                    "description": rpg_spec.description_full,
+                    "assets": asset_paths,
+                    "mechanics": rpg_spec.mechanics,
+                    "levels": rpg_spec.levels,
+                    "features": rpg_spec.features,
+                    "characters": rpg_spec.characters,
+                    "educational": rpg_spec.educational,
+                    "dialogue": rpg_spec.dialogue,
+                    "ui": rpg_spec.ui
+                }
+                
                 project = await create_educational_game(
-                    topic="Programming through Cyberpunk Adventure",
-                    concepts=["variables", "loops", "functions", "classes", "algorithms"],
-                    level="progressive",  # Adapts from beginner to advanced
-                    asset_paths=asset_config
+                    topic=rpg_spec.description_short,
+                    concepts=rpg_spec.educational.get("concepts", []),
+                    level="progressive",
+                    game_spec=full_spec
                 )
                 
                 # Save to special directory

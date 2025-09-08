@@ -6,6 +6,8 @@ class Workshop {
         this.selectedEngine = '';
         this.isGenerating = false;
         this.generatedAssets = [];
+        this.uploadedSpec = null;
+        this.activeTab = 'describe';
         this.init();
     }
 
@@ -54,11 +56,36 @@ class Workshop {
                 <!-- Game Description -->
                 <div class="glass-panel p-6 mb-6">
                     <h2 class="text-xl font-semibold mb-4 text-white">Describe Your Game</h2>
-                    <textarea
-                        id="gameDescription"
-                        class="w-full h-32 bg-gray-800 text-white p-4 rounded-lg border border-cyan-500/30 focus:border-cyan-500 focus:outline-none resize-none"
-                        placeholder="Example: A cyberpunk platformer with hacking mechanics..."
-                    ></textarea>
+                    
+                    <!-- Tabs for description vs spec upload -->
+                    <div class="tabs mb-4">
+                        <button class="tab-btn active" data-tab="describe">Describe Game</button>
+                        <button class="tab-btn" data-tab="upload">Upload Spec</button>
+                    </div>
+                    
+                    <!-- Description Tab -->
+                    <div id="describeTab" class="tab-content active">
+                        <textarea
+                            id="gameDescription"
+                            class="w-full h-32 bg-gray-800 text-white p-4 rounded-lg border border-cyan-500/30 focus:border-cyan-500 focus:outline-none resize-none"
+                            placeholder="Example: A cyberpunk platformer with hacking mechanics..."
+                        ></textarea>
+                    </div>
+                    
+                    <!-- Upload Tab -->
+                    <div id="uploadTab" class="tab-content hidden">
+                        <div class="upload-area border-2 border-dashed border-cyan-500/30 rounded-lg p-8 text-center">
+                            <input type="file" id="specFile" accept=".toml,.json" class="hidden" />
+                            <label for="specFile" class="cursor-pointer">
+                                <p class="text-lg mb-2">📄 Drop game spec here or click to browse</p>
+                                <p class="text-sm text-gray-400">Supports .toml and .json formats</p>
+                            </label>
+                            <div id="specPreview" class="mt-4 hidden">
+                                <p class="text-sm text-cyan-300">Selected: <span id="specFileName"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button
                         id="generateBtn"
                         class="custom-button mt-4 px-6 py-3 rounded-lg font-semibold"
@@ -95,6 +122,18 @@ class Workshop {
             });
         });
 
+        // Tab switching
+        this.element.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.activeTab = btn.dataset.tab;
+                this.updateTabs();
+            });
+        });
+
+        // File upload
+        const fileInput = this.element.querySelector('#specFile');
+        fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+
         // Generate button
         const generateBtn = this.element.querySelector('#generateBtn');
         generateBtn.addEventListener('click', () => this.handleGenerate());
@@ -111,28 +150,98 @@ class Workshop {
         });
     }
 
+    updateTabs() {
+        // Update tab buttons
+        this.element.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.dataset.tab === this.activeTab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Update tab content
+        const describeTab = this.element.querySelector('#describeTab');
+        const uploadTab = this.element.querySelector('#uploadTab');
+        
+        if (this.activeTab === 'describe') {
+            describeTab.classList.remove('hidden');
+            describeTab.classList.add('active');
+            uploadTab.classList.add('hidden');
+            uploadTab.classList.remove('active');
+        } else {
+            describeTab.classList.add('hidden');
+            describeTab.classList.remove('active');
+            uploadTab.classList.remove('hidden');
+            uploadTab.classList.add('active');
+        }
+    }
+
+    async handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            this.uploadedSpec = {
+                name: file.name,
+                content: e.target.result
+            };
+            
+            // Show preview
+            const preview = this.element.querySelector('#specPreview');
+            const fileName = this.element.querySelector('#specFileName');
+            preview.classList.remove('hidden');
+            fileName.textContent = file.name;
+        };
+        reader.readAsText(file);
+    }
+
     handleGenerate() {
-        const description = this.element.querySelector('#gameDescription').value.trim();
-        if (!description) {
-            alert('Please describe your game first!');
-            return;
-        }
-        
-        if (!this.selectedEngine) {
-            alert('Please select an engine first!');
-            return;
-        }
+        if (this.activeTab === 'describe') {
+            const description = this.element.querySelector('#gameDescription').value.trim();
+            if (!description) {
+                alert('Please describe your game first!');
+                return;
+            }
+            
+            if (!this.selectedEngine) {
+                alert('Please select an engine first!');
+                return;
+            }
 
-        this.isGenerating = true;
-        this.showProgress();
+            this.isGenerating = true;
+            this.showProgress();
 
-        // First send the engine selection
-        this.sendMessage(this.selectedEngine);
-        
-        // Then send the description after a short delay
-        setTimeout(() => {
-            this.sendMessage(description);
-        }, 100);
+            // First send the engine selection
+            this.sendMessage(this.selectedEngine);
+            
+            // Then send the description after a short delay
+            setTimeout(() => {
+                this.sendMessage(description);
+            }, 100);
+        } else {
+            // Upload mode
+            if (!this.uploadedSpec) {
+                alert('Please upload a game specification file!');
+                return;
+            }
+
+            this.isGenerating = true;
+            this.showProgress();
+
+            // Send spec file indicator and content
+            this.sendMessage('spec_upload');
+            
+            // Send the spec content after a short delay
+            setTimeout(() => {
+                this.sendMessage(JSON.stringify({
+                    type: 'game_spec',
+                    filename: this.uploadedSpec.name,
+                    content: this.uploadedSpec.content
+                }));
+            }, 100);
+        }
     }
 
     showProgress() {

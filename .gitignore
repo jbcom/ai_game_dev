@@ -514,6 +514,9 @@ generated_examples/
 generated_content/
 /generated_games/
 /public/static/assets/generated/
+**/asset_registry.json
+**/generation_manifest.json
+**/manifest.json
 
 # AI model outputs and caches
 *.pkl

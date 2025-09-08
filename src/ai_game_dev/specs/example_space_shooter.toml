@@ -1,0 +1,52 @@
+# Example Space Shooter Game Specification
+
+[game]
+title = "Galaxy Defender"
+engine = "godot"
+type = "space_shooter"
+version = "1.0.0"
+save_path = "generated_games/galaxy_defender"
+
+[game.description]
+short = "Defend the galaxy from alien invaders"
+full = "Pilot your spaceship through waves of enemies in this action-packed space shooter"
+
+[game.features]
+movement = "8-directional"
+weapons = ["laser", "missile", "plasma"]
+enemy_waves = true
+boss_battles = true
+upgrades = true
+
+[game.assets]
+sprites.player = "generated/sprites/vehicles/spaceship.png"
+sprites.enemies = [
+    "generated/sprites/vehicles/enemy_fighter.png",
+    "generated/sprites/vehicles/boss_ship.png"
+]
+sprites.projectiles = [
+    "generated/sprites/weapons/laser_beam.png",
+    "generated/sprites/weapons/missile.png"
+]
+sprites.effects = [
+    "generated/sprites/effects/explosion.png",
+    "generated/sprites/effects/shield_hit.png"
+]
+
+backgrounds = ["generated/backgrounds/environments/space_nebula.png"]
+
+audio.effects = {
+    shoot = "generated/audio/combat/shoot.wav",
+    explosion = "generated/audio/combat/explosion.wav",
+    shield = "generated/audio/combat/shield_activate.wav"
+}
+
+[game.mechanics]
+[game.mechanics.player]
+health = 100
+shield = 50
+fire_rate = 0.2
+
+[game.mechanics.enemies]
+spawn_rate = 2.0
+difficulty_scaling = true

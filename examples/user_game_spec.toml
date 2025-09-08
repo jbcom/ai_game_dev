@@ -1,0 +1,79 @@
+# Example User Game Specification
+# This shows how external users can define their own game specs
+
+[game]
+title = "Crystal Quest"
+engine = "pygame"
+type = "puzzle_rpg"
+version = "1.0.0"
+save_path = "generated_games/crystal_quest"
+
+[game.description]
+short = "A puzzle RPG where you collect magical crystals"
+full = """
+Embark on a quest to collect magical crystals scattered across mystical lands.
+Solve puzzles, battle enemies, and unlock new abilities as you progress through
+increasingly challenging levels. Each crystal grants unique powers that help
+you overcome obstacles and discover hidden secrets.
+"""
+
+[game.features]
+puzzle_mechanics = "match-3 and spatial puzzles"
+combat_system = "turn-based with elemental magic"
+progression = "unlock abilities with crystals"
+exploration = "interconnected world map"
+
+[game.assets]
+# Assets will be automatically mapped to available generated/static assets
+sprites.player = "characters/crystal_mage.png"
+sprites.enemies = ["enemy_golem.png", "shadow_beast.png", "crystal_guardian.png"]
+sprites.items = ["crystal_red.png", "crystal_blue.png", "crystal_green.png"]
+sprites.effects = ["magic_burst.png", "crystal_glow.png"]
+
+backgrounds = ["mystical_forest.png", "crystal_cave.png", "ancient_temple.png"]
+
+audio.effects = {
+    collect = "crystal_chime.wav",
+    magic_cast = "spell_whoosh.wav",
+    puzzle_solve = "success_melody.wav"
+}
+
+audio.music = {
+    exploration = "mystical_ambience.mp3",
+    puzzle = "thinking_time.mp3",
+    battle = "epic_confrontation.mp3"
+}
+
+[game.mechanics]
+[game.mechanics.puzzle]
+types = ["match-3", "sliding", "rotation", "pattern"]
+difficulty_scaling = true
+time_limits = false
+
+[game.mechanics.combat]
+elements = ["fire", "water", "earth", "air"]
+combos = true
+turn_timer = 30
+
+[game.mechanics.progression]
+crystal_types = 5
+abilities_per_crystal = 3
+level_gating = true
+
+[game.levels]
+count = 20
+themes = ["forest", "caves", "temple", "sky", "final"]
+
+[[game.levels.bosses]]
+name = "Forest Guardian"
+level = 5
+element = "earth"
+
+[[game.levels.bosses]]
+name = "Crystal Dragon"
+level = 20
+element = "all"
+
+[game.ui]
+style = "fantasy"
+theme_colors = {primary = "#9b59b6", secondary = "#3498db", accent = "#e74c3c"}
